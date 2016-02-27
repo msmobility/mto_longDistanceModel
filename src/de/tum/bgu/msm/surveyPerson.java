@@ -3,6 +3,7 @@ package de.tum.bgu.msm;
 import org.apache.log4j.Logger;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,6 @@ public class surveyPerson implements Serializable {
     static Logger logger = Logger.getLogger(surveyPerson.class);
 
     private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
-    // Note: if attributes are edited, remember to edit attributes for inmigrants in \relocation\InOutMigration\setupInOutMigration.java and \relocation\InOutMigration\inmigrateHh.java as well
     int refYear;
     int refMonth;
     int pumfId;
@@ -34,6 +34,7 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
+    ArrayList<int[]> trips;
 
     
     public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup, 
@@ -53,6 +54,7 @@ public class surveyPerson implements Serializable {
         this.hhIncome = hhIncome;
         this.adultsInHh = adultsInHh;
         this.kidsInHh = kidsInHh;
+        this.trips = new ArrayList<>();
         personMap.put(pumfId,this);
     }
 
@@ -71,6 +73,17 @@ public class surveyPerson implements Serializable {
 
     public static surveyPerson[] getPersonArray() {
         return personMap.values().toArray(new surveyPerson[personMap.size()]);
+    }
+
+
+    public void addTrip(int origProvince, int destProvince, int mainMode, int homeCma, int tripPurp) {
+        int[] tripRecord = new int[5];
+        tripRecord[0] = origProvince;
+        tripRecord[1] = destProvince;
+        tripRecord[2] = mainMode;
+        tripRecord[3] = homeCma;
+        tripRecord[4] = tripPurp;
+        trips.add(tripRecord);
     }
 
 }

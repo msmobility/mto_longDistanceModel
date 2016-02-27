@@ -62,7 +62,7 @@ public class mtoData {
         // read ITS data
         logger.info ("  Reading ITS data");
         String fileName = workDirectory + ResourceUtil.getProperty(rb, "its.data");
-        String recString = "";
+        String recString;
         int recCount = 0;
 
         // Create list by mode
@@ -99,72 +99,89 @@ public class mtoData {
         // read TSRC data
         logger.info ("  Reading TSRC data for " + year);
 
-        // Create HashMap by destination province by mode
-        HashMap<Integer, Integer[]> destinationCounter = new HashMap<>();
-        for (int pr: provinceList.getColumnAsInt("Code")) {
-            destinationCounter.put(pr, new Integer[]{0,0,0,0,0,0,0,0,0});
-        }
-
-        // Create list of main modes
-        int[] mainModes = mainModeList.getColumnAsInt("Code");
-        int highestCode = util.getHighestVal(mainModes);
-        int[] mainModeIndex = new int[highestCode + 1];
-        for (int mode = 0; mode < mainModes.length; mode++) {
-            mainModeIndex[mainModes[mode]] = mode;
-        }
-
-        // Create list of CMA regions
-        int[] homeCmaList = cmaList.getColumnAsInt("CMAUID");
-        int[] cmaIndex = new int[util.getHighestVal(homeCmaList) + 1];
-        for (int i = 0; i < homeCmaList.length; i++) cmaIndex[homeCmaList[i]] = i;
-        int[] tripsByHomeCma = new int[homeCmaList.length];
-
-        // Create list of trip purposes
-        int[] purpList = tripPurposes.getColumnAsInt("Code");
-        int highestPurp = util.getHighestVal(purpList);
-        int[] purposeIndex = new int[highestPurp + 1];
-        for (int purp = 0; purp < purpList.length; purp++) purposeIndex[purpList[purp]] = purp;
-        int[] purpCnt = new int[purpList.length];
-
-        int[][] modePurpCnt = new int[mainModes.length][purpList.length];
-
         String dirName = workDirectory + ResourceUtil.getProperty(rb, ("tsrc.data.dir"));
-        String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
-        String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
 
-        // read trip file
-        String recString = "";
-        int recCount = 0;
-        try {
-            String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
-            BufferedReader in = new BufferedReader(new FileReader(fullFileName));
-            while ((recString = in.readLine()) != null) {
-                recCount++;
-                String origProvince = recString.substring(16, 18);  // ascii position in file: 017-018
-                if (origProvince.equals("35")){
-                    // origin == ontario
-                    recCount++;
-                    int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
-                    int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
-                    int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
-                    int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
-                    Integer[] tripsByMode = destinationCounter.get(destProvince);
-                    tripsByMode[mainModeIndex[mainMode]] = tripsByMode[mainModeIndex[mainMode]] + 1;
-                    if (util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]]++;
-                    purpCnt[purposeIndex[tripPurp]]++;
-                    modePurpCnt[mainModeIndex[mainMode]][purposeIndex[tripPurp]]++;
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Could not read TSRC trip data: " + e);
-        }
-        logger.info("  Read " + recCount + " records with a trip origin Ontario (35)");
+        readTSRCpersonData(dirName, year);
+        readTSRCtripData(dirName, year);
 
+//        // Create HashMap by destination province by mode
+//        HashMap<Integer, Integer[]> destinationCounter = new HashMap<>();
+//        for (int pr: provinceList.getColumnAsInt("Code")) {
+//            destinationCounter.put(pr, new Integer[]{0,0,0,0,0,0,0,0,0});
+//        }
+//
+//        // Create list of main modes
+//        int[] mainModes = mainModeList.getColumnAsInt("Code");
+//        int highestCode = util.getHighestVal(mainModes);
+//        int[] mainModeIndex = new int[highestCode + 1];
+//        for (int mode = 0; mode < mainModes.length; mode++) {
+//            mainModeIndex[mainModes[mode]] = mode;
+//        }
+//
+//        // Create list of CMA regions
+//        int[] homeCmaList = cmaList.getColumnAsInt("CMAUID");
+//        int[] cmaIndex = new int[util.getHighestVal(homeCmaList) + 1];
+//        for (int i = 0; i < homeCmaList.length; i++) cmaIndex[homeCmaList[i]] = i;
+//        int[] tripsByHomeCma = new int[homeCmaList.length];
+//
+//        // Create list of trip purposes
+//        int[] purpList = tripPurposes.getColumnAsInt("Code");
+//        int highestPurp = util.getHighestVal(purpList);
+//        int[] purposeIndex = new int[highestPurp + 1];
+//        for (int purp = 0; purp < purpList.length; purp++) purposeIndex[purpList[purp]] = purp;
+//        int[] purpCnt = new int[purpList.length];
+//
+//        int[][] modePurpCnt = new int[mainModes.length][purpList.length];
+
+
+
+//        iterate over all trips:
+//        Integer[] tripsByMode = destinationCounter.get(destProvince);
+//        tripsByMode[mainModeIndex[mainMode]] = tripsByMode[mainModeIndex[mainMode]] + 1;
+//        if (util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]]++;
+//        purpCnt[purposeIndex[tripPurp]]++;
+//        modePurpCnt[mainModeIndex[mainMode]][purposeIndex[tripPurp]]++;
+//
+//        String txt1 = "Destination";
+//        for (int mode: mainModes) txt1 += "," + mainModeList.getIndexedStringValueAt(mode, "MainMode");
+//        logger.info(txt1);
+//        for (Integer pr: provinceList.getColumnAsInt("Code")) {
+//            String txt2 = "Trips to " + pr + " (" + provinceList.getIndexedStringValueAt(pr, "Province") + ")";
+//            for (int mode: mainModes) txt2 += ","+destinationCounter.get(pr)[mainModeIndex[mode]];
+//            logger.info(txt2);
+//        }
+//
+//        logger.info("Trips by purpose");
+//        for (int i: purpList) {
+//            if (purpCnt[purposeIndex[i]] > 0) logger.info(tripPurposes.getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
+//        }
+//
+//        logger.info("Trip origin by CMA");
+//        for (int i: homeCmaList) {
+//            if (tripsByHomeCma[cmaIndex[i]] > 0) logger.info(i + " " + tripsByHomeCma[cmaIndex[i]]);
+//        }
+//
+//        logger.info("Trips by mode and purpose");
+//        String tx = "Purpose";
+//        for (int mode: mainModes) tx = tx.concat("," + mainModeList.getIndexedStringValueAt(mode, "MainMode"));
+//        logger.info(tx);
+//        for (int purp: purpList) {
+//            tx = tripPurposes.getIndexedStringValueAt(purp, "Purpose");
+//            for (int mode: mainModes) {
+//                tx = tx.concat("," + modePurpCnt[mainModeIndex[mode]][purposeIndex[purp]]);
+//            }
+//            logger.info(tx);
+//        }
+    }
+
+
+    private void readTSRCpersonData (String dirName, int year) {
         // read person file
-        // Person_TSRC2012_Mth01_Pumf.txt
 
+        String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
+        String recString;
         for (int month = 1; month <= 12; month++) {
-            recCount = 0;
+            int recCount = 0;
             try {
                 String fullFileName;
                 if (month <= 9) fullFileName= dirName + File.separator + year + File.separator + personFileName + year +
@@ -195,38 +212,35 @@ public class mtoData {
             }
             logger.info("  Read " + recCount + " person records for the month " + month);
         }
+    }
 
 
-        String txt1 = "Destination";
-        for (int mode: mainModes) txt1 += "," + mainModeList.getIndexedStringValueAt(mode, "MainMode");
-        logger.info(txt1);
-        for (Integer pr: provinceList.getColumnAsInt("Code")) {
-            String txt2 = "Trips to " + pr + " (" + provinceList.getIndexedStringValueAt(pr, "Province") + ")";
-            for (int mode: mainModes) txt2 += ","+destinationCounter.get(pr)[mainModeIndex[mode]];
-            logger.info(txt2);
-        }
+    private void readTSRCtripData (String dirName, int year) {
+        // read trip file
 
-        logger.info("Trips by purpose");
-        for (int i: purpList) {
-            if (purpCnt[purposeIndex[i]] > 0) logger.info(tripPurposes.getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
-        }
-
-        logger.info("Trip origin by CMA");
-        for (int i: homeCmaList) {
-            if (tripsByHomeCma[cmaIndex[i]] > 0) logger.info(i + " " + tripsByHomeCma[cmaIndex[i]]);
-        }
-
-        logger.info("Trips by mode and purpose");
-        String tx = "Purpose";
-        for (int mode: mainModes) tx = tx.concat("," + mainModeList.getIndexedStringValueAt(mode, "MainMode"));
-        logger.info(tx);
-        for (int purp: purpList) {
-            tx = tripPurposes.getIndexedStringValueAt(purp, "Purpose");
-            for (int mode: mainModes) {
-                tx = tx.concat("," + modePurpCnt[mainModeIndex[mode]][purposeIndex[purp]]);
+        String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
+        String recString;
+        int recCount = 0;
+        try {
+            String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
+            BufferedReader in = new BufferedReader(new FileReader(fullFileName));
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                int pumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int origProvince = convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
+                int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
+                int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
+                int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
+                int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
+                surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
+                sp.addTrip(origProvince, destProvince, mainMode, homeCma, tripPurp);
+                recCount++;
             }
-            logger.info(tx);
+        } catch (Exception e) {
+            logger.error("Could not read TSRC trip data: " + e);
         }
+        logger.info("  Read " + recCount + " records.");
+
     }
 
 
