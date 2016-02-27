@@ -86,4 +86,16 @@ public class surveyPerson implements Serializable {
         trips.add(tripRecord);
     }
 
+
+    public int getNumberOfTrips() {
+        return trips.size();
+    }
+
+    public int getHhIncome() {
+        return hhIncome;
+    }
+
+    public float getWeight() {
+        return weight;
+    }
 }

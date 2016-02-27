@@ -24,7 +24,7 @@ public class mto {
 
 
     public mto(ResourceBundle rb) {
-        // contructor
+        // constructor
         this.rb = rb;
     }
 
@@ -45,6 +45,7 @@ public class mto {
         mtoData data = new mtoData(rb);
         data.readInput();
         mtoLongDistance ld = new mtoLongDistance(rb, data);
+        ld.analyzeTsrcData();
         ld.runLongDistanceModel();
 
         float endTime = util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);

@@ -1,5 +1,6 @@
 package de.tum.bgu.msm;
 
+import com.pb.common.util.ResourceUtil;
 import org.apache.log4j.Logger;
 
 import java.util.ResourceBundle;
@@ -22,6 +23,14 @@ public class mtoLongDistance {
     public mtoLongDistance(ResourceBundle rb, mtoData data) {
         this.rb = rb;
         this.data = data;
+    }
+
+
+    public void analyzeTsrcData() {
+        // run selected data analyses
+
+        mtoAnalyzeData ad = new mtoAnalyzeData(rb);
+        ad.runAnalyses();
     }
 
 
