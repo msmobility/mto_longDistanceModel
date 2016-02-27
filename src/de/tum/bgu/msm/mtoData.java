@@ -193,7 +193,7 @@ public class mtoData {
             } catch (Exception e) {
                 logger.error("Could not read TSRC person data: " + e);
             }
-            logger.info("  Read " + recCount + " person records for month " + month);
+            logger.info("  Read " + recCount + " person records for the month " + month);
         }
 
 
