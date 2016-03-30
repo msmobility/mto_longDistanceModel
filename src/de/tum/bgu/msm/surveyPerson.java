@@ -34,10 +34,10 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    ArrayList<int[]> trips;
+    ArrayList<Integer> tours;
 
-    
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup, 
+
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup,
                         int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
@@ -54,7 +54,7 @@ public class surveyPerson implements Serializable {
         this.hhIncome = hhIncome;
         this.adultsInHh = adultsInHh;
         this.kidsInHh = kidsInHh;
-        this.trips = new ArrayList<>();
+        this.tours = new ArrayList<>();
         personMap.put(pumfId,this);
     }
 
@@ -76,19 +76,12 @@ public class surveyPerson implements Serializable {
     }
 
 
-    public void addTrip(int origProvince, int destProvince, int mainMode, int homeCma, int tripPurp) {
-        int[] tripRecord = new int[5];
-        tripRecord[0] = origProvince;
-        tripRecord[1] = destProvince;
-        tripRecord[2] = mainMode;
-        tripRecord[3] = homeCma;
-        tripRecord[4] = tripPurp;
-        trips.add(tripRecord);
+    public void addTour(int tourId) {
+        tours.add(util.createTourId(pumfId, tourId));
     }
 
-
     public int getNumberOfTrips() {
-        return trips.size();
+        return tours.size();
     }
 
     public int getHhIncome() {
@@ -98,4 +91,5 @@ public class surveyPerson implements Serializable {
     public float getWeight() {
         return weight;
     }
+
 }

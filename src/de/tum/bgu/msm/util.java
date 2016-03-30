@@ -70,4 +70,8 @@ public class util {
         return Math.round(value * Math.pow(10, digits) + 0.5)/(float) Math.pow(10, digits);
     }
 
+
+    public static int createTourId (int pumfId, int tripId) {
+        return pumfId * 100 + tripId;
+    }
 }

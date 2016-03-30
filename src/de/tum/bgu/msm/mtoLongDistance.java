@@ -29,7 +29,7 @@ public class mtoLongDistance {
     public void analyzeTsrcData() {
         // run selected data analyses
 
-        mtoAnalyzeData ad = new mtoAnalyzeData(rb);
+        mtoAnalyzeData ad = new mtoAnalyzeData(rb, data);
         ad.runAnalyses();
     }
 
