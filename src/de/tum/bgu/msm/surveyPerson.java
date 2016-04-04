@@ -88,6 +88,42 @@ public class surveyPerson implements Serializable {
         return hhIncome;
     }
 
+    public int getAgeGroup() {
+        return ageGroup;
+    }
+
+    public int getGender() {
+        return gender;
+    }
+
+    public int getPumfId() {
+        return pumfId;
+    }
+
+    public int getEducation() {
+        return education;
+    }
+
+    public int getLaborStat() {
+        return laborStat;
+    }
+
+    public int getAdultsInHh() {
+        return adultsInHh;
+    }
+
+    public int getKidsInHh() {
+        return kidsInHh;
+    }
+
+    public int getProv() {
+        return prov;
+    }
+
+    public ArrayList<Integer> getTours() {
+        return tours;
+    }
+
     public float getWeight() {
         return weight;
     }

@@ -30,7 +30,8 @@ public class mtoLongDistance {
         // run selected data analyses
 
         mtoAnalyzeData ad = new mtoAnalyzeData(rb, data);
-        ad.runAnalyses();
+        if (ResourceUtil.getBooleanProperty(rb, "analyze.tsrc.data")) ad.runAnalyses();
+        if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) ad.writeOutData();
     }
 
 

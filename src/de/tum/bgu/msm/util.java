@@ -5,7 +5,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import org.apache.log4j.Logger;
 
-import java.io.File;
+import java.io.*;
 import java.util.ResourceBundle;
 
 /**
@@ -45,6 +45,21 @@ public class util {
             throw new RuntimeException(e);
         }
         return dataTable;
+    }
+
+
+    public static PrintWriter openFileForSequentialWriting(String fileName, boolean appendFile) {
+        // open file and return PrintWriter object
+
+        File outputFile = new File(fileName);
+        try {
+            FileWriter fw = new FileWriter(outputFile, appendFile);
+            BufferedWriter bw = new BufferedWriter(fw);
+            return new PrintWriter(bw);
+        } catch (IOException e) {
+            logger.error("Could not open file <" + fileName + ">.");
+            return null;
+        }
     }
 
 

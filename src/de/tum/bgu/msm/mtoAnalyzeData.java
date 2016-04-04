@@ -3,6 +3,7 @@ package de.tum.bgu.msm;
 import com.pb.common.util.ResourceUtil;
 import org.apache.log4j.Logger;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -11,8 +12,7 @@ import java.util.ResourceBundle;
  * Class to hold person object of travelers and non-travelers of the TSRC survey
  *
  * @author Rolf Moeckel
- * Created on 26 Feb. 2016 in Vienna, VA
- *
+ *         Created on 26 Feb. 2016 in Vienna, VA
  **/
 
 public class mtoAnalyzeData {
@@ -28,21 +28,20 @@ public class mtoAnalyzeData {
     }
 
 
-    public void runAnalyses () {
+    public void runAnalyses() {
         // run selected long-distance travel analyzes
-        if (!ResourceUtil.getBooleanProperty(rb, "analyze.ld.data")) return;
         logger.info("Running selected analyses of long-distance data");
         countTravelersByIncome();
         tripsByModeAndOriginProvince();
     }
 
 
-    private void countTravelersByIncome () {
+    private void countTravelersByIncome() {
 
         int[] incomeCountTrips = new int[10];
         int[] incomeCountPersons = new int[10];
         surveyPerson[] spList = surveyPerson.getPersonArray();
-        for (surveyPerson sp: spList) {
+        for (surveyPerson sp : spList) {
             incomeCountPersons[sp.getHhIncome()] += sp.getWeight();
             if (sp.getNumberOfTrips() > 0) {
                 incomeCountTrips[sp.getHhIncome()] += sp.getWeight() * sp.getNumberOfTrips();
@@ -50,7 +49,8 @@ public class mtoAnalyzeData {
         }
 
         logger.info("Travelers and non-travelers by income");
-        for (int inc = 1; inc <= 4; inc++) System.out.println("IncomeGroupPersons" + inc + ": " + incomeCountPersons[inc]);
+        for (int inc = 1; inc <= 4; inc++)
+            System.out.println("IncomeGroupPersons" + inc + ": " + incomeCountPersons[inc]);
         System.out.println("IncomeNotStatedPersons: " + incomeCountPersons[9]);
         for (int inc = 1; inc <= 4; inc++) System.out.println("IncomeGroupTrips" + inc + ": " + incomeCountTrips[inc]);
         System.out.println("IncomeNotStatedTrips: " + incomeCountTrips[9]);
@@ -61,8 +61,8 @@ public class mtoAnalyzeData {
 
         // Create HashMap by destination province by mode
         HashMap<Integer, Float[]> destinationCounter = new HashMap<>();
-        for (int pr: data.getProvinceList().getColumnAsInt("Code")) {
-            destinationCounter.put(pr, new Float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f});
+        for (int pr : data.getProvinceList().getColumnAsInt("Code")) {
+            destinationCounter.put(pr, new Float[]{0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f});
         }
 
         // Create list of main modes
@@ -90,15 +90,15 @@ public class mtoAnalyzeData {
         int[] stopFrequency = new int[100];
 
 //      iterate over all tours:
-        for (surveyPerson sp: surveyPerson.getPersonArray()) {
+        for (surveyPerson sp : surveyPerson.getPersonArray()) {
             if (sp.getNumberOfTrips() == 0) continue;  //Person did not make long-distance trip
             float weight = sp.getWeight();
             ArrayList<Integer> ldTrips = sp.tours;
-            for (int tripRecord: ldTrips) {
+            for (int tripRecord : ldTrips) {
                 surveyTour st = surveyTour.getTourFromId(tripRecord);
                 int origProvince = st.getOrigProvince();
                 if (origProvince != 35) continue;
-                System.out.println(sp.pumfId+" "+tripRecord+" "+origProvince);
+                System.out.println(sp.pumfId + " " + tripRecord + " " + origProvince);
                 int destProvince = st.getDestProvince();
                 int mainMode = st.getMainMode();
                 int homeCma = st.getHomeCma();
@@ -121,27 +121,103 @@ public class mtoAnalyzeData {
             logger.info(txt2);
         }
         logger.info("Trips by purpose");
-        for (int i: purpList) {
-            if (purpCnt[purposeIndex[i]] > 0) logger.info(data.getTripPurposes().getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
+        for (int i : purpList) {
+            if (purpCnt[purposeIndex[i]] > 0)
+                logger.info(data.getTripPurposes().getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
         }
 
         logger.info("Trip origin by CMA");
-        for (int i: homeCmaList) {
+        for (int i : homeCmaList) {
             if (tripsByHomeCma[cmaIndex[i]] > 0) logger.info(i + " " + tripsByHomeCma[cmaIndex[i]]);
         }
 
         logger.info("Trips by mode and purpose");
         String tx = "Purpose";
-        for (int mode: mainModes) tx = tx.concat("," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode"));
+        for (int mode : mainModes)
+            tx = tx.concat("," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode"));
         logger.info(tx);
-        for (int purp: purpList) {
+        for (int purp : purpList) {
             tx = data.getTripPurposes().getIndexedStringValueAt(purp, "Purpose");
-            for (int mode: mainModes) {
+            for (int mode : mainModes) {
                 tx = tx.concat("," + modePurpCnt[mainModeIndex[mode]][purposeIndex[purp]]);
             }
             logger.info(tx);
         }
-        logger.info ("Tour stop frequency:");
+        logger.info("Tour stop frequency:");
         for (int i = 0; i < stopFrequency.length; i++) logger.info(i + " stops: " + stopFrequency[i]);
+    }
+
+
+    public void writeOutData() {
+        // write out travel data for model estimation
+        logger.info("Writing out data for external model estimation");
+        String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
+        String[] purposes = {"Holiday", "Visit", "Business", "Other"};
+        pw.print("id,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,income," +
+                "expansionFactor,longDistanceTrips,daysAtHome");
+        for (String txt : purposes)
+            pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
+        pw.println();
+
+        for (surveyPerson sp : surveyPerson.getPersonArray()) {
+            ArrayList<Integer> tours = sp.getTours();
+            int[] daysInOut = new int[purposes.length];
+            int[] daysDayTrip = new int[purposes.length];
+            int[] daysAway = new int[purposes.length];
+            int daysHome = 30;
+            // First, count day trips
+            for (int tour : tours) {
+                surveyTour st = surveyTour.getTourFromId(tour);
+                int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                if (st.getNumberNights() == 0) {
+                    daysDayTrip[tripPurp]++;
+                    daysHome--;
+                }
+            }
+            // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
+            for (int tour : tours) {
+                surveyTour st = surveyTour.getTourFromId(tour);
+                int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                if (st.getNumberNights() > 0) {
+                    // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
+                    // only the return trip is counted (as the outbound trip must have happened the previous month)
+                    if (daysHome > 0) {
+                        daysInOut[tripPurp]++;                            // return trip
+                        daysHome--;
+                    }
+                    daysAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome); // days away
+                    daysHome -= Math.min(st.getNumberNights() - 1, daysHome);
+                    if (daysHome > 0) {
+                        daysInOut[tripPurp]++;                            // outbound trip
+                        daysHome--;
+                    }
+                }
+            }
+            pw.print(sp.getPumfId() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," + sp.getAdultsInHh() + "," +
+                    sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() + "," + sp.getProv() + "," +
+                    sp.getHhIncome() + "," + sp.getWeight() + "," + sp.getNumberOfTrips() + "," + daysHome);
+            for (int i = 0; i < purposes.length; i++)
+                pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
+                        daysAway[i]);
+            pw.println();
+        }
+        pw.close();
+    }
+
+
+    private int translateTripPurpose(String[] purposes, int purp) {
+
+        int[] code = new int[8];
+        code[0] = 0;
+        code[1] = 0;
+        code[2] = 1;
+        code[3] = 3;
+        code[4] = 3;
+        code[5] = 3;
+        code[6] = 2;
+        code[7] = 2;
+        //logger.info("Translated purpose " + purp + " into code " + code[purp] + " (" + purposes[code[purp]] + ")");
+        return code[purp];
     }
 }

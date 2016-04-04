@@ -233,8 +233,10 @@ public class mtoData {
                 int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
                 int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
                 int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
+                int numberNights = convertToInteger(recString.substring(120, 123));  // ascii position in file: 121-123
                 int numIdentical = convertToInteger(recString.substring(173, 175));  // ascii position in file: 174-175
-                new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numIdentical);
+                new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
+                        numIdentical);
                 surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tripId);

@@ -27,11 +27,12 @@ public class surveyTour implements Serializable {
     private int mainMode;
     int homeCma;
     int tripPurp;
+    int numberNights;
     int numIdentical;
     ArrayList<int[]> tourStops;
 
     public surveyTour(int tourId, int pumfId, int origProvince, int destProvince, int mainMode, int homeCma,
-                      int tripPurp, int numIdentical) {
+                      int tripPurp, int numberNights, int numIdentical) {
         // constructor of new survey tour
 
         this.tourId = util.createTourId(pumfId, tourId);
@@ -40,6 +41,7 @@ public class surveyTour implements Serializable {
         this.mainMode = mainMode;
         this.homeCma = homeCma;
         this.tripPurp = tripPurp;
+        this.numberNights = numberNights;
         this.numIdentical = numIdentical;
         tourStops = new ArrayList<>();
         tourMap.put(this.tourId,this);
@@ -74,6 +76,10 @@ public class surveyTour implements Serializable {
 
     public int getTripPurp() {
         return tripPurp;
+    }
+
+    public int getNumberNights() {
+        return numberNights;
     }
 
     public int getNumIdentical() {
