@@ -128,4 +128,7 @@ public class surveyPerson implements Serializable {
         return weight;
     }
 
+    public int getRefMonth() {
+        return refMonth;
+    }
 }
