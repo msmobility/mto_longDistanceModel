@@ -180,6 +180,7 @@ public class mtoData {
 
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
         String recString;
+        int totRecCount = 0;
         for (int month = 1; month <= 12; month++) {
             int recCount = 0;
             try {
@@ -193,7 +194,8 @@ public class mtoData {
                     recCount++;
                     int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 01-04
                     int refMonth = convertToInteger(recString.substring(4, 6));  // ascii position in file: 05-06
-                    int pumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
+                    int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
+                    int pumfId = origPumfId * 100 + refYear%100;
                     float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
                     float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
                     int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
@@ -210,8 +212,10 @@ public class mtoData {
             } catch (Exception e) {
                 logger.error("Could not read TSRC person data: " + e);
             }
-            logger.info("  Read " + recCount + " person records for the month " + month);
+            // logger.info("  Read " + recCount + " person records for the month " + month);
+            totRecCount += recCount;
         }
+        logger.info("  Read " + totRecCount + " person records");
     }
 
 
@@ -226,7 +230,9 @@ public class mtoData {
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                int pumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int pumfId = origPumfId * 100 + refYear%100;
                 int tripId =       convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
                 int origProvince = convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
                 int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
@@ -263,7 +269,9 @@ public class mtoData {
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                int pumfId = convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
+                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
+                int pumfId = origPumfId * 100 + refYear%100;
                 int tripId = convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
                 int cmarea = convertToInteger(recString.substring(22, 26));  // ascii position in file: 023-026
                 int nights = convertToInteger(recString.substring(26, 29));  // ascii position in file: 027-029

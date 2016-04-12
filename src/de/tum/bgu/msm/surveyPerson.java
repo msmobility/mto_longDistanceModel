@@ -23,7 +23,7 @@ public class surveyPerson implements Serializable {
     private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
     int refYear;
     int refMonth;
-    int pumfId;
+    long pumfId;
     float weight;
     float weight2;
     int prov;
@@ -34,7 +34,7 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    ArrayList<Integer> tours;
+    ArrayList<Long> tours;
 
 
     public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup,
@@ -75,6 +75,9 @@ public class surveyPerson implements Serializable {
         return personMap.values().toArray(new surveyPerson[personMap.size()]);
     }
 
+    public int getRefYear() {
+        return refYear;
+    }
 
     public void addTour(int tourId) {
         tours.add(util.createTourId(pumfId, tourId));
@@ -96,7 +99,7 @@ public class surveyPerson implements Serializable {
         return gender;
     }
 
-    public int getPumfId() {
+    public long getPumfId() {
         return pumfId;
     }
 
@@ -120,7 +123,7 @@ public class surveyPerson implements Serializable {
         return prov;
     }
 
-    public ArrayList<Integer> getTours() {
+    public ArrayList<Long> getTours() {
         return tours;
     }
 

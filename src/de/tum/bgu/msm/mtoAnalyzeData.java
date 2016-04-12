@@ -93,8 +93,8 @@ public class mtoAnalyzeData {
         for (surveyPerson sp : surveyPerson.getPersonArray()) {
             if (sp.getNumberOfTrips() == 0) continue;  //Person did not make long-distance trip
             float weight = sp.getWeight();
-            ArrayList<Integer> ldTrips = sp.tours;
-            for (int tripRecord : ldTrips) {
+            ArrayList<Long> ldTrips = sp.tours;
+            for (long tripRecord : ldTrips) {
                 surveyTour st = surveyTour.getTourFromId(tripRecord);
                 int origProvince = st.getOrigProvince();
                 if (origProvince != 35) continue;
@@ -154,29 +154,35 @@ public class mtoAnalyzeData {
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
         PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
-        pw.print("id,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,income," +
+        pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,income," +
                 "expansionFactor,longDistanceTrips,daysAtHome");
         for (String txt : purposes)
             pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
         pw.println();
 
         for (surveyPerson sp : surveyPerson.getPersonArray()) {
-            ArrayList<Integer> tours = sp.getTours();
+            ArrayList<Long> tours = sp.getTours();
             int[] daysInOut = new int[purposes.length];
             int[] daysDayTrip = new int[purposes.length];
             int[] daysAway = new int[purposes.length];
-            int daysHome = 30;
+            int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
             // First, count day trips
-            for (int tour : tours) {
+            for (long tour : tours) {
                 surveyTour st = surveyTour.getTourFromId(tour);
-                int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                int tripPurp = 0;
+                try {
+                    tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                } catch (Exception e) {
+                    logger.error(tour); //+" "+st.tourStops+" "+st.getOrigProvince());
+                    logger.error(st.getTripPurp());
+                }
                 if (st.getNumberNights() == 0) {
                     daysDayTrip[tripPurp]++;
                     daysHome--;
                 }
             }
             // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
-            for (int tour : tours) {
+            for (long tour : tours) {
                 surveyTour st = surveyTour.getTourFromId(tour);
                 int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
                 if (st.getNumberNights() > 0) {
@@ -194,7 +200,7 @@ public class mtoAnalyzeData {
                     }
                 }
             }
-            pw.print(sp.getPumfId() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
+            pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
                     sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
                      "," + sp.getProv() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," + sp.getNumberOfTrips()
                      + "," + daysHome);

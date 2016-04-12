@@ -19,8 +19,8 @@ public class surveyTour implements Serializable {
 
     static Logger logger = Logger.getLogger(surveyTour.class);
 
-    private static final Map<Integer, surveyTour> tourMap = new HashMap<>();
-    int tourId;
+    private static final Map<Long, surveyTour> tourMap = new HashMap<>();
+    long tourId;
 
     int origProvince;
     int destProvince;
@@ -54,7 +54,7 @@ public class surveyTour implements Serializable {
 
     }
 
-    public static surveyTour getTourFromId(int id) {
+    public static surveyTour getTourFromId(long id) {
         return tourMap.get(id);
     }
 

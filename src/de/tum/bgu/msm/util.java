@@ -6,6 +6,7 @@ import com.pb.common.util.ResourceUtil;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.time.YearMonth;
 import java.util.ResourceBundle;
 
 /**
@@ -86,7 +87,13 @@ public class util {
     }
 
 
-    public static int createTourId (int pumfId, int tripId) {
+    public static long createTourId (long pumfId, int tripId) {
         return pumfId * 100 + tripId;
+    }
+
+
+    public static int getDaysOfMonth(int year, int month) {
+        YearMonth yearMonthObject = YearMonth.of(year, month);
+        return yearMonthObject.lengthOfMonth();
     }
 }
