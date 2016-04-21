@@ -1,6 +1,7 @@
-package de.tum.bgu.msm;
+package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.*;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
@@ -16,12 +17,12 @@ import java.util.ResourceBundle;
  **/
 
 public class mtoAnalyzeData {
-    static Logger logger = Logger.getLogger(mto.class);
+    static Logger logger = Logger.getLogger(mtoAnalyzeData.class);
     private ResourceBundle rb;
-    private mtoData data;
+    private mtoSurveyData data;
 
 
-    public mtoAnalyzeData(ResourceBundle rb, mtoData data) {
+    public mtoAnalyzeData(ResourceBundle rb, mtoSurveyData data) {
         this.rb = rb;
         this.data = data;
         // Constructor
@@ -29,10 +30,13 @@ public class mtoAnalyzeData {
 
 
     public void runAnalyses() {
-        // run selected long-distance travel analyzes
+        // runDataAnalysis selected long-distance travel analyzes
         logger.info("Running selected analyses of long-distance data");
-        countTravelersByIncome();
-        tripsByModeAndOriginProvince();
+        if (ResourceUtil.getBooleanProperty(rb, "log.tsrc.summary")) {
+            countTravelersByIncome();
+            tripsByModeAndOriginProvince();
+        }
+        if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) writeOutData();
     }
 
 

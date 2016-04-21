@@ -1,7 +1,9 @@
-package de.tum.bgu.msm;
+package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.mto;
+import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -18,7 +20,7 @@ import java.util.ResourceBundle;
  * Version 1
  *
  */
-public class mtoData {
+public class mtoSurveyData {
     static Logger logger = Logger.getLogger(mto.class);
     private ResourceBundle rb;
     private String workDirectory;
@@ -28,7 +30,7 @@ public class mtoData {
     private TableDataSet tripPurposes;
 
 
-    public mtoData(ResourceBundle rb) {
+    public mtoSurveyData(ResourceBundle rb) {
         this.rb = rb;
     }
 
