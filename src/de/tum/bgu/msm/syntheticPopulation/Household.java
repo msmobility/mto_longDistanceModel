@@ -42,6 +42,20 @@ public class Household {
     }
 
 
+    public void addPersonForInitialSetup (Person per) {
+        // This method adds a person to the household (only used for initial setup)
+
+        for (int i = 0; i < getHhSize(); i++) {
+            if (persons[i] == null) {
+                persons[i] = per;
+                return;
+            }
+        }
+        logger.error ("Found more persons for household " + id + " than household size (" + hhSize + ") allows.");
+        System.exit(8);
+    }
+
+
     public static Household[] getHouseholdArray() {
         return householdMap.values().toArray(new Household[householdMap.size()]);
     }
@@ -61,4 +75,19 @@ public class Household {
         return householdMap.values();
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public int getHhSize() {
+        return hhSize;
+    }
+
+    public int getHhInc() {
+        return hhInc;
+    }
+
+    public Person[] getPersonsOfThisHousehold() {
+        return persons;
+    }
 }

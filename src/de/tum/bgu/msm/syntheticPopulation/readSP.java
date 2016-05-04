@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ResourceBundle;
 
 /**
@@ -36,6 +37,7 @@ public class readSP {
         logger.info("  Reading synthetic population");
         readSyntheticHouseholds();
         readSyntheticPersons();
+        examSyntheticPopulation();
     }
 
 
@@ -126,5 +128,24 @@ public class readSP {
         }
         logger.info("  Finished reading " + recCount + " persons.");
 
+    }
+
+
+    private void examSyntheticPopulation () {
+        // run selected tests on synthetic population to ensure consistency
+
+        // Test 1: Were all persons created? The person read method checks whether all households mentioned in the person
+        // file exist. Here, check if all persons mentioned in the household file exist
+
+        for (Household hh: Household.getHouseholdArray()) {
+            for (Person pp: hh.getPersonsOfThisHousehold()) {
+                if (pp == null) {
+                    logger.error("Inconsistent synthetic population. Household " + hh.getId() + " is supposed to have " +
+                            hh.getHhSize() + " persons, but at least one of them is missing in the person file. Program terminated.");
+                    System.exit(9);
+
+                }
+            }
+        }
     }
 }

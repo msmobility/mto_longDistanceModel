@@ -30,6 +30,7 @@ public class Person {
     private int fullOrPartTime;
     private int hoursWorked;
     private int industrySector;
+    private Household hh;
 
     public Person(int id, int ageGroup, int gender, int occupation, int education, int employment, int fullOrPartTime,
                   int hoursWorked, int industrySector) {
@@ -42,6 +43,15 @@ public class Person {
         this.fullOrPartTime = fullOrPartTime;
         this.hoursWorked = hoursWorked;
         this.industrySector = industrySector;
+        int hhId = id / 1000;
+        Household personsHousehold = Household.getHouseholdFromId(hhId);
+        if (personsHousehold == null) {
+            logger.error("Inconsistent synthetic population. Found person " + id + " of household " + hhId + ", but" +
+            " this household does not exist in the household file. Program terminated.");
+            System.exit(9);
+        }
+        this.hh = personsHousehold;
+        hh.addPersonForInitialSetup(this);
         personMap.put(id,this);
     }
 
