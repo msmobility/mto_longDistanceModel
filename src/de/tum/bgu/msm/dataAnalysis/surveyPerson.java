@@ -1,5 +1,6 @@
-package de.tum.bgu.msm;
+package de.tum.bgu.msm.dataAnalysis;
 
+import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 import java.io.Serializable;
@@ -23,7 +24,7 @@ public class surveyPerson implements Serializable {
     private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
     int refYear;
     int refMonth;
-    int pumfId;
+    long pumfId;
     float weight;
     float weight2;
     int prov;
@@ -34,10 +35,10 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    ArrayList<int[]> trips;
+    ArrayList<Long> tours;
 
-    
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup, 
+
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup,
                         int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
@@ -54,7 +55,7 @@ public class surveyPerson implements Serializable {
         this.hhIncome = hhIncome;
         this.adultsInHh = adultsInHh;
         this.kidsInHh = kidsInHh;
-        this.trips = new ArrayList<>();
+        this.tours = new ArrayList<>();
         personMap.put(pumfId,this);
     }
 
@@ -75,27 +76,63 @@ public class surveyPerson implements Serializable {
         return personMap.values().toArray(new surveyPerson[personMap.size()]);
     }
 
-
-    public void addTrip(int origProvince, int destProvince, int mainMode, int homeCma, int tripPurp) {
-        int[] tripRecord = new int[5];
-        tripRecord[0] = origProvince;
-        tripRecord[1] = destProvince;
-        tripRecord[2] = mainMode;
-        tripRecord[3] = homeCma;
-        tripRecord[4] = tripPurp;
-        trips.add(tripRecord);
+    public int getRefYear() {
+        return refYear;
     }
 
+    public void addTour(int tourId) {
+        tours.add(util.createTourId(pumfId, tourId));
+    }
 
     public int getNumberOfTrips() {
-        return trips.size();
+        return tours.size();
     }
 
     public int getHhIncome() {
         return hhIncome;
     }
 
+    public int getAgeGroup() {
+        return ageGroup;
+    }
+
+    public int getGender() {
+        return gender;
+    }
+
+    public long getPumfId() {
+        return pumfId;
+    }
+
+    public int getEducation() {
+        return education;
+    }
+
+    public int getLaborStat() {
+        return laborStat;
+    }
+
+    public int getAdultsInHh() {
+        return adultsInHh;
+    }
+
+    public int getKidsInHh() {
+        return kidsInHh;
+    }
+
+    public int getProv() {
+        return prov;
+    }
+
+    public ArrayList<Long> getTours() {
+        return tours;
+    }
+
     public float getWeight() {
         return weight;
+    }
+
+    public int getRefMonth() {
+        return refMonth;
     }
 }

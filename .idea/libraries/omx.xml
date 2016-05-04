@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="omx">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../third-party/omx.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="jar://$PROJECT_DIR$/../../third-party/omx.jar!/" recursive="false" />
+  </library>
+</component>

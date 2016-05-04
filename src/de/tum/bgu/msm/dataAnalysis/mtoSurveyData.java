@@ -1,13 +1,14 @@
-package de.tum.bgu.msm;
+package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.mto;
+import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -19,7 +20,7 @@ import java.util.ResourceBundle;
  * Version 1
  *
  */
-public class mtoData {
+public class mtoSurveyData {
     static Logger logger = Logger.getLogger(mto.class);
     private ResourceBundle rb;
     private String workDirectory;
@@ -29,7 +30,7 @@ public class mtoData {
     private TableDataSet tripPurposes;
 
 
-    public mtoData(ResourceBundle rb) {
+    public mtoSurveyData(ResourceBundle rb) {
         this.rb = rb;
     }
 
@@ -50,9 +51,9 @@ public class mtoData {
         tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
+        int[] yearsToRead = ResourceUtil.getIntegerArray(rb, "tsrc.years");
         for (int year = 2011; year <= 2013; year++) {
-            if (year != 2013) continue;
-            readTSRCdata(year);
+            if (util.containsElement(yearsToRead, year)) readTSRCdata(year);
         }
         readITSdata();
     }
@@ -103,6 +104,7 @@ public class mtoData {
 
         readTSRCpersonData(dirName, year);
         readTSRCtripData(dirName, year);
+        readTSRCvisitData(dirName, year);
 
 //        // Create HashMap by destination province by mode
 //        HashMap<Integer, Integer[]> destinationCounter = new HashMap<>();
@@ -135,7 +137,7 @@ public class mtoData {
 
 
 
-//        iterate over all trips:
+//        iterate over all tours:
 //        Integer[] tripsByMode = destinationCounter.get(destProvince);
 //        tripsByMode[mainModeIndex[mainMode]] = tripsByMode[mainModeIndex[mainMode]] + 1;
 //        if (util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]]++;
@@ -180,6 +182,7 @@ public class mtoData {
 
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
         String recString;
+        int totRecCount = 0;
         for (int month = 1; month <= 12; month++) {
             int recCount = 0;
             try {
@@ -193,7 +196,8 @@ public class mtoData {
                     recCount++;
                     int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 01-04
                     int refMonth = convertToInteger(recString.substring(4, 6));  // ascii position in file: 05-06
-                    int pumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
+                    int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
+                    int pumfId = origPumfId * 100 + refYear%100;
                     float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
                     float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
                     int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
@@ -210,8 +214,10 @@ public class mtoData {
             } catch (Exception e) {
                 logger.error("Could not read TSRC person data: " + e);
             }
-            logger.info("  Read " + recCount + " person records for the month " + month);
+            // logger.info("  Read " + recCount + " person records for the month " + month);
+            totRecCount += recCount;
         }
+        logger.info("  Read " + totRecCount + " person records");
     }
 
 
@@ -226,21 +232,59 @@ public class mtoData {
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                int pumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int pumfId = origPumfId * 100 + refYear%100;
+                int tripId =       convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
                 int origProvince = convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
                 int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
                 int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
                 int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
                 int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
+                int numberNights = convertToInteger(recString.substring(120, 123));  // ascii position in file: 121-123
+                int numIdentical = convertToInteger(recString.substring(173, 175));  // ascii position in file: 174-175
+                new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
+                        numIdentical);
                 surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
-                sp.addTrip(origProvince, destProvince, mainMode, homeCma, tripPurp);
+                if (numIdentical < 30) {
+                    for (int i = 1; i <= numIdentical; i++) sp.addTour(tripId);
+                } else {
+                    sp.addTour(tripId);
+                }
                 recCount++;
             }
         } catch (Exception e) {
             logger.error("Could not read TSRC trip data: " + e);
         }
-        logger.info("  Read " + recCount + " records.");
+        logger.info("  Read " + recCount + " tour records.");
+    }
 
+
+    private void readTSRCvisitData (String dirName, int year) {
+        // read visit location file
+
+        String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.visits"));
+        String recString;
+        int recCount = 0;
+        try {
+            String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_PUMF.txt";
+            BufferedReader in = new BufferedReader(new FileReader(fullFileName));
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
+                int pumfId = origPumfId * 100 + refYear%100;
+                int tripId = convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
+                int cmarea = convertToInteger(recString.substring(22, 26));  // ascii position in file: 023-026
+                int nights = convertToInteger(recString.substring(26, 29));  // ascii position in file: 027-029
+                surveyTour st = surveyTour.getTourFromId(util.createTourId(pumfId, tripId));
+                st.addTripDestinations (cmarea, nights);
+                recCount++;
+            }
+        } catch (Exception e) {
+            logger.error("Could not read TSRC visit data: " + e);
+        }
+        logger.info("  Read " + recCount + " visit records.");
     }
 
 
@@ -281,6 +325,22 @@ public class mtoData {
         }
     }
 
+
+    public TableDataSet getProvinceList() {
+        return provinceList;
+    }
+
+    public TableDataSet getMainModeList() {
+        return mainModeList;
+    }
+
+    public TableDataSet getCmaList() {
+        return cmaList;
+    }
+
+    public TableDataSet getTripPurposes() {
+        return tripPurposes;
+    }
 }
 
 
