@@ -32,5 +32,6 @@ public class mtoLongDistance {
         rsp.readSyntheticPopulation();
         mtoLongDistData md = new mtoLongDistData(rb);
         md.readSkim();
+        md.calculateAccessibility();
     }
 }

@@ -22,8 +22,8 @@ public class Person {
 
     private static final Map<Integer, Person> personMap = new HashMap<>();
     private int id;
-    private int ageGroup;
-    private int gender;
+    private int age;
+    private String gender;
     private int occupation;
     private int education;
     private int employment;
@@ -32,25 +32,13 @@ public class Person {
     private int industrySector;
     private Household hh;
 
-    public Person(int id, int ageGroup, int gender, int occupation, int education, int employment, int fullOrPartTime,
-                  int hoursWorked, int industrySector) {
+    public Person(int id, int hhId, int age, String gender, int occupation, int education) {
         this.id = id;
-        this.ageGroup = ageGroup;
+        this.age = age;
         this.gender = gender;
         this.occupation = occupation;
         this.education = education;
-        this.employment = employment;
-        this.fullOrPartTime = fullOrPartTime;
-        this.hoursWorked = hoursWorked;
-        this.industrySector = industrySector;
-        int hhId = id / 1000;
-        Household personsHousehold = Household.getHouseholdFromId(hhId);
-        if (personsHousehold == null) {
-            logger.error("Inconsistent synthetic population. Found person " + id + " of household " + hhId + ", but" +
-            " this household does not exist in the household file. Program terminated.");
-            System.exit(9);
-        }
-        this.hh = personsHousehold;
+        this.hh = Household.getHouseholdFromId(hhId);
         hh.addPersonForInitialSetup(this);
         personMap.put(id,this);
     }
