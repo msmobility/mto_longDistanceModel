@@ -49,4 +49,8 @@ public class mtoLongDistData {
     }
 
 
+    public void calculateAccessibility() {
+        // calculate accessibility
+
+    }
 }

@@ -51,24 +51,22 @@ public class mtoSurveyData {
         tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
-        int[] yearsToRead = ResourceUtil.getIntegerArray(rb, "tsrc.years");
-        for (int year = 2011; year <= 2013; year++) {
-            if (util.containsElement(yearsToRead, year)) readTSRCdata(year);
-        }
-        readITSdata();
+        // read all TSRC data
+        for (int year: ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
+        // read all ITS data
+        for (int year: ResourceUtil.getIntegerArray(rb, "its.years")) readITSdata(year);
+
     }
 
 
-    public void readITSdata() {
+    public void readITSdata(int year) {
         // read ITS data
-        logger.info ("  Reading ITS data");
-        String fileName = workDirectory + ResourceUtil.getProperty(rb, "its.data");
+        logger.info ("  Reading ITS data for " + year);
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data");
         String recString;
         int recCount = 0;
 
-        // Create list by mode
-        int[][] modeCounter = new int[2][3];
-
+//        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
             while ((recString = in.readLine()) != null) {
@@ -77,22 +75,32 @@ public class mtoSurveyData {
                 if (origProvince.equals("35")){
                     // origin == ontario
                     recCount++;
-                    int entryMode = convertToInteger(recString.substring(25, 26));  // ascii position in file: 026-026
-                    int country =   convertToInteger(recString.substring(38, 43));  // ascii position in file: 039-043
-                    if (country == 11840) {  // 1st country visited is US
-                        modeCounter[0][entryMode-1]++;
-                    } else {
-                        modeCounter[1][entryMode-1]++;
-                    }
+                    int purpose =      convertToInteger(recString.substring( 18, 19));  // ascii position in file: 019-019
+                    int entryMode =    convertToInteger(recString.substring( 25, 26));  // ascii position in file: 026-026
+                    int country =      convertToInteger(recString.substring( 38, 43));  // ascii position in file: 039-043
+                    int nightsByPlace[] = new int[11];
+                    nightsByPlace[1] = convertToInteger(recString.substring( 48, 51));  // ascii position in file: 049-051
+                    nightsByPlace[2] = convertToInteger(recString.substring( 75, 78));  // ascii position in file: 076-078
+                    nightsByPlace[3] = convertToInteger(recString.substring(102,105));  // ascii position in file: 103-105
+                    nightsByPlace[4] = convertToInteger(recString.substring(129,132));  // ascii position in file: 130-132
+                    nightsByPlace[5] = convertToInteger(recString.substring(156,159));  // ascii position in file: 157-159
+                    nightsByPlace[6] = convertToInteger(recString.substring(183,186));  // ascii position in file: 184-186
+                    nightsByPlace[7] = convertToInteger(recString.substring(210,213));  // ascii position in file: 211-213
+                    nightsByPlace[8] = convertToInteger(recString.substring(237,240));  // ascii position in file: 238-240
+                    nightsByPlace[9] = convertToInteger(recString.substring(264,267));  // ascii position in file: 265-267
+                    nightsByPlace[10]= convertToInteger(recString.substring(291,294));  // ascii position in file: 292-294
+                    nightsByPlace[0] = convertToInteger(recString.substring(345,348));  // ascii position in file: 346-348
+                    float weight =  convertToFloat(recString.substring(475,491));    // ascii position in file: 476-492
+//                    purp[purpose][nightsByPlace[0]] += weight;
                 }
             }
         } catch (Exception e) {
             logger.error("Could not read ITS data: " + e);
         }
-        logger.info("  Read " + recCount + " records with a residence in Ontario (35)");
-        logger.info("ForeignDestination;Air;Auto;Other");
-        logger.info("US;" + modeCounter[0][0] + ";" + modeCounter[0][1] + ";" + modeCounter[0][2] + ";");
-        logger.info("Other;" + modeCounter[1][0] + ";" + modeCounter[1][1] + ";" + modeCounter[1][2] + ";");
+        logger.info("  Read " + recCount + " ITS records with a residence in Ontario (35)");
+
+//        for (int days=0;days<365;days++) logger.info("Days " + days + ": " + (purp[1][days]+purp[3][days]) + "," +
+//                purp[2][days] + "," + purp[4][days]);
     }
 
 

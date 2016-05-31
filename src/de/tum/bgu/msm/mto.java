@@ -32,7 +32,7 @@ public class mto {
 
 
     public static void main(String[] args) {
-        // main runDataAnalysis method
+        // main model run method
 
         logger.info("Ontario Provincial Model (MTO)");
         long startTime = System.currentTimeMillis();
@@ -52,6 +52,7 @@ public class mto {
 
     private void runDataAnalysis() {
         // main method to run data analysis
+
         mtoSurveyData data = new mtoSurveyData(rb);
         data.readInput();
         mtoAnalyzeData ld = new mtoAnalyzeData(rb, data);

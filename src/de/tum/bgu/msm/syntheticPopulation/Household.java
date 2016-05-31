@@ -27,17 +27,20 @@ public class Household {
     private int ddType;
     private int numWrks;
     private int numKids;
+    private int taz;
     private Person[] persons;
 
 
-    public Household(int id, int hhSize, int hhInc, int ddType, int numWrks, int numKids) {
+    public Household(int id, int hhInc, int ddType, int taz) {
         this.id      = id;
-        this.hhSize  = hhSize;
+        this.hhSize  = 0;
         this.hhInc   = hhInc;
         this.ddType  = ddType;
-        this.numWrks = numWrks;
-        this.numKids = numKids;
-        persons = new Person[hhSize];
+//        this.numWrks = numWrks;
+//        this.numKids = numKids;
+//        persons = new Person[hhSize];
+        this.taz = taz;
+        this.persons = new Person[0];
         householdMap.put(id,this);
     }
 
@@ -45,14 +48,11 @@ public class Household {
     public void addPersonForInitialSetup (Person per) {
         // This method adds a person to the household (only used for initial setup)
 
-        for (int i = 0; i < getHhSize(); i++) {
-            if (persons[i] == null) {
-                persons[i] = per;
-                return;
-            }
-        }
-        logger.error ("Found more persons for household " + id + " than household size (" + hhSize + ") allows.");
-        System.exit(8);
+        Person[] personsAddedSoFar = persons;
+        persons = new Person[personsAddedSoFar.length + 1];
+        System.arraycopy(personsAddedSoFar, 0, persons, 0, persons.length-1);
+        persons[persons.length-1] = per;
+        hhSize++;
     }
 
 
@@ -85,6 +85,10 @@ public class Household {
 
     public int getHhInc() {
         return hhInc;
+    }
+
+    public int getTaz() {
+        return taz;
     }
 
     public Person[] getPersonsOfThisHousehold() {

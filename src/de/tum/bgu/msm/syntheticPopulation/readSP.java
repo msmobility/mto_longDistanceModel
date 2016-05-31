@@ -55,32 +55,33 @@ public class readSP {
             String[] header = recString.split(",");
 
 
-            int posId     = util.findPositionInArray("hh_id", header);
-            int posSize   = util.findPositionInArray("hhsize",header);
+            int posId     = util.findPositionInArray("hhid", header);
+//            int posSize   = util.findPositionInArray("hhsize",header);
             int posInc    = util.findPositionInArray("hhinc",header);
             int posDdType = util.findPositionInArray("dtype",header);
-            int posWrkrs  = util.findPositionInArray("nworkers",header);
-            int posKids   = util.findPositionInArray("kidspr",header);
+//            int posWrkrs  = util.findPositionInArray("nworkers",header);
+//            int posKids   = util.findPositionInArray("kidspr",header);
+            int posTaz    = util.findPositionInArray("taz",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
                 recCount++;
                 String[] lineElements = recString.split(",");
                 int id      = Integer.parseInt(lineElements[posId]);
-                int hhSize  = Integer.parseInt(lineElements[posSize]);
+//                int hhSize  = Integer.parseInt(lineElements[posSize]);
                 int hhInc   = Integer.parseInt(lineElements[posInc]);
                 int ddType  = Integer.parseInt(lineElements[posDdType]);
-                int numWrks = Integer.parseInt(lineElements[posWrkrs]);
-                int numKids = Integer.parseInt(lineElements[posKids]);
+//                int numWrks = Integer.parseInt(lineElements[posWrkrs]);
+//                int numKids = Integer.parseInt(lineElements[posKids]);
+                int taz     = Integer.parseInt(lineElements[posTaz]);
 
-                new Household(id, hhSize, hhInc, ddType, numWrks, numKids);  // this automatically puts it in id->household map in Household class
+                new Household(id, hhInc, ddType, taz);  // this automatically puts it in id->household map in Household class
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop household file: " + fileName);
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " households.");
-
     }
 
 
@@ -97,30 +98,38 @@ public class readSP {
             // read header
             String[] header = recString.split(",");
 
-            int posId               = util.findPositionInArray("pp_id", header);
-            int posAgeGroup         = util.findPositionInArray("agegrp",header);
+            int posHhId             = util.findPositionInArray("hhid", header);
+            int posId               = util.findPositionInArray("uid", header);
+            int posAge              = util.findPositionInArray("taz",header);
             int posGender           = util.findPositionInArray("sex",header);
             int posOccupation       = util.findPositionInArray("nocs",header);
+            int posAttSchool        = util.findPositionInArray("attsch",header);
             int posHighestDegree    = util.findPositionInArray("hdgree",header);
-            int posEmploymentStatus = util.findPositionInArray("cow",header);
-            int posFullOrPartTime   = util.findPositionInArray("fptwk",header);
-            int posHoursWorked      = util.findPositionInArray("hrswrk",header);
-            int posIndustrySector   = util.findPositionInArray("naics",header);
+            int posTaz              = util.findPositionInArray("taz",header);
+//            int posEmploymentStatus = util.findPositionInArray("cow",header);
+//            int posFullOrPartTime   = util.findPositionInArray("fptwk",header);
+//            int posHoursWorked      = util.findPositionInArray("hrswrk",header);
+//            int posIndustrySector   = util.findPositionInArray("naics",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
                 recCount++;
                 String[] lineElements = recString.split(",");
                 int id             = Integer.parseInt(lineElements[posId]);
-                int ageGroup       = Integer.parseInt(lineElements[posAgeGroup]);
-                int gender         = Integer.parseInt(lineElements[posGender]);
+                int hhId           = Integer.parseInt(lineElements[posHhId]);
+                int taz            = Integer.parseInt(lineElements[posTaz]);
+                if (taz != Household.getHouseholdFromId(hhId).getTaz()) {
+                    logger.error("Household " + hhId + " has different TAZ in household file than in person file at person ID " + id);
+                }
+                int age            = Integer.parseInt(lineElements[posAge]);
+                String gender      = lineElements[posGender];
                 int occupation     = Integer.parseInt(lineElements[posOccupation]);
                 int education      = Integer.parseInt(lineElements[posHighestDegree]);
-                int employment     = Integer.parseInt(lineElements[posEmploymentStatus]);
-                int fullOrPartTime = Integer.parseInt(lineElements[posFullOrPartTime]);
-                int hoursWorked    = Integer.parseInt(lineElements[posHoursWorked]);
-                int industrySector = Integer.parseInt(lineElements[posIndustrySector]);
-                new Person(id, ageGroup, gender, occupation, education, employment, fullOrPartTime, hoursWorked, industrySector);  // this automatically puts it in id->household map in Household class
+//                int employment     = Integer.parseInt(lineElements[posEmploymentStatus]);
+//                int fullOrPartTime = Integer.parseInt(lineElements[posFullOrPartTime]);
+//                int hoursWorked    = Integer.parseInt(lineElements[posHoursWorked]);
+//                int industrySector = Integer.parseInt(lineElements[posIndustrySector]);
+                new Person(id, hhId, age, gender, occupation, education);  // this automatically puts it in id->household map in Household class
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop person file: " + fileName);
