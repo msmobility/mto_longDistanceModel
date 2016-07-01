@@ -179,7 +179,7 @@ public class readSP {
             ppByZone[zoneIndex[hh.getTaz()]] += hh.getHhSize();
         }
 
-        PrintWriter pw = util.openFileForSequentialWriting("popByZone.csv", false);
+        PrintWriter pw = util.openFileForSequentialWriting("populationByZone.csv", false);
         pw.println("zone,hh,pp");
         for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
         pw.close();
