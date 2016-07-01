@@ -28,6 +28,7 @@ public class surveyPerson implements Serializable {
     float weight;
     float weight2;
     int prov;
+    int cma;
     int ageGroup;
     int gender;
     int education;
@@ -38,7 +39,7 @@ public class surveyPerson implements Serializable {
     ArrayList<Long> tours;
 
 
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int ageGroup,
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cma, int ageGroup,
                         int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
@@ -48,6 +49,7 @@ public class surveyPerson implements Serializable {
         this.weight = weight;
         this.weight2 = weight2;
         this.prov = prov;
+        this.cma = cma;
         this.ageGroup = ageGroup;
         this.gender = gender;
         this.education = education;
@@ -122,6 +124,10 @@ public class surveyPerson implements Serializable {
 
     public int getProv() {
         return prov;
+    }
+
+    public int getCma() {
+        return cma;
     }
 
     public ArrayList<Long> getTours() {
