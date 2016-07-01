@@ -22,28 +22,37 @@ public class surveyTour implements Serializable {
 
     private static final Map<Long, surveyTour> tourMap = new HashMap<>();
     long tourId;
-
+    int refYear;
     int origProvince;
     int destProvince;
+    int travelParty;
+    int travelPartyAdult;
     private int mainMode;
     int homeCma;
     int tripPurp;
     int numberNights;
     int numIdentical;
+    float hhWeight;
+    float tripWeight;
     ArrayList<int[]> tourStops;
 
-    public surveyTour(int tourId, int pumfId, int origProvince, int destProvince, int mainMode, int homeCma,
-                      int tripPurp, int numberNights, int numIdentical) {
+    public surveyTour(int tourId, int pumfId, int refYear, int origProvince, int destProvince, int travelParty, int travelPartyAdult, int mainMode, int homeCma,
+                      int tripPurp, int numberNights, int numIdentical, float hhWeight, float tripWeight) {
         // constructor of new survey tour
 
         this.tourId = util.createTourId(pumfId, tourId);
+        this.refYear = refYear;
         this.origProvince = origProvince;
         this.destProvince = destProvince;
+        this.travelParty = travelParty;
+        this.travelPartyAdult = travelPartyAdult;
         this.mainMode = mainMode;
         this.homeCma = homeCma;
         this.tripPurp = tripPurp;
         this.numberNights = numberNights;
         this.numIdentical = numIdentical;
+        this.hhWeight = hhWeight;
+        this.tripWeight = tripWeight;
         tourStops = new ArrayList<>();
         tourMap.put(this.tourId,this);
     }
@@ -55,9 +64,17 @@ public class surveyTour implements Serializable {
 
     }
 
+    public static surveyTour[] getSurveyTourArray() {
+        return tourMap.values().toArray(new surveyTour[tourMap.size()]);
+    }
+
     public static surveyTour getTourFromId(long id) {
         return tourMap.get(id);
     }
+
+    public long getTourId() {return tourId;}
+
+    public long getRefYear() {return refYear;}
 
     public int getOrigProvince() {
         return origProvince;
@@ -65,6 +82,14 @@ public class surveyTour implements Serializable {
 
     public int getDestProvince() {
         return destProvince;
+    }
+
+    public int getTravelParty() {
+        return travelParty;
+    }
+
+    public int getTravelPartyAdult() {
+        return travelPartyAdult;
     }
 
     public int getMainMode() {
@@ -90,4 +115,14 @@ public class surveyTour implements Serializable {
     public int getNumberOfStop () {
         return tourStops.size();
     }
+
+    public float getHhWeight () {
+        return hhWeight;
+    }
+
+    public float getTripWeight () {
+        return tripWeight;
+    }
+
+
 }

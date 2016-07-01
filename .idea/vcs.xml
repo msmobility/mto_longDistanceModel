@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$/../../cmf/common-base" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/mto" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../third-party/jexcelapi" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../../third-party/logging-log4j-1.2.9" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../../third-party/transcad" vcs="svn" />
+    <mapping directory="" vcs="Git" />
   </component>
 </project>

@@ -36,7 +36,11 @@ public class mtoAnalyzeData {
             countTravelersByIncome();
             tripsByModeAndOriginProvince();
         }
-        if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) writeOutData();
+        if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) {
+            writeOutData();
+            writeOutItsData(); //line added by Carlos Llorca on 29 June 2016
+            writeOutTsrcTripData(); //line added by Carlos Llorca on 30 June 2016
+        }
     }
 
 
@@ -117,17 +121,17 @@ public class mtoAnalyzeData {
         }
         String txt1 = "Destination";
         for (int mode : mainModes)
-            txt1 += "," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode");
+//            txt1 += "," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode");
         logger.info(txt1);
         for (Integer pr : data.getProvinceList().getColumnAsInt("Code")) {
-            String txt2 = "Trips to " + pr + " (" + data.getProvinceList().getIndexedStringValueAt(pr, "Province") + ")";
-            for (int mode : mainModes) txt2 += "," + destinationCounter.get(pr)[mainModeIndex[mode]];
-            logger.info(txt2);
+//            String txt2 = "Trips to " + pr + " (" + data.getProvinceList().getIndexedStringValueAt(pr, "Province") + ")";
+//            for (int mode : mainModes) txt2 += "," + destinationCounter.get(pr)[mainModeIndex[mode]];
+//            logger.info(txt2);
         }
         logger.info("Trips by purpose");
         for (int i : purpList) {
-            if (purpCnt[purposeIndex[i]] > 0)
-                logger.info(data.getTripPurposes().getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
+//            if (purpCnt[purposeIndex[i]] > 0)
+//                logger.info(data.getTripPurposes().getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
         }
 
         logger.info("Trip origin by CMA");
@@ -138,10 +142,10 @@ public class mtoAnalyzeData {
         logger.info("Trips by mode and purpose");
         String tx = "Purpose";
         for (int mode : mainModes)
-            tx = tx.concat("," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode"));
+//            tx = tx.concat("," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode"));
         logger.info(tx);
         for (int purp : purpList) {
-            tx = data.getTripPurposes().getIndexedStringValueAt(purp, "Purpose");
+//            tx = data.getTripPurposes().getIndexedStringValueAt(purp, "Purpose");
             for (int mode : mainModes) {
                 tx = tx.concat("," + modePurpCnt[mainModeIndex[mode]][purposeIndex[purp]]);
             }
@@ -185,7 +189,7 @@ public class mtoAnalyzeData {
                     daysHome--;
                 }
             }
-            // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
+            // Next, add trips with overnight stay, ensuring that none exceeds 30 days per month
             for (long tour : tours) {
                 surveyTour st = surveyTour.getTourFromId(tour);
                 int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
@@ -231,4 +235,70 @@ public class mtoAnalyzeData {
         //logger.info("Translated purpose " + purp + " into code " + code[purp] + " (" + purposes[code[purp]] + ")");
         return code[purp];
     }
+
+    //Method to write out ITS data (Carlos Llorca on 29 June 2016)
+    public void writeOutItsData() {
+        // write out ITS travel data for model estimation
+        logger.info("Writing out data for external ITS model estimation");
+        String fileName = ResourceUtil.getProperty(rb, "its.out.file");
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
+
+        //head of the file
+        pw.print("id,year,quarter, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
+        pw.println();
+
+        for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
+
+            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getPurpose()+ ","
+                    + sit.getEntryMode() + "," + sit.getCountry()[0] + "," + sit.getNights()[0] + "," + sit.getWeight() + "," + sit.getTravelParty());
+            pw.println();
+        }
+        pw.close();
+
+
+        // write out ITS travel data for model estimation in a separate line each country (get a second file)
+        // in old ITS data (2011 and 2012) it creates multiple lines if there are visits to multiple US states, while in the new ones it doesn't
+        logger.info("Writing out data for external ITS model estimation");
+        String fileName2 = ResourceUtil.getProperty(rb, "its.out.file");
+        PrintWriter pw2 = util.openFileForSequentialWriting(fileName2 + "countries.csv", false);
+
+        //head of the file
+        pw2.print("id,year,quarter, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
+        pw2.println();
+
+        for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
+            for (int i=1; i<11; i++) {
+                //this code writes n lines if there is a trip visiting n US states. This will increase the number of trips-visits
+                //next if tense avoids writing more lines when there is no more stops
+                if(sit.getNights()[i] < 365) {
+                    pw2.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getPurpose() + ","
+                            + sit.getEntryMode() + "," + sit.getCountry()[i] + "," + sit.getNights()[i] + "," + sit.getWeight() + "," + sit.getTravelParty());
+                    pw2.println();
+                }
+            }
+        }
+
+        pw2.close();
+
+
+
+
+    }
+    //Method to write out TSRC trips (Added by Carlos Llorca on 30 June 2016)
+    public void writeOutTsrcTripData() {
+        logger.info("Writing out data for external TSRC trips model estimation");
+        String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + "trips.csv", false);
+        pw.print("tourId,year,origProv, destProv, travelParty, travelPartyAdults, numberNights, numberStops, numIdentical, tripPurpose, tripWeight, hhWeight");
+        pw.println();
+        for (surveyTour st : surveyTour.getSurveyTourArray()) {
+
+            pw.print(st.getTourId() + "," + st.getRefYear() + "," + st.getOrigProvince() + "," + st.getDestProvince()
+                    + "," + st.getTravelParty()+ "," + st.getTravelPartyAdult()+ "," + st.getNumberNights()+ ","
+                    + st.getNumberOfStop() + "," + st.getNumIdentical() + "," + st.getTripPurp()+ "," + st.getTripWeight() + "," + st.getHhWeight());
+            pw.println();
+        }
+        pw.close();
+    }
 }
+

@@ -14,18 +14,81 @@ import java.util.Map;
  *
  **/
 
+
+//Edited by Carlos Llorca  on 29 June 2016
+
 public class surveyIntTravel implements Serializable {
 
     static Logger logger = Logger.getLogger(surveyIntTravel.class);
 
     private static final Map<Integer,surveyIntTravel> intTripMap = new HashMap<>();
+    int pumfId;
+    int refQuarter;
     int refYear;
+    int purpose;
+    int entryMode;
+    //zero position is equal to position 1 and means first country visited. This is to be coherent with nightsByPlace
+    int[] country = new int[15];
+    int[] nightsByPlace = new int[15];
+    float weight;
+    int travelParty;
+
+    public surveyIntTravel (int pumfId, int refYear, int refQuarter, int purpose, int entryMode, int country[], int[] nightsByPlace, float weight, int travelParty){
+        this.pumfId = pumfId;
+        this.refQuarter = refQuarter;
+        this.refYear = refYear;
+        this.purpose = purpose;
+        this.entryMode = entryMode;
+        this.country = country;
+        this.nightsByPlace = nightsByPlace;
+        this.weight = weight;
+        this.travelParty = travelParty;
+        intTripMap.put(pumfId,this);
+
+    }
 
 
+    public static surveyIntTravel[] getIntTravelArray() {
+        return intTripMap.values().toArray(new surveyIntTravel[intTripMap.size()]);
+    }
+
+    public int getPumfId() {
+        return pumfId;
+    }
+    public int getRefYear() {
+        return refYear;
+    }
+
+    public int getPurpose() {
+        return purpose;
+    }
+
+    public int getRefQuarter() {
+        return refQuarter;
+    }
+    public int getEntryMode() {
+        return entryMode;
+    }
+    public int[] getCountry() {
+        return country;
+    }
+    public int[] getNights() {
+        return nightsByPlace;
+    }
+    public float getWeight() {
+        return weight;
+    }
+    public float getTravelParty() {
+        return travelParty;
+    }
+
+
+//commented by Carlos Llorca on 29 June 2016
+/*
     public surveyIntTravel(int pumfId, int refYear) {
         // constructor of new survey person
 
         this.refYear = refYear;
         intTripMap.put(pumfId,this);
-    }
+    }*/
 }
