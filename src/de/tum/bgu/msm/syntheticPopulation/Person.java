@@ -26,18 +26,19 @@ public class Person {
     private String gender;
     private int occupation;
     private int education;
-    private int employment;
+    private int workStatus;
     private int fullOrPartTime;
     private int hoursWorked;
     private int industrySector;
     private Household hh;
 
-    public Person(int id, int hhId, int age, String gender, int occupation, int education) {
+    public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus) {
         this.id = id;
         this.age = age;
         this.gender = gender;
         this.occupation = occupation;
         this.education = education;
+        this.workStatus = workStatus;
         this.hh = Household.getHouseholdFromId(hhId);
         hh.addPersonForInitialSetup(this);
         personMap.put(id,this);
