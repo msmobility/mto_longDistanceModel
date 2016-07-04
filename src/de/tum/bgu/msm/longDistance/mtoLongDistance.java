@@ -31,7 +31,8 @@ public class mtoLongDistance {
         readSP rsp = new readSP(rb);
         rsp.readSyntheticPopulation();
         mtoLongDistData md = new mtoLongDistData(rb);
-        md.readSkim();
-        md.calculateAccessibility(rsp);
+        //next line commented by Carlos Llorca on 4/7/2016 because skim matrix and accessibility is not calculated
+        //md.readSkim();
+        //md.calculateAccessibility(rsp);
     }
 }

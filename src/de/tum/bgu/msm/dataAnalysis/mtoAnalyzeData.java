@@ -244,12 +244,12 @@ public class mtoAnalyzeData {
         PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
 
         //head of the file
-        pw.print("id,year,quarter, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
+        pw.print("id,year, quarter, origProv, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
         pw.println();
 
         for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
 
-            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getPurpose()+ ","
+            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince()+ "," + sit.getPurpose()+ ","
                     + sit.getEntryMode() + "," + sit.getCountry()[0] + "," + sit.getNights()[0] + "," + sit.getWeight() + "," + sit.getTravelParty());
             pw.println();
         }
@@ -257,21 +257,21 @@ public class mtoAnalyzeData {
 
 
         // write out ITS travel data for model estimation in a separate line each country (get a second file)
-        // in old ITS data (2011 and 2012) it creates multiple lines if there are visits to multiple US states, while in the new ones it doesn't
+        // it creates multiple lines if there are visits to multiple US states
         logger.info("Writing out data for external ITS model estimation");
         String fileName2 = ResourceUtil.getProperty(rb, "its.out.file");
         PrintWriter pw2 = util.openFileForSequentialWriting(fileName2 + "countries.csv", false);
 
         //head of the file
-        pw2.print("id,year,quarter, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
+        pw2.print("id,year,quarter, origProv, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
         pw2.println();
 
         for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
-            for (int i=1; i<11; i++) {
+            for (int i=1; i<15; i++) {
                 //this code writes n lines if there is a trip visiting n US states. This will increase the number of trips-visits
                 //next if tense avoids writing more lines when there is no more stops
-                if(sit.getNights()[i] < 365) {
-                    pw2.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getPurpose() + ","
+                if(sit.getNights()[i] < 365 & sit.getCountry()[i] > 0 ) {
+                    pw2.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince() + "," + sit.getPurpose() + ","
                             + sit.getEntryMode() + "," + sit.getCountry()[i] + "," + sit.getNights()[i] + "," + sit.getWeight() + "," + sit.getTravelParty());
                     pw2.println();
                 }

@@ -41,11 +41,13 @@ public class readSP {
     public void readSyntheticPopulation() {
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        readZonalData();
+        //next line commented by Carlos Llorca on 7/4/16 because zone System is not available
+        //readZonalData();
         readSyntheticHouseholds();
         readSyntheticPersons();
         examSyntheticPopulation();
-        summarizePopulationData();
+        //next line commented by Carlos Llorca on 7/4/16 because zone System is not available
+        //summarizePopulationData();
     }
 
 

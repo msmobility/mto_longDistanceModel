@@ -22,18 +22,24 @@ public class surveyIntTravel implements Serializable {
     static Logger logger = Logger.getLogger(surveyIntTravel.class);
 
     private static final Map<Integer,surveyIntTravel> intTripMap = new HashMap<>();
+    int origProvince;
     int pumfId;
     int refQuarter;
     int refYear;
     int purpose;
     int entryMode;
-    //zero position is equal to position 1 and means first country visited. This is to be coherent with nightsByPlace
+    //zero position is equal to position 1 and means "first country visited". This is to be coherent with nightsByPlace
     int[] country = new int[15];
     int[] nightsByPlace = new int[15];
     float weight;
     int travelParty;
 
-    public surveyIntTravel (int pumfId, int refYear, int refQuarter, int purpose, int entryMode, int country[], int[] nightsByPlace, float weight, int travelParty){
+
+
+    //constructor
+
+    public surveyIntTravel (int origProvince, int pumfId, int refYear, int refQuarter, int purpose, int entryMode, int country[], int[] nightsByPlace, float weight, int travelParty){
+        this.origProvince = origProvince;
         this.pumfId = pumfId;
         this.refQuarter = refQuarter;
         this.refYear = refYear;
@@ -52,9 +58,14 @@ public class surveyIntTravel implements Serializable {
         return intTripMap.values().toArray(new surveyIntTravel[intTripMap.size()]);
     }
 
+    public int getOrigProvince() {
+        return origProvince;
+    }
+
     public int getPumfId() {
         return pumfId;
     }
+
     public int getRefYear() {
         return refYear;
     }
@@ -66,18 +77,23 @@ public class surveyIntTravel implements Serializable {
     public int getRefQuarter() {
         return refQuarter;
     }
+
     public int getEntryMode() {
         return entryMode;
     }
+
     public int[] getCountry() {
         return country;
     }
+
     public int[] getNights() {
         return nightsByPlace;
     }
+
     public float getWeight() {
         return weight;
     }
+
     public float getTravelParty() {
         return travelParty;
     }

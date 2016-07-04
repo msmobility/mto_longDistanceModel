@@ -31,6 +31,8 @@ public class mtoSurveyData {
     private TableDataSet tripPurposes;
     //added by Carlos Llorca
     private TableDataSet itsCountryCodes;
+    private TableDataSet itsPurposes;
+    private TableDataSet itsEntryModes;
 
 
     public mtoSurveyData(ResourceBundle rb) {
@@ -54,9 +56,17 @@ public class mtoSurveyData {
         tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
-        //added by Carlos Llorca to convert old country codes to new country codes in ITS survey data
+        //added by Carlos Llorca to convert old country codes to new country codes in ITS survey data. TODO Suggest rename files with a "surname" for ITS or TSRC related data
         itsCountryCodes = util.readCSVfile("input/itsCountryCodes.csv");
         itsCountryCodes.buildIndex(itsCountryCodes.getColumnPosition("codeOld"));
+
+        //added by Carlos Llorca to convert old purposes
+        itsPurposes = util.readCSVfile("input/itsPurposes.csv");
+        itsPurposes.buildIndex(itsPurposes.getColumnPosition("codeOld"));
+
+        //added by Carlos Llorca to convert old purposes
+        itsEntryModes = util.readCSVfile("input/itsEntryModes.csv");
+        itsEntryModes.buildIndex(itsEntryModes.getColumnPosition("codeOld"));
 
         // read all TSRC data
         for (int year: ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
@@ -84,7 +94,7 @@ public class mtoSurveyData {
                 BufferedReader in = new BufferedReader(new FileReader(fileName));
                 while ((recString = in.readLine()) != null) {
                     //recCount++;
-                    String origProvince = recString.substring(8, 10);  // ascii position in file: 009-010
+                    int origProvince = convertToInteger(recString.substring(8, 10));  // ascii position in file: 009-010
                     //comment next line to deactivate ONTARIO filter (the closing } below too!)
                     //if (origProvince.equals("35")){
                     // origin == ontario
@@ -123,11 +133,24 @@ public class mtoSurveyData {
                     nightsByPlace[0] = convertToInteger(recString.substring(345, 348));  // ascii position in file: 346-348
                     float weight = convertToFloat(recString.substring(475, 491));    // ascii position in file: 476-492
 
-                    new surveyIntTravel(pumfId, refYear, refQuarter, purpose, entryMode, country, nightsByPlace, weight, travelParty);
+
+                    //clean multiple US visits to get only 1 trip to US. The
+                    for (int i=1; i < country.length; i++){
+                        for (int j = 1; j < country.length & j != i ; j++ ){
+                            if (country[i]==country[j] & nightsByPlace[i]!=999  & nightsByPlace[j]!=999){
+                                nightsByPlace[i]=nightsByPlace[i] + nightsByPlace[j];
+                                nightsByPlace[j]=999;
+                            }
+                        }
+                    }
+
+
+                    new surveyIntTravel(origProvince, pumfId, refYear, refQuarter, purpose, entryMode, country, nightsByPlace, weight, travelParty);
                     //store weight (addition) in the purp matrix
                     //purp[purpose][nightsByPlace[0]] += weight;
+
                     //comment next line to deactivate ONTARIO filter
-                    }
+                    //}
                 }
             } catch (Exception e) {
                 logger.error("Could not read ITS data: " + e);
@@ -142,7 +165,7 @@ public class mtoSurveyData {
         else if (year == 2011 || year == 2012){
             // read ITS data from years 2011 and 2012
             logger.info("  Reading ITS data for " + year);
-            //provide the names of the files TODO Do it more systemathic
+            //provide the names of the files TODO Do it more systematic?
             String fileNames[] = new String [8];
             if(year == 2011) {
                 fileNames[0] ="CO111.FIN_CUMF.DAT";
@@ -173,9 +196,9 @@ public class mtoSurveyData {
                 try {
                     BufferedReader in = new BufferedReader(new FileReader(fileName));
                     while ((recString = in.readLine()) != null) {
-                        String origProvince= recString.substring(16,18);
+                        int origProvince= convertToInteger(recString.substring(16,18));
                         //comment next line to deactivate ONTARIO filter (the closing } below too!)
-                        if (origProvince.equals("35")){
+                        //if (origProvince.equals("35")){
                         // origin == ontario
                         recCount++;
                         //int entryDay        = convertToInteger(recString.substring(48,50));
@@ -248,20 +271,37 @@ public class mtoSurveyData {
 
                         }
 
+                        //convert old purposes to new purposes in ITS survey
+                        try {
+                            purpose = (int) itsPurposes.getIndexedValueAt(purpose, 3);
+                        }catch (Exception e3) {
+
+                        }
+
+                        //convert entry modes to new purposes in ITS survey
+                        try {
+                            entryMode = (int) itsEntryModes.getIndexedValueAt(entryMode, 3);
+                        }catch (Exception e3) {
+
+                        }
+
                         //clean multiple US states trips to 1 country trip /////CHECK!!!!
-                        int i=1;
-                        while (country[i+1] == country [i] & i < country.length){
-                            nightsByPlace[i] = nightsByPlace[i]+ nightsByPlace[i+1];
-                            nightsByPlace[i+1] = 999;
-                            i=i+1;
+
+                        for (int i=1; i < country.length; i++){
+                            for (int j = 1; j < country.length & j != i ; j++ ){
+                                if (country[i]==country[j] & nightsByPlace[i]!=999  & nightsByPlace[j]!=999){
+                                    nightsByPlace[i]=nightsByPlace[i] + nightsByPlace[j];
+                                    nightsByPlace[j]=999;
+                                }
+                            }
                         }
 
 
                         //store as a new surveyint travel object
-                        new surveyIntTravel(pumfId, refYear, refQuarter, purpose, entryMode, country, nightsByPlace, weight, travelParty);
+                        new surveyIntTravel(origProvince, pumfId, refYear, refQuarter, purpose, entryMode, country, nightsByPlace, weight, travelParty);
 
                         //comment next line to deactivate ONTARIO filter
-                        }
+                        //}
                     }
                 } catch (Exception e) {
                     logger.error("Could not read ITS data: " + e);
