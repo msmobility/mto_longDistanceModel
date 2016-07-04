@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.ResourceBundle;
 
 /**
@@ -85,9 +86,10 @@ public class mtoSurveyData {
                     //recCount++;
                     String origProvince = recString.substring(8, 10);  // ascii position in file: 009-010
                     //comment next line to deactivate ONTARIO filter (the closing } below too!)
-                    if (origProvince.equals("35")){
+                    //if (origProvince.equals("35")){
                     // origin == ontario
                     recCount++;
+                    String origCMA =      recString.substring(10, 14);  // ascii position in file: 011-01
                     int refYear = year;
                     int origPumfId = convertToInteger(recString.substring(0, 7));  // ascii position in file: 001-007
                     int refQuarter = convertToInteger(recString.substring(7, 8));  // ascii position in file: 008-008
@@ -383,6 +385,7 @@ public class mtoSurveyData {
                     float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
                     float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
                     int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
+                    int cma = convertToInteger(recString.substring(42, 46));  // ascii position in file: 43-46
                     int ageGroup = convertToInteger(recString.substring(46, 47));  // ascii position in file: 47-47
                     int gender = convertToInteger(recString.substring(47, 48));  // ascii position in file: 48-48
                     int education = convertToInteger(recString.substring(48, 49));  // ascii position in file: 49-49
@@ -390,7 +393,7 @@ public class mtoSurveyData {
                     int hhIncome = convertToInteger(recString.substring(50, 51));  // ascii position in file: 51-51
                     int adultsInHh = convertToInteger(recString.substring(51, 53));  // ascii position in file: 52-53
                     int kidsInHh = convertToInteger(recString.substring(53, 55));  // ascii position in file: 54-55
-                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, ageGroup, gender, education,
+                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
                 }
             } catch (Exception e) {

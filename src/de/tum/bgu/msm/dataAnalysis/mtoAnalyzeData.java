@@ -162,8 +162,8 @@ public class mtoAnalyzeData {
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
         PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
-        pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,income," +
-                "expansionFactor,longDistanceTrips,daysAtHome");
+        pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cma," +
+                "income,expansionFactor,longDistanceTrips,daysAtHome");
         for (String txt : purposes)
             pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
         pw.println();
@@ -210,8 +210,8 @@ public class mtoAnalyzeData {
             }
             pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
                     sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
-                     "," + sp.getProv() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," + sp.getNumberOfTrips()
-                     + "," + daysHome);
+                     "," + sp.getProv() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
+                    sp.getNumberOfTrips() + "," + daysHome);
             for (int i = 0; i < purposes.length; i++)
                 pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
                         daysAway[i]);

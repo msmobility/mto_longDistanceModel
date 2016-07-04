@@ -1,5 +1,6 @@
 package de.tum.bgu.msm;
 
+import com.pb.common.datafile.CSVFileReader;
 import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
@@ -107,6 +108,7 @@ public class util {
         OmxHdf5Datatype.OmxJavaType type = omxMatrix.getOmxJavaType();
         String name = omxMatrix.getName();
         int[] dimensions = omxMatrix.getShape();
+
         if (type.equals(OmxHdf5Datatype.OmxJavaType.FLOAT)) {
             float[][] fArray = (float[][]) omxMatrix.getData();
             Matrix mat = new Matrix(name, name, dimensions[0], dimensions[1]);
@@ -136,6 +138,30 @@ public class util {
         if (ind == -1) logger.error ("Could not find element " + element +
                 " in array (see method <findPositionInArray> in class <SiloUtil>");
         return ind;
+    }
+
+
+    public static TableDataSet importTable(String filePath) {
+
+        // read a csv file into a TableDataSet
+        TableDataSet table;
+        CSVFileReader cfrReader = new CSVFileReader();
+        try {
+            table = cfrReader.readFile(new File( filePath ));
+        } catch (Exception e) {
+            throw new RuntimeException("File Not Found: <" + filePath + ">.", e);
+        }
+        return table;
+    }
+
+
+    public static double[] scaleArray (double[] array, double maxVal) {
+        // scale float array so that largest value equals maxVal
+
+        double highestVal = Double.MIN_VALUE;
+        for (double val: array) highestVal = Math.max(val, highestVal);
+        for (int i = 0; i < array.length; i++) array[i] = ((array[i] * maxVal * 1.) / (highestVal * 1.));
+        return array;
     }
 
 }
