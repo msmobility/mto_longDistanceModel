@@ -38,6 +38,12 @@ public class surveyPerson implements Serializable {
     int kidsInHh;
     ArrayList<Long> tours;
 
+    //addded by Carlos Llorca on 6/7/16 to evaluate the tripGeneration of the surveyPerson individuals instead of Synthetic pop
+    //this should not be used if this survey population is not used to test the models
+    public boolean  isAway = false;
+    public boolean  isDaytrip = false ;
+    public boolean  isInOutTrip = false;
+
 
     public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cma, int ageGroup,
                         int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {

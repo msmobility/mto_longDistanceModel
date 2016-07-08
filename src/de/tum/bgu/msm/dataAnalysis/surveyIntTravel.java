@@ -29,8 +29,8 @@ public class surveyIntTravel implements Serializable {
     int purpose;
     int entryMode;
     //zero position is equal to position 1 and means "first country visited". This is to be coherent with nightsByPlace
-    int[] country = new int[15];
-    int[] nightsByPlace = new int[15];
+    int[] country = new int[16];
+    int[] nightsByPlace = new int[16];
     float weight;
     int travelParty;
 

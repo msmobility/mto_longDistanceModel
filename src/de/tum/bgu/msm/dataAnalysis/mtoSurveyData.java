@@ -13,13 +13,11 @@ import java.io.PrintWriter;
 import java.util.ResourceBundle;
 
 /**
- *
  * Ontario Provincial Model
  * Class to hold data
  * Author: Rolf Moeckel, Technische Universität München (TUM), rolf.moeckel@tum.de
  * Date: 14 December 2015
  * Version 1
- *
  */
 public class mtoSurveyData {
     static Logger logger = Logger.getLogger(mto.class);
@@ -40,7 +38,7 @@ public class mtoSurveyData {
     }
 
 
-    public void readInput () {
+    public void readInput() {
         // read input data
         workDirectory = rb.getString("work.directory");
 
@@ -57,21 +55,27 @@ public class mtoSurveyData {
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
         //added by Carlos Llorca to convert old country codes to new country codes in ITS survey data. TODO Suggest rename files with a "surname" for ITS or TSRC related data
-        itsCountryCodes = util.readCSVfile("input/itsCountryCodes.csv");
+        //TODO add this file name to mto_properties
+        String countryCodeFilename = "input/itsCountryCodes.csv";
+        itsCountryCodes = util.readCSVfile(countryCodeFilename);
         itsCountryCodes.buildIndex(itsCountryCodes.getColumnPosition("codeOld"));
 
         //added by Carlos Llorca to convert old purposes
-        itsPurposes = util.readCSVfile("input/itsPurposes.csv");
+        //TODO add this file name to mto_properties
+        String itsPurposesFilename = "input/itsPurposes.csv";
+        itsPurposes = util.readCSVfile(itsPurposesFilename);
         itsPurposes.buildIndex(itsPurposes.getColumnPosition("codeOld"));
 
-        //added by Carlos Llorca to convert old purposes
-        itsEntryModes = util.readCSVfile("input/itsEntryModes.csv");
+        //added by Carlos Llorca to convert old entry modes
+        //TODO add this file name to mto_properties
+        String itsEntryModesFilename = "input/itsEntryModes.csv";
+        itsEntryModes = util.readCSVfile(itsEntryModesFilename);
         itsEntryModes.buildIndex(itsEntryModes.getColumnPosition("codeOld"));
 
         // read all TSRC data
-        for (int year: ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
+        for (int year : ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
         // read all ITS data
-        for (int year: ResourceUtil.getIntegerArray(rb, "its.years")) readITSdata(year);
+        for (int year : ResourceUtil.getIntegerArray(rb, "its.years")) readITSdata(year);
 
     }
 
@@ -79,10 +83,10 @@ public class mtoSurveyData {
     public void readITSdata(int year) {
 
         //edited by Carlos Llorca on 29 June 2016
-        //if sentence to select between "old" and "new" ITS data sets.
 
-        if (year== 2013 || year == 2014) {
-        // read ITS data from years 2013 and 2014
+        //if sentence to select between "old" and "new" ITS data sets.
+        if (year == 2013 || year == 2014) {
+            // read ITS data from years 2013 and 2014 (namely new)
 
             logger.info("  Reading ITS data for " + year);
             String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data") + year + "_PUMF.txt";
@@ -99,7 +103,7 @@ public class mtoSurveyData {
                     //if (origProvince.equals("35")){
                     // origin == ontario
                     recCount++;
-                    String origCMA =      recString.substring(10, 14);  // ascii position in file: 011-01
+                    String origCMA = recString.substring(10, 14);  // ascii position in file: 011-01
                     int refYear = year;
                     int origPumfId = convertToInteger(recString.substring(0, 7));  // ascii position in file: 001-007
                     int refQuarter = convertToInteger(recString.substring(7, 8));  // ascii position in file: 008-008
@@ -108,6 +112,7 @@ public class mtoSurveyData {
                     int entryMode = convertToInteger(recString.substring(25, 26));  // ascii position in file: 026-026
                     int country[] = new int[15];
                     country[0] = convertToInteger(recString.substring(38, 43));  // ascii position in file: 039-043
+                    //country[0] is the first country visited, equal to country [1]
                     country[1] = convertToInteger(recString.substring(38, 43));  // ascii position in file: 039-043
                     country[2] = convertToInteger(recString.substring(65, 70));  // ascii position in file:
                     country[3] = convertToInteger(recString.substring(92, 97));  // ascii position in file:
@@ -135,11 +140,11 @@ public class mtoSurveyData {
 
 
                     //clean multiple US visits to get only 1 trip to US. The
-                    for (int i=1; i < country.length; i++){
-                        for (int j = 1; j < country.length & j != i ; j++ ){
-                            if (country[i]==country[j] & nightsByPlace[i]!=999  & nightsByPlace[j]!=999){
-                                nightsByPlace[i]=nightsByPlace[i] + nightsByPlace[j];
-                                nightsByPlace[j]=999;
+                    for (int i = 1; i < country.length; i++) {
+                        for (int j = 1; j < country.length & j != i; j++) {
+                            if (country[i] == country[j] & nightsByPlace[i] != 999 & nightsByPlace[j] != 999) {
+                                nightsByPlace[i] = nightsByPlace[i] + nightsByPlace[j];
+                                nightsByPlace[j] = 999;
                             }
                         }
                     }
@@ -161,143 +166,143 @@ public class mtoSurveyData {
 
             //...for (int days=0;days<365;days++) logger.info("Days " + days + ": " + (purp[1][days]+purp[3][days]) + "," +
             //        purp[2][days] + "," + purp[4][days]);
-        }
-        else if (year == 2011 || year == 2012){
+        } else if (year == 2011 || year == 2012) {
             // read ITS data from years 2011 and 2012
             logger.info("  Reading ITS data for " + year);
-            //provide the names of the files TODO Do it more systematic?
-            String fileNames[] = new String [8];
-            if(year == 2011) {
-                fileNames[0] ="CO111.FIN_CUMF.DAT";
-                fileNames[1] ="CO112.FIN_CUMF.DAT";
-                fileNames[2] ="CO113.FIN_CUMF.DAT";
-                fileNames[3] ="CO114.FIN_CUMF.DAT";
-                fileNames[4] ="CU111.FIN_CUMF.DAT";
-                fileNames[5] ="CU112.FIN_CUMF.DAT";
-                fileNames[6] ="CU113.FIN_CUMF.DAT";
-                fileNames[7] ="CU114.FIN_CUMF.DAT";
+            //provide the names of the files
+            // TODO Do it more systematic
+            String fileNames[] = new String[8];
+            if (year == 2011) {
+                fileNames[0] = "CO111.FIN_CUMF.DAT";
+                fileNames[1] = "CO112.FIN_CUMF.DAT";
+                fileNames[2] = "CO113.FIN_CUMF.DAT";
+                fileNames[3] = "CO114.FIN_CUMF.DAT";
+                fileNames[4] = "CU111.FIN_CUMF.DAT";
+                fileNames[5] = "CU112.FIN_CUMF.DAT";
+                fileNames[6] = "CU113.FIN_CUMF.DAT";
+                fileNames[7] = "CU114.FIN_CUMF.DAT";
 
-            }
-            else{
-                fileNames[0] ="CO121.FIN_CUMF.DAT";
-                fileNames[1] ="CO122.FIN_CUMF.DAT";
-                fileNames[2] ="CO123.FIN_CUMF.DAT";
-                fileNames[3] ="CO124.FIN_PUMF.DAT";
-                fileNames[4] ="CU121.FIN_CUMF.DAT";
-                fileNames[5] ="CU122.FIN_CUMF.DAT";
-                fileNames[6] ="CU123.FIN_CUMF.DAT";
-                fileNames[7] ="CU124.FIN_PUMF.DAT";
+            } else {
+                fileNames[0] = "CO121.FIN_CUMF.DAT";
+                fileNames[1] = "CO122.FIN_CUMF.DAT";
+                fileNames[2] = "CO123.FIN_CUMF.DAT";
+                fileNames[3] = "CO124.FIN_PUMF.DAT";
+                fileNames[4] = "CU121.FIN_CUMF.DAT";
+                fileNames[5] = "CU122.FIN_CUMF.DAT";
+                fileNames[6] = "CU123.FIN_CUMF.DAT";
+                fileNames[7] = "CU124.FIN_PUMF.DAT";
 
             }
             int recCount = 0;
             for (String txt : fileNames) {
-                String fileName = workDirectory +  rb.getString("its.data.dir") + "/" + txt;
+                String fileName = workDirectory + rb.getString("its.data.dir") + "/" + txt;
                 String recString;
                 try {
                     BufferedReader in = new BufferedReader(new FileReader(fileName));
                     while ((recString = in.readLine()) != null) {
-                        int origProvince= convertToInteger(recString.substring(16,18));
+                        int origProvince = convertToInteger(recString.substring(16, 18));
                         //comment next line to deactivate ONTARIO filter (the closing } below too!)
                         //if (origProvince.equals("35")){
                         // origin == ontario
                         recCount++;
-                        //int entryDay        = convertToInteger(recString.substring(48,50));
-                        int entryMonth      = convertToInteger(recString.substring(50,52));
+                        //int entryDay      = convertToInteger(recString.substring(48,50));
+                        int entryMonth = convertToInteger(recString.substring(50, 52));
                         int refQuarter;
-                        if (entryMonth <4)
+                        if (entryMonth < 4)
                             refQuarter = 1;
-                        else if(entryMonth <7)
+                        else if (entryMonth < 7)
                             refQuarter = 2;
-                        else if(entryMonth <10)
+                        else if (entryMonth < 10)
                             refQuarter = 3;
                         else
                             refQuarter = 4;
 
-                        int refYear         = convertToInteger(recString.substring(52,56));
-                        int purpose         = convertToInteger(recString.substring(103,105));
-                        int entryMode       = convertToInteger(recString.substring(217,219));
-                        int country[]       = new int[16];
-                        //need to convert old codes to new codes in ITS surveys
+                        int refYear = convertToInteger(recString.substring(52, 56));
+                        int purpose = convertToInteger(recString.substring(103, 105));
+                        int entryMode = convertToInteger(recString.substring(217, 219));
+                        int country[] = new int[16];
                         int nightsByPlace[] = new int[16];
-                        int pumfId          = recCount * 100 + refYear % 100;
+                        int pumfId = recCount * 100 + refYear % 100;
+                        nightsByPlace[0] = convertToInteger(recString.substring(576, 579));
+                        country[0] = convertToInteger(recString.substring(581, 586));
+                        //country[0] is the first country visited, equal to country [1]
+                        country[1] = convertToInteger(recString.substring(581, 586));
+                        country[2] = convertToInteger(recString.substring(621, 626));
+                        country[3] = convertToInteger(recString.substring(661, 666));
+                        country[4] = convertToInteger(recString.substring(701, 706));
+                        country[5] = convertToInteger(recString.substring(741, 746));
+                        country[6] = convertToInteger(recString.substring(781, 786));
+                        country[7] = convertToInteger(recString.substring(828, 828));
+                        country[8] = convertToInteger(recString.substring(861, 866));
+                        country[9] = convertToInteger(recString.substring(901, 906));
+                        country[10] = convertToInteger(recString.substring(941, 946));
+                        country[11] = convertToInteger(recString.substring(981, 986));
+                        country[12] = convertToInteger(recString.substring(1021, 1026));
+                        country[13] = convertToInteger(recString.substring(1061, 1066));
+                        country[14] = convertToInteger(recString.substring(1101, 1106));
+                        country[15] = convertToInteger(recString.substring(1141, 1146));
 
-                        nightsByPlace[0]    = convertToInteger(recString.substring(576,579));
-                        nightsByPlace[0]    = convertToInteger(recString.substring(576,579));
+                        nightsByPlace[1] = convertToInteger(recString.substring(605, 608));
+                        nightsByPlace[2] = convertToInteger(recString.substring(645, 648));
+                        nightsByPlace[3] = convertToInteger(recString.substring(685, 688));
+                        nightsByPlace[4] = convertToInteger(recString.substring(725, 728));
+                        nightsByPlace[5] = convertToInteger(recString.substring(765, 768));
+                        nightsByPlace[6] = convertToInteger(recString.substring(805, 808));
+                        nightsByPlace[7] = convertToInteger(recString.substring(845, 848));
+                        nightsByPlace[8] = convertToInteger(recString.substring(885, 888));
+                        nightsByPlace[9] = convertToInteger(recString.substring(925, 928));
+                        nightsByPlace[10] = convertToInteger(recString.substring(965, 968));
+                        nightsByPlace[11] = convertToInteger(recString.substring(1005, 1008));
+                        nightsByPlace[12] = convertToInteger(recString.substring(1045, 1048));
+                        nightsByPlace[13] = convertToInteger(recString.substring(1085, 1088));
+                        nightsByPlace[14] = convertToInteger(recString.substring(1125, 1128));
+                        nightsByPlace[15] = convertToInteger(recString.substring(1165, 1168));
 
-                        country[0]= convertToInteger(recString.substring(581,586));
-                        country[1]= convertToInteger(recString.substring(581,586));
-                        country[2]= convertToInteger(recString.substring(621,626));
-                        country[3]= convertToInteger(recString.substring(661,666));
-                        country[4]= convertToInteger(recString.substring(701,706));
-                        country[5]= convertToInteger(recString.substring(741,746));
-                        country[6]= convertToInteger(recString.substring(781,786));
-                        country[7]= convertToInteger(recString.substring(828,828));
-                        country[8]= convertToInteger(recString.substring(861,866));
-                        country[9]= convertToInteger(recString.substring(901,906));
-                        country[10]= convertToInteger(recString.substring(941,946));
-                        country[11]= convertToInteger(recString.substring(981,986));
-                        country[12]= convertToInteger(recString.substring(1021,1026));
-                        country[13]= convertToInteger(recString.substring(1061,1066));
-                        country[14]= convertToInteger(recString.substring(1101,1106));
-                        country[15]= convertToInteger(recString.substring(1141,1146));
-
-                        nightsByPlace[1]= convertToInteger(recString.substring(605,608));
-                        nightsByPlace[2]= convertToInteger(recString.substring(645,648));
-                        nightsByPlace[3]= convertToInteger(recString.substring(685,688));
-                        nightsByPlace[4]= convertToInteger(recString.substring(725,728));
-                        nightsByPlace[5]= convertToInteger(recString.substring(765,768));
-                        nightsByPlace[6]= convertToInteger(recString.substring(805,808));
-                        nightsByPlace[7]= convertToInteger(recString.substring(845,848));
-                        nightsByPlace[8]= convertToInteger(recString.substring(885,888));
-                        nightsByPlace[9]= convertToInteger(recString.substring(925,928));
-                        nightsByPlace[10]= convertToInteger(recString.substring(965,968));
-                        nightsByPlace[11]= convertToInteger(recString.substring(1005,1008));
-                        nightsByPlace[12]= convertToInteger(recString.substring(1045,1048));
-                        nightsByPlace[13]= convertToInteger(recString.substring(1085,1088));
-                        nightsByPlace[14]= convertToInteger(recString.substring(1125,1128));
-                        nightsByPlace[15]= convertToInteger(recString.substring(1165,1168));
-
-                        int travelParty     = convertToInteger(recString.substring(56,58));
-                        float weight  = convertToFloat(recString.substring(1326,1342));
+                        int travelParty = convertToInteger(recString.substring(56, 58));
+                        float weight = convertToFloat(recString.substring(1326, 1342));
 
                         //convert old codes to new codes in ITS survey
                         //when the country is not in the list is does not anything
-                        for (int j=0; j < 16; j++) {
+                        for (int j = 0; j < 16; j++) {
                             try {
-                                country[j] = (int) itsCountryCodes.getIndexedValueAt(country[j], 2);
-                            }catch (Exception e2) {
-
+                                if(country[j] > 0)
+                                    country[j] = (int) itsCountryCodes.getIndexedValueAt(country[j], 2);
+                                } catch (Exception e) {
+                                //TODO review file because it gives an exception (countries are not found?)
+                                logger.error("Country codes for ITS old format not found: " + country[j]);
                             }
-
                         }
 
                         //convert old purposes to new purposes in ITS survey
                         try {
                             purpose = (int) itsPurposes.getIndexedValueAt(purpose, 3);
-                        }catch (Exception e3) {
-
+                        } catch (Exception e) {
+                            logger.error("Purpose codes for ITS old format not found: " + e);
                         }
 
                         //convert entry modes to new purposes in ITS survey
                         try {
                             entryMode = (int) itsEntryModes.getIndexedValueAt(entryMode, 3);
-                        }catch (Exception e3) {
+                        } catch (Exception e) {
+                            logger.error("Entry mode codes for ITS old format not found: " + e);
 
                         }
 
-                        //clean multiple US states trips to 1 country trip /////CHECK!!!!
+                        //clean multiple US states visits to 1 country visit in the nightsByPlace and Country matrices
+                        //actually it does not clean the matrix nightsByPlace but sums
+                        // the number of nights tyo the first country repeated and puts 999 nights in the rest
 
-                        for (int i=1; i < country.length; i++){
-                            for (int j = 1; j < country.length & j != i ; j++ ){
-                                if (country[i]==country[j] & nightsByPlace[i]!=999  & nightsByPlace[j]!=999){
-                                    nightsByPlace[i]=nightsByPlace[i] + nightsByPlace[j];
-                                    nightsByPlace[j]=999;
+                        for (int i = 1; i < country.length; i++) {
+                            for (int j = 1; j < country.length & j != i; j++) {
+                                if (country[i] == country[j] & nightsByPlace[i] != 999 & nightsByPlace[j] != 999) {
+                                    nightsByPlace[i] = nightsByPlace[i] + nightsByPlace[j];
+                                    nightsByPlace[j] = 999;
                                 }
                             }
                         }
 
 
-                        //store as a new surveyint travel object
+                        //store as a new surveyIntTravel object
                         new surveyIntTravel(origProvince, pumfId, refYear, refQuarter, purpose, entryMode, country, nightsByPlace, weight, travelParty);
 
                         //comment next line to deactivate ONTARIO filter
@@ -308,13 +313,9 @@ public class mtoSurveyData {
                 }
 
 
-                    }
+            }
 
-                logger.info("  Read " + recCount + " ITS records with a residence in Ontario (35)");
-
-
-
-
+            logger.info("  Read " + recCount + " ITS records with a residence in Ontario (35)");
         }
     }
 
@@ -322,7 +323,7 @@ public class mtoSurveyData {
 
     public void readTSRCdata(int year) {
         // read TSRC data
-        logger.info ("  Reading TSRC data for " + year);
+        logger.info("  Reading TSRC data for " + year);
 
         String dirName = workDirectory + ResourceUtil.getProperty(rb, ("tsrc.data.dir"));
 
@@ -358,7 +359,6 @@ public class mtoSurveyData {
 //        int[] purpCnt = new int[purpList.length];
 //
 //        int[][] modePurpCnt = new int[mainModes.length][purpList.length];
-
 
 
 //        iterate over all tours:
@@ -401,7 +401,7 @@ public class mtoSurveyData {
     }
 
 
-    private void readTSRCpersonData (String dirName, int year) {
+    private void readTSRCpersonData(String dirName, int year) {
         // read person file
 
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
@@ -411,9 +411,10 @@ public class mtoSurveyData {
             int recCount = 0;
             try {
                 String fullFileName;
-                if (month <= 9) fullFileName= dirName + File.separator + year + File.separator + personFileName + year +
-                        "_Mth0" + month + "_pumf.txt";
-                else fullFileName= dirName + File.separator + year + File.separator + personFileName + year +
+                if (month <= 9)
+                    fullFileName = dirName + File.separator + year + File.separator + personFileName + year +
+                            "_Mth0" + month + "_pumf.txt";
+                else fullFileName = dirName + File.separator + year + File.separator + personFileName + year +
                         "_Mth" + month + "_pumf.txt";
                 BufferedReader in = new BufferedReader(new FileReader(fullFileName));
                 while ((recString = in.readLine()) != null) {
@@ -421,7 +422,7 @@ public class mtoSurveyData {
                     int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 01-04
                     int refMonth = convertToInteger(recString.substring(4, 6));  // ascii position in file: 05-06
                     int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
-                    int pumfId = origPumfId * 100 + refYear%100;
+                    int pumfId = origPumfId * 100 + refYear % 100;
                     float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
                     float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
                     int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
@@ -446,7 +447,7 @@ public class mtoSurveyData {
     }
 
 
-    private void readTSRCtripData (String dirName, int year) {
+    private void readTSRCtripData(String dirName, int year) {
         // read trip file
 
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
@@ -460,29 +461,32 @@ public class mtoSurveyData {
                 // /recCount++;
                 int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
                 int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
-                int pumfId = origPumfId * 100 + refYear%100;
-                int tripId =       convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
+                int pumfId = origPumfId * 100 + refYear % 100;
+                int tripId = convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
                 int origProvince = convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
                 int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
                 int travelParty = convertToInteger(recString.substring(63, 65));   // ascii position in file: 064-065
                 int travelPartyAdult = convertToInteger(recString.substring(67, 69)); // ascii position in file: 068-069
-                int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
-                int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
-                int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
+                int mainMode = convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
+                int homeCma = convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
+                int tripPurp = convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
                 int numberNights = convertToInteger(recString.substring(120, 123));  // ascii position in file: 121-123
                 int numIdentical = convertToInteger(recString.substring(173, 175));  // ascii position in file: 174-175
-                float hhWeight    =convertToFloat(recString.substring(34, 46));      // ascii position in file: 035-046
-                float tripWeight  =convertToFloat(recString.substring(46, 58));      // ascii position in file: 047-058
+                float hhWeight = convertToFloat(recString.substring(34, 46));      // ascii position in file: 035-046
+                float tripWeight = convertToFloat(recString.substring(46, 58));      // ascii position in file: 047-058
 
                 //next line modified on 30 June by Carlos Llorca to extend the number of variables of the surveyTour object
                 new surveyTour(tripId, pumfId, refYear, origProvince, destProvince, travelParty, travelPartyAdult, mainMode, homeCma, tripPurp, numberNights,
                         numIdentical, hhWeight, tripWeight);
 
 
-                //Carlos Llorca on 01 July: I think 1 identical trip means 2 trips so I add the "+1" 3 lines above
+
                 surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
                 if (numIdentical < 30) {
-                    for (int i = 1; i <= numIdentical+1; i++) sp.addTour(tripId);
+
+                    //Carlos Llorca on 01 July: I think 1 identical trip means 2 trips so I add the "+1" 3 lines above
+                    // TODO check if this change is right
+                    for (int i = 1; i <= numIdentical + 1; i++) sp.addTour(tripId);
                 } else {
                     sp.addTour(tripId);
                 }
@@ -495,7 +499,7 @@ public class mtoSurveyData {
     }
 
 
-    private void readTSRCvisitData (String dirName, int year) {
+    private void readTSRCvisitData(String dirName, int year) {
         // read visit location file
 
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.visits"));
@@ -508,13 +512,13 @@ public class mtoSurveyData {
                 //next line is out not to double the records
                 //recCount++;
                 int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
-                int origPumfId = convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
-                int pumfId = origPumfId * 100 + refYear%100;
+                int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int pumfId = origPumfId * 100 + refYear % 100;
                 int tripId = convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
                 int cmarea = convertToInteger(recString.substring(22, 26));  // ascii position in file: 023-026
                 int nights = convertToInteger(recString.substring(26, 29));  // ascii position in file: 027-029
                 surveyTour st = surveyTour.getTourFromId(util.createTourId(pumfId, tripId));
-                st.addTripDestinations (cmarea, nights);
+                st.addTripDestinations(cmarea, nights);
                 recCount++;
             }
         } catch (Exception e) {
@@ -532,7 +536,7 @@ public class mtoSurveyData {
         } catch (Exception e) {
             boolean spacesOnly = true;
             for (int pos = 0; pos < s.length(); pos++) {
-                if (!s.substring(pos, pos+1).equals(" ")) spacesOnly = false;
+                if (!s.substring(pos, pos + 1).equals(" ")) spacesOnly = false;
             }
             if (spacesOnly) return -999;
             else {
@@ -551,7 +555,7 @@ public class mtoSurveyData {
             if (s.contains(" . ")) return -999;
             boolean spacesOnly = true;
             for (int pos = 0; pos < s.length(); pos++) {
-                if (!s.substring(pos, pos+1).equals(" ")) spacesOnly = false;
+                if (!s.substring(pos, pos + 1).equals(" ")) spacesOnly = false;
             }
             if (spacesOnly) return -999;
             else {

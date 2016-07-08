@@ -48,7 +48,7 @@ public class readSP {
         examSyntheticPopulation();
         //next line commented by Carlos Llorca on 7/4/16 because zone System is not available
         //summarizePopulationData();
-    }
+        }
 
 
     private void readZonalData () {

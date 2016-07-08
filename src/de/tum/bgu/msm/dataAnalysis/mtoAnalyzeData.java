@@ -38,10 +38,20 @@ public class mtoAnalyzeData {
         }
         if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) {
             writeOutData();
+        }
+        //consider to add this property to mto_properties
+        boolean writeIts = true;
+        if (writeIts) {
             writeOutItsData(); //line added by Carlos Llorca on 29 June 2016
+        }
+        //consider to add this property to mto_properties
+        boolean writeTsrcTrips = true;
+        if (writeTsrcTrips) {
             writeOutTsrcTripData(); //line added by Carlos Llorca on 30 June 2016
         }
     }
+
+
 
 
     private void countTravelersByIncome() {
@@ -257,7 +267,7 @@ public class mtoAnalyzeData {
 
 
         // write out ITS travel data for model estimation in a separate line each country (get a second file)
-        // it creates multiple lines if there are visits to multiple US states
+
         logger.info("Writing out data for external ITS model estimation");
         String fileName2 = ResourceUtil.getProperty(rb, "its.out.file");
         PrintWriter pw2 = util.openFileForSequentialWriting(fileName2 + "countries.csv", false);
