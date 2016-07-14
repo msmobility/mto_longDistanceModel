@@ -7,6 +7,7 @@ import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.syntheticPopulation.readSP;
 import de.tum.bgu.msm.util;
 import omx.OmxFile;
+import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 
@@ -45,15 +46,19 @@ public class mtoLongDistData {
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
         autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
-
-        System.out.println(autoTravelTime.getValueAt(1,1));
-        System.out.println(autoTravelTime.getValueAt(1,2));
-        System.out.println(autoTravelTime.getValueAt(2,1));
+        OmxLookup omxLookUp = hSkim.getLookup("zone_number");
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
 
 
     public float getAutoTravelTime(int orig, int dest) {
-        return autoTravelTime.getValueAt(orig, dest);
+        try {
+            return autoTravelTime.getValueAt(orig, dest);
+        } catch (Exception e) {
+            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
+            return -999;
+        }
     }
 
 
@@ -71,13 +76,13 @@ public class mtoLongDistData {
             autoAccessibility[rsp.getIndexOfZone(orig)] = 0;
             for (int dest: zones) {
                 double autoImpedance;
-                System.out.println(orig+"-"+dest+":"+getAutoTravelTime(orig, dest));
-                if (getAutoTravelTime(orig, dest) == 0) {      // should never happen for auto
+                if (getAutoTravelTime(orig, dest) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
                 } else {
                     autoImpedance = Math.exp(betaAuto * getAutoTravelTime(orig, dest));
                 }
-                autoAccessibility[rsp.getIndexOfZone(orig)] += Math.pow(pop[dest], alphaAuto) * autoImpedance;
+                autoAccessibility[rsp.getIndexOfZone(orig)] += Math.pow(pop[rsp.getIndexOfZone(dest)], alphaAuto) *
+                        autoImpedance;
             }
         }
         autoAccessibility = util.scaleArray(autoAccessibility, 100);
@@ -87,5 +92,6 @@ public class mtoLongDistData {
         pw.println("Zone,Accessibility");
 
         for (int zone: zones) pw.println(zone+","+autoAccessibility[rsp.getIndexOfZone(zone)]);
+        pw.close();
     }
 }
