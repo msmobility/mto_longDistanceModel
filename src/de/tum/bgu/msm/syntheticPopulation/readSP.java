@@ -41,7 +41,6 @@ public class readSP {
     public void readSyntheticPopulation() {
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        readZonalData();
         readSyntheticHouseholds();
         readSyntheticPersons();
         examSyntheticPopulation();
@@ -49,7 +48,7 @@ public class readSP {
     }
 
 
-    private void readZonalData () {
+    public void readZonalData () {
         // Read in zonal data
 
         zoneTable = util.importTable(rb.getString("zone.system"));

@@ -29,6 +29,7 @@ public class mtoLongDistance {
         // main method to run long-distance model
 
         readSP rsp = new readSP(rb);
+        rsp.readZonalData();
         rsp.readSyntheticPopulation();
         mtoLongDistData md = new mtoLongDistData(rb);
         md.readSkim();
