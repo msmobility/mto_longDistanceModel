@@ -38,7 +38,7 @@ public class mtoLongDistData {
 
     public void readSkim() {
         // read skim file
-        logger.info("  Reading skims files");
+        logger.info("  Reading skims files ");
 
         String hwyFileName = rb.getString("auto.skim." + mto.getYear());
         // Read highway hwySkim
