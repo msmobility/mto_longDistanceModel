@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.ResourceBundle;
 
 /**
@@ -65,13 +66,15 @@ public class mtoSurveyData {
         String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data");
         String recString;
         int recCount = 0;
-
+        PrintWriter out = util.openFileForSequentialWriting(rb.getString("its.out.file") + ".csv", false);
+        out.println("province,cma,weight");
 //        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
                 String origProvince = recString.substring(8, 10);  // ascii position in file: 009-010
+                String origCMA =      recString.substring(10, 14);  // ascii position in file: 011-014
                 if (origProvince.equals("35")){
                     // origin == ontario
                     recCount++;
@@ -90,10 +93,12 @@ public class mtoSurveyData {
                     nightsByPlace[9] = convertToInteger(recString.substring(264,267));  // ascii position in file: 265-267
                     nightsByPlace[10]= convertToInteger(recString.substring(291,294));  // ascii position in file: 292-294
                     nightsByPlace[0] = convertToInteger(recString.substring(345,348));  // ascii position in file: 346-348
-                    float weight =  convertToFloat(recString.substring(475,491));    // ascii position in file: 476-492
 //                    purp[purpose][nightsByPlace[0]] += weight;
                 }
+                float weight =  convertToFloat(recString.substring(475,491));    // ascii position in file: 476-492
+                out.println(origProvince + "," + origCMA + "," + weight);
             }
+            out.close();
         } catch (Exception e) {
             logger.error("Could not read ITS data: " + e);
         }
@@ -209,6 +214,7 @@ public class mtoSurveyData {
                     float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
                     float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
                     int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
+                    int cma = convertToInteger(recString.substring(42, 46));  // ascii position in file: 43-46
                     int ageGroup = convertToInteger(recString.substring(46, 47));  // ascii position in file: 47-47
                     int gender = convertToInteger(recString.substring(47, 48));  // ascii position in file: 48-48
                     int education = convertToInteger(recString.substring(48, 49));  // ascii position in file: 49-49
@@ -216,7 +222,7 @@ public class mtoSurveyData {
                     int hhIncome = convertToInteger(recString.substring(50, 51));  // ascii position in file: 51-51
                     int adultsInHh = convertToInteger(recString.substring(51, 53));  // ascii position in file: 52-53
                     int kidsInHh = convertToInteger(recString.substring(53, 55));  // ascii position in file: 54-55
-                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, ageGroup, gender, education,
+                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
                 }
             } catch (Exception e) {
