@@ -31,19 +31,35 @@ public class mtoLongDistance {
         readSP rsp = new readSP(rb);
         rsp.readSyntheticPopulation();
 
-        //next 3 lines commented by Carlos Llorca on 4/7/2016 because skim matrix and accessibility is not available
-
+        //TODO next 3 lines commented by Carlos Llorca on 4/7/2016 because skim matrix and accessibility is not available
         //mtoLongDistData md = new mtoLongDistData(rb);
         //md.readSkim();
         //md.calculateAccessibility(rsp);
 
-        //chose between SYNTHETIC or SURVEY population with comments in one of the following two couples of lines
 
-        tripGeneration tg = new tripGeneration(rb);
-        tg.runTripGeneration();
 
-        //surveyTripGeneration stg = new surveyTripGeneration(rb);
-        //stg.runSurveyTripGeneration();
+        tripGeneration tgdomestic = new tripGeneration(rb);
+        tgdomestic.runTripGeneration(false);
+
+        logger.info("Domestic Trip: done");
+
+        //this must be after domestic
+        internationalTripGeneration tginternationa2 = new internationalTripGeneration(rb);
+        tginternationa2.runInternationalTripGeneration();
+
+        logger.info("Int Trip v2: done");
+
+
+
+        //international
+        tripGeneration tginternational = new tripGeneration(rb);
+        tginternational.runTripGeneration(true);
+
+        logger.info("Int Trip: done");
+
+
+
+
 
 
         //next method is used to analyze the outputs of the tripGeneration

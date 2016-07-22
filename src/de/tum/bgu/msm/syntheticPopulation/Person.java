@@ -37,7 +37,10 @@ public class Person {
     public boolean  isAway = false;
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
-
+    //added by Carlos Llorca on 19/7/16
+    public float[][] travelProbabilities = new float[3][3];
+// rows 1 to 3: away, daytrip, inOutTrip, home
+// columns 1 to 3: visit, business, leisure
     public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus) {
         this.id = id;
         this.age = age;

@@ -1,5 +1,7 @@
 package de.tum.bgu.msm.longDistance;
 
+
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,22 +22,27 @@ public class LongDistanceTrip {
     private boolean international;
     private int tripPurpose;
     private int tripState;
-    private int originCma;
-    private int nights;
-    public  int travelParty;
+    private int originZone;
+    public int nights;
+    public int travelParty;
+
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originCma, int nights, int travelParty /**,ArrayList<Long> destinations**/) {
+    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights, int travelParty /**,ArrayList<Long> destinations**/) {
         this.tripId = tripId;
         this.personId = personId;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
-        this.originCma = originCma;
+        this.originZone = originZone;
         this.nights = nights;
         this.travelParty = travelParty;
         //this.destinations = new ArrayList<>();
         tripMap.put(tripId,this);
+    }
+
+    public static LongDistanceTrip getLongDistanceTripFromId(int tripId) {
+        return tripMap.get(tripId);
     }
 
     public static LongDistanceTrip[] getLongDistanceTripArray() {
@@ -62,11 +69,15 @@ public class LongDistanceTrip {
         return tripPurpose;
     }
 
-    public int getLongDistanceOriginCma() {
-        return originCma;
+    public int getLongDistanceOriginZone() {
+        return originZone;
     }
 
     public int getLongDistanceNights() {
         return nights;
     }
+
+    public int getTravelParty() { return travelParty; }
+
+
 }

@@ -27,6 +27,7 @@ public class surveyTour implements Serializable {
     int destProvince;
     int travelParty;
     int travelPartyAdult;
+    int travelPartyKids;
     private int mainMode;
     int homeCma;
     int tripPurp;
@@ -35,17 +36,20 @@ public class surveyTour implements Serializable {
     float hhWeight;
     float tripWeight;
     ArrayList<int[]> tourStops;
+    int pumfId;
 
-    public surveyTour(int tourId, int pumfId, int refYear, int origProvince, int destProvince, int travelParty, int travelPartyAdult, int mainMode, int homeCma,
+    public surveyTour(int tourId, int pumfId, int refYear, int origProvince, int destProvince, int travelParty, int travelPartyAdult, int travelPartyKids, int mainMode, int homeCma,
                       int tripPurp, int numberNights, int numIdentical, float hhWeight, float tripWeight) {
         // constructor of new survey tour
 
         this.tourId = util.createTourId(pumfId, tourId);
+        this.pumfId = pumfId;
         this.refYear = refYear;
         this.origProvince = origProvince;
         this.destProvince = destProvince;
         this.travelParty = travelParty;
         this.travelPartyAdult = travelPartyAdult;
+        this.travelPartyKids = travelPartyKids;
         this.mainMode = mainMode;
         this.homeCma = homeCma;
         this.tripPurp = tripPurp;
@@ -92,6 +96,10 @@ public class surveyTour implements Serializable {
         return travelPartyAdult;
     }
 
+    public int getTravelPartyKids() {
+        return travelPartyKids;
+    }
+
     public int getMainMode() {
         return mainMode;
     }
@@ -123,6 +131,8 @@ public class surveyTour implements Serializable {
     public float getTripWeight () {
         return tripWeight;
     }
+
+    public int getPersonId(){return pumfId; }
 
 
 }

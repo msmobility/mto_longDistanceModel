@@ -19,6 +19,8 @@ import java.util.ResourceBundle;
  * Date: 18 April 2016
  * Version 1
  *
+ * Added read CD data to the method read zonal data (Carlos Llorca 20.07.16
+ *
  */
 
 public class readSP {
@@ -32,6 +34,13 @@ public class readSP {
     private int[] ppByZone;
 
 
+    private TableDataSet cdTable;
+    int [] cds;
+    int [] cdsIndex;
+    private int[] hhByCd;
+    private int[] ppByCd;
+
+
     public readSP(ResourceBundle rb) {
         // Constructor
         this.rb = rb;
@@ -41,13 +50,11 @@ public class readSP {
     public void readSyntheticPopulation() {
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        //next line commented by Carlos Llorca on 7/4/16 because zone System is not available
-        //readZonalData();
+        readZonalData();
         readSyntheticHouseholds();
         readSyntheticPersons();
         examSyntheticPopulation();
-        //next line commented by Carlos Llorca on 7/4/16 because zone System is not available
-        //summarizePopulationData();
+        summarizePopulationData();
         }
 
 
@@ -58,6 +65,14 @@ public class readSP {
         zones = zoneTable.getColumnAsInt("ID");
         zoneIndex = new int[util.getHighestVal(zones) + 1];
         for (int i = 0; i < zones.length; i++) zoneIndex[zones[i]] = i;
+
+//todo change directory and filename in properties
+        cdTable = util.importTable("input/listOfCd.csv");
+        cds = cdTable.getColumnAsInt("CD");
+        cdsIndex = new int[util.getHighestVal(cds) + 1];
+        for (int i = 0; i < cds.length; i++) cdsIndex[cds[i]] = cds[i];
+
+        cdTable.buildIndex(cdTable.getColumnPosition("ID"));
     }
 
 
@@ -185,6 +200,27 @@ public class readSP {
         pw.println("zone,hh,pp");
         for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
         pw.close();
+
+
+
+        hhByCd = new int[cdsIndex.length];
+        ppByCd = new int[cdsIndex.length];
+
+        for (Household hh: Household.getHouseholdArray()) {
+            hhByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]]++;
+            ppByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]] += hh.getHhSize();
+        }
+
+        PrintWriter pw2 = util.openFileForSequentialWriting("popByCd.csv", false);
+        pw2.println("cd,hh,pp");
+        for (int cds: cdsIndex) {
+            if (cds!=0) pw2.println(cds+","+hhByCd[cdsIndex[cds]]+","+ppByCd[cdsIndex[cds]]);
+        }
+        pw2.close();
+
+
+    logger.info("Synthetic population summary written");
+
     }
 
     public int[] getZones() {

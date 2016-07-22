@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 
+import static de.tum.bgu.msm.dataAnalysis.surveyPerson.getPersonFromId;
+
 /**
  * Class to hold person object of travelers and non-travelers of the TSRC survey
  *
@@ -37,21 +39,21 @@ public class mtoAnalyzeData {
             tripsByModeAndOriginProvince();
         }
         if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) {
-            writeOutData();
+            writeOutDataOntario();
+            writeOutDataToOntario();
         }
-        //consider to add this property to mto_properties
+        //TODO consider to add this property to mto_properties
         boolean writeIts = true;
         if (writeIts) {
             writeOutItsData(); //line added by Carlos Llorca on 29 June 2016
+            writeOutItsVisitorsData(); //line added by Carlos Llorca on 14 July 2016
         }
-        //consider to add this property to mto_properties
+        //TODO consider to add this property to mto_properties
         boolean writeTsrcTrips = true;
         if (writeTsrcTrips) {
             writeOutTsrcTripData(); //line added by Carlos Llorca on 30 June 2016
         }
     }
-
-
 
 
     private void countTravelersByIncome() {
@@ -132,7 +134,7 @@ public class mtoAnalyzeData {
         String txt1 = "Destination";
         for (int mode : mainModes)
 //            txt1 += "," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode");
-        logger.info(txt1);
+            logger.info(txt1);
         for (Integer pr : data.getProvinceList().getColumnAsInt("Code")) {
 //            String txt2 = "Trips to " + pr + " (" + data.getProvinceList().getIndexedStringValueAt(pr, "Province") + ")";
 //            for (int mode : mainModes) txt2 += "," + destinationCounter.get(pr)[mainModeIndex[mode]];
@@ -153,7 +155,7 @@ public class mtoAnalyzeData {
         String tx = "Purpose";
         for (int mode : mainModes)
 //            tx = tx.concat("," + data.getMainModeList().getIndexedStringValueAt(mode, "MainMode"));
-        logger.info(tx);
+            logger.info(tx);
         for (int purp : purpList) {
 //            tx = data.getTripPurposes().getIndexedStringValueAt(purp, "Purpose");
             for (int mode : mainModes) {
@@ -166,70 +168,191 @@ public class mtoAnalyzeData {
     }
 
 
-    public void writeOutData() {
+    public void writeOutDataOntario() {
         // write out travel data for model estimation
         logger.info("Writing out data for external model estimation");
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
-        PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
+        //modified
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + "Ontario.csv", false);
+        String[] purposes = {"Holiday", "Visit", "Business", "Other"};
+        pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cd,cma," +
+                "income,expansionFactor,longDistanceTrips,daysAtHome");
+        for (String txt : purposes)
+            pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
+        pw.print(",adultsAtHome");
+        for (String txt : purposes)
+            pw.print(",adultsOnInOutboundTravel" + txt + ",adultsOnDaytrips" + txt + ",adultsAway" + txt);
+        pw.println();
+
+        for (surveyPerson sp : surveyPerson.getPersonArray()) {
+            //added if clause to limit origins to Ontario (Data for residents)
+            if (sp.getProv() == 35) {
+                ArrayList<Long> tours = sp.getTours();
+                //modified to account for tripParty
+                int[] daysInOut = new int[purposes.length];
+                int[] adultsInOut = new int[purposes.length];
+                int[] daysDayTrip = new int[purposes.length];
+                int[] adultsDayTrip = new int[purposes.length];
+                int[] daysAway = new int[purposes.length];
+                int[] adultsAway = new int[purposes.length];
+                int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
+                int adultsHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth()) * sp.getAdultsInHh();
+                // First, count day trips
+                for (long tour : tours) {
+                    surveyTour st = surveyTour.getTourFromId(tour);
+                    int tripPurp = 0;
+                    try {
+                        tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                    } catch (Exception e) {
+                        logger.error(tour); //+" "+st.tourStops+" "+st.getOrigProvince());
+                        logger.error(st.getTripPurp());
+                    }
+                    if (st.getNumberNights() == 0) {
+                        daysDayTrip[tripPurp]++;
+                        adultsDayTrip[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        daysHome--;
+                        adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                    }
+                }
+                // Next, add trips with overnight stay, ensuring that none exceeds 30 days per month
+                for (long tour : tours) {
+                    surveyTour st = surveyTour.getTourFromId(tour);
+                    int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                    if (st.getNumberNights() > 0) {
+                        // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
+                        // only the return trip is counted (as the outbound trip must have happened the previous month)
+                        if (daysHome > 0) {
+                            daysInOut[tripPurp]++;                            // return trip
+                            adultsInOut[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            daysHome--;
+                            adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        }
+                        daysAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome); // days away
+                        adultsAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome) * Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        daysHome -= Math.min(st.getNumberNights() - 1, daysHome);
+                        adultsHome -= Math.min(st.getNumberNights() - 1, daysHome) * Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        if (daysHome > 0) {
+                            daysInOut[tripPurp]++;                            // outbound trip
+                            adultsInOut[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            daysHome--;
+                            adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        }
+                    }
+                }
+                pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
+                        sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
+                        "," + sp.getProv() + "," + sp.getCd() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
+                        sp.getNumberOfTrips() + "," + daysHome);
+                for (int i = 0; i < purposes.length; i++)
+                    pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
+                            daysAway[i]);
+                pw.print("," + adultsHome);
+                for (int i = 0; i < purposes.length; i++)
+                    pw.print("," + adultsInOut[i] + "," + adultsDayTrip[i] + "," +
+                            adultsAway[i]);
+                pw.println();
+            }
+
+        }
+        pw.close();
+    }
+
+
+    public void writeOutDataToOntario() {
+        // write out travel data for model estimation
+        logger.info("Writing out data for external model estimation");
+        String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
+        //modified
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + "ToOntario.csv", false);
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
         pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cma," +
                 "income,expansionFactor,longDistanceTrips,daysAtHome");
         for (String txt : purposes)
             pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
+        pw.print(",adultsAtHome");
+        for (String txt : purposes)
+            pw.print(",adultsOnInOutboundTravel" + txt + ",adultsOnDaytrips" + txt + ",adultsAway" + txt);
         pw.println();
 
         for (surveyPerson sp : surveyPerson.getPersonArray()) {
-            ArrayList<Long> tours = sp.getTours();
-            int[] daysInOut = new int[purposes.length];
-            int[] daysDayTrip = new int[purposes.length];
-            int[] daysAway = new int[purposes.length];
-            int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
-            // First, count day trips
-            for (long tour : tours) {
-                surveyTour st = surveyTour.getTourFromId(tour);
-                int tripPurp = 0;
-                try {
-                    tripPurp = translateTripPurpose(purposes, st.getTripPurp());
-                } catch (Exception e) {
-                    logger.error(tour); //+" "+st.tourStops+" "+st.getOrigProvince());
-                    logger.error(st.getTripPurp());
-                }
-                if (st.getNumberNights() == 0) {
-                    daysDayTrip[tripPurp]++;
-                    daysHome--;
-                }
-            }
-            // Next, add trips with overnight stay, ensuring that none exceeds 30 days per month
-            for (long tour : tours) {
-                surveyTour st = surveyTour.getTourFromId(tour);
-                int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
-                if (st.getNumberNights() > 0) {
-                    // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
-                    // only the return trip is counted (as the outbound trip must have happened the previous month)
-                    if (daysHome > 0) {
-                        daysInOut[tripPurp]++;                            // return trip
-                        daysHome--;
-                    }
-                    daysAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome); // days away
-                    daysHome -= Math.min(st.getNumberNights() - 1, daysHome);
-                    if (daysHome > 0) {
-                        daysInOut[tripPurp]++;                            // outbound trip
-                        daysHome--;
+            //added if clause to limit origins to non Ontario (Data for visitors)
+            if (sp.getProv() != 35) {
+                ArrayList<Long> tours = sp.getTours();
+                //modified to account for tripParty
+                int[] daysInOut = new int[purposes.length];
+                int[] adultsInOut = new int[purposes.length];
+                int[] daysDayTrip = new int[purposes.length];
+                int[] adultsDayTrip = new int[purposes.length];
+                int[] daysAway = new int[purposes.length];
+                int[] adultsAway = new int[purposes.length];
+                int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
+                int adultsHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth()) * sp.getAdultsInHh();
+                // First, count day trips
+                for (long tour : tours) {
+                    surveyTour st = surveyTour.getTourFromId(tour);
+                    //next line only includes the tours that have as main destination Ontario
+                    if (st.getDestProvince() == 35) {
+                        int tripPurp = 0;
+                        try {
+                            tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                        } catch (Exception e) {
+                            logger.error(tour); //+" "+st.tourStops+" "+st.getOrigProvince());
+                            logger.error(st.getTripPurp());
+                        }
+                        if (st.getNumberNights() == 0) {
+                            daysDayTrip[tripPurp]++;
+                            adultsDayTrip[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            daysHome--;
+                            adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                        }
                     }
                 }
+                // Next, add trips with overnight stay, ensuring that none exceeds 30 days per month
+                for (long tour : tours) {
+                    surveyTour st = surveyTour.getTourFromId(tour);
+                    //next line only includes the tours that have as main destination Ontario
+                    if (st.getDestProvince() == 35) {
+                        int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                        if (st.getNumberNights() > 0) {
+                            // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
+                            // only the return trip is counted (as the outbound trip must have happened the previous month)
+                            if (daysHome > 0) {
+                                daysInOut[tripPurp]++;                            // return trip
+                                adultsInOut[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                                daysHome--;
+                                adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            }
+                            daysAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome); // days away
+                            adultsAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome) * Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            daysHome -= Math.min(st.getNumberNights() - 1, daysHome);
+                            adultsHome -= Math.min(st.getNumberNights() - 1, daysHome) * Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            if (daysHome > 0) {
+                                daysInOut[tripPurp]++;                            // outbound trip
+                                adultsInOut[tripPurp] += Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                                daysHome--;
+                                adultsHome -= Math.min(st.getTravelPartyAdult(), sp.getAdultsInHh());
+                            }
+                        }
+                    }
+                }
+
+                pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
+                        sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
+                        "," + sp.getProv() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
+                        sp.getNumberOfTrips() + "," + daysHome);
+                for (int i = 0; i < purposes.length; i++)
+                    pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
+                            daysAway[i]);
+                pw.print("," + adultsHome);
+                for (int i = 0; i < purposes.length; i++)
+                    pw.print("," + adultsInOut[i] + "," + adultsDayTrip[i] + "," +
+                            adultsAway[i]);
+                pw.println();
             }
-            pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
-                    sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
-                     "," + sp.getProv() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
-                    sp.getNumberOfTrips() + "," + daysHome);
-            for (int i = 0; i < purposes.length; i++)
-                pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
-                        daysAway[i]);
-            pw.println();
+
         }
         pw.close();
     }
-
 
     private int translateTripPurpose(String[] purposes, int purp) {
 
@@ -246,6 +369,31 @@ public class mtoAnalyzeData {
         return code[purp];
     }
 
+
+    //Method to write out TSRC trips (Added by Carlos Llorca on 30 June 2016)
+    public void writeOutTsrcTripData() {
+        logger.info("Writing out data for external TSRC trips model estimation");
+        String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + "trips.csv", false);
+        pw.print("tourId,year,origProv, destProv, travelParty, travelPartyAdults, travelPartyKids, numberNights, numberStops, numIdentical, tripPurpose, tripWeight, hhWeight," +
+                "personId, personAgegroup, personAdultsInHh, personKidsInHh, personEducation, personLaborStat, personHhIncome");
+        pw.println();
+        for (surveyTour st : surveyTour.getSurveyTourArray()) {
+
+            pw.print(st.getTourId() + "," + st.getRefYear() + "," + st.getOrigProvince() + "," + st.getDestProvince()
+                    + "," + st.getTravelParty() + "," + st.getTravelPartyAdult() + "," + st.getTravelPartyKids() + "," + st.getNumberNights() + ","
+                    + st.getNumberOfStop() + "," + st.getNumIdentical() + "," + st.getTripPurp() + "," + st.getTripWeight() + "," + st.getHhWeight());
+            //add some columns related to the survey person and household
+            int personId = st.getPersonId();
+            surveyPerson sp = getPersonFromId(personId);
+            pw.print("," + personId + "," + sp.getAgeGroup() + "," + sp.getAdultsInHh() +
+                    "," + sp.getKidsInHh() + "," + sp.getEducation() + ","
+                    + sp.getLaborStat() + "," + sp.getHhIncome());
+            pw.println();
+        }
+        pw.close();
+    }
+
     //Method to write out ITS data (Carlos Llorca on 29 June 2016)
     public void writeOutItsData() {
         // write out ITS travel data for model estimation
@@ -259,7 +407,7 @@ public class mtoAnalyzeData {
 
         for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
 
-            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince()+ "," + sit.getPurpose()+ ","
+            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince() + "," + sit.getPurpose() + ","
                     + sit.getEntryMode() + "," + sit.getCountry()[0] + "," + sit.getNights()[0] + "," + sit.getWeight() + "," + sit.getTravelParty());
             pw.println();
         }
@@ -277,10 +425,10 @@ public class mtoAnalyzeData {
         pw2.println();
 
         for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
-            for (int i=1; i<15; i++) {
+            for (int i = 1; i < 15; i++) {
                 //this code writes n lines if there is a trip visiting n US states. This will increase the number of trips-visits
                 //next if tense avoids writing more lines when there is no more stops
-                if(sit.getNights()[i] < 365 & sit.getCountry()[i] > 0 ) {
+                if (sit.getNights()[i] < 365 & sit.getCountry()[i] > 0) {
                     pw2.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince() + "," + sit.getPurpose() + ","
                             + sit.getEntryMode() + "," + sit.getCountry()[i] + "," + sit.getNights()[i] + "," + sit.getWeight() + "," + sit.getTravelParty());
                     pw2.println();
@@ -291,24 +439,69 @@ public class mtoAnalyzeData {
         pw2.close();
 
 
-
-
     }
-    //Method to write out TSRC trips (Added by Carlos Llorca on 30 June 2016)
-    public void writeOutTsrcTripData() {
-        logger.info("Writing out data for external TSRC trips model estimation");
-        String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
-        PrintWriter pw = util.openFileForSequentialWriting(fileName + "trips.csv", false);
-        pw.print("tourId,year,origProv, destProv, travelParty, travelPartyAdults, numberNights, numberStops, numIdentical, tripPurpose, tripWeight, hhWeight");
-        pw.println();
-        for (surveyTour st : surveyTour.getSurveyTourArray()) {
 
-            pw.print(st.getTourId() + "," + st.getRefYear() + "," + st.getOrigProvince() + "," + st.getDestProvince()
-                    + "," + st.getTravelParty()+ "," + st.getTravelPartyAdult()+ "," + st.getNumberNights()+ ","
-                    + st.getNumberOfStop() + "," + st.getNumIdentical() + "," + st.getTripPurp()+ "," + st.getTripWeight() + "," + st.getHhWeight());
+    //Method to write out ITS data (Carlos Llorca on 14 July 2016)
+    public void writeOutItsVisitorsData() {
+        // write out ITS travel data for model estimation
+        logger.info("Writing out data for external ITS visitors model estimation");
+        String fileName = "output/itsVisitorsData";
+        //TODO as property in mto_properties?
+        PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
+
+        //head of the file
+        pw.print("id,year, quarter, origCountry, purpose, entryMode, entryPort, entryRoute, sgrCode, totalNights, weigth, travelParty, entryProvince, nightsInOntario, daytripsInOntario");
+        pw.println();
+
+        for (surveyIntVisitorTravel sit : surveyIntVisitorTravel.getIntVisitorTravelArray()) {
+
+            int[] provinces = sit.getProvinces();
+            int[] nightsByPlace = sit.getNightsByPlace();
+            int nightsInOntario = 0;
+            int daytripsInOntario = 0;
+            for (int i = 1; i < provinces.length; i++) {
+                if (provinces[i] == 35) {
+                    nightsInOntario += nightsByPlace[i];
+                    if (nightsByPlace[i]==0) daytripsInOntario++;
+                }
+            }
+
+
+            pw.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigCountry() + "," + sit.getPurpose() + ","
+                    + sit.getEntryMode() + "," + sit.getEntryPort() + "," + sit.getEntryRoute() + "," + sit.getSgrCode() + "," + sit.getNightsByPlace()[0] +
+                    "," + sit.getWeight() + "," + sit.getTravelParty() + "," + sit.getProvinces()[0] + "," + nightsInOntario + "," + daytripsInOntario);
             pw.println();
         }
         pw.close();
+
+
+        // write out ITS travel data for model estimation in a separate line each country (get a second file)
+
+        /*logger.info("Writing out data for external ITS model estimation");
+        String fileName2 = ResourceUtil.getProperty(rb, "its.out.file");
+        PrintWriter pw2 = util.openFileForSequentialWriting(fileName2 + "countries.csv", false);
+
+        //head of the file
+        pw2.print("id,year,quarter, origProv, purpose, entryMode, destCountry1, totalNights, weigth, travelParty");
+        pw2.println();
+
+        for (surveyIntTravel sit : surveyIntTravel.getIntTravelArray()) {
+            for (int i = 1; i < 15; i++) {
+                //this code writes n lines if there is a trip visiting n US states. This will increase the number of trips-visits
+                //next if tense avoids writing more lines when there is no more stops
+                if (sit.getNights()[i] < 365 & sit.getCountry()[i] > 0) {
+                    pw2.print(sit.getPumfId() + "," + sit.getRefYear() + "," + sit.getRefQuarter() + "," + sit.getOrigProvince() + "," + sit.getPurpose() + ","
+                            + sit.getEntryMode() + "," + sit.getCountry()[i] + "," + sit.getNights()[i] + "," + sit.getWeight() + "," + sit.getTravelParty());
+                    pw2.println();
+                }
+            }
+        }
+
+        pw2.close();
+        */
+
     }
+
 }
+
 
