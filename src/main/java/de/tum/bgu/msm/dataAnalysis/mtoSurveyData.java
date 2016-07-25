@@ -2,11 +2,20 @@ package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
+import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
 import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -31,6 +40,8 @@ public class mtoSurveyData {
     private TableDataSet cmaList;
     private TableDataSet tripPurposes;
 
+    private DataDictionary dataDictionary;
+
 
     public mtoSurveyData(ResourceBundle rb) {
         this.rb = rb;
@@ -40,6 +51,8 @@ public class mtoSurveyData {
     public void readInput () {
         // read input data
         workDirectory = rb.getString("work.directory");
+
+        dataDictionary = new DataDictionary(rb.getString("data.dictionary"));
 
         provinceList = util.readCSVfile(rb.getString("province.list"));
         provinceList.buildIndex(provinceList.getColumnPosition("Code"));
@@ -69,6 +82,7 @@ public class mtoSurveyData {
         int recCount = 0;
         PrintWriter out = util.openFileForSequentialWriting(rb.getString("its.out.file") + ".csv", false);
         out.println("province,cma,weight");
+        Survey survey = dataDictionary.getVariables("ITS", "Canadians");
 //        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
@@ -79,24 +93,24 @@ public class mtoSurveyData {
                 if (origProvince.equals("35")){
                     // origin == ontario
                     recCount++;
-                    int purpose =      convertToInteger(recString.substring( 18, 19));  // ascii position in file: 019-019
-                    int entryMode =    convertToInteger(recString.substring( 25, 26));  // ascii position in file: 026-026
-                    int country =      convertToInteger(recString.substring( 38, 43));  // ascii position in file: 039-043
+                    int purpose =      survey.convertToInteger(recString.substring( 18, 19));  // ascii position in file: 019-019
+                    int entryMode =    survey.convertToInteger(recString.substring( 25, 26));  // ascii position in file: 026-026
+                    int country =      survey.convertToInteger(recString.substring( 38, 43));  // ascii position in file: 039-043
                     int nightsByPlace[] = new int[11];
-                    nightsByPlace[1] = convertToInteger(recString.substring( 48, 51));  // ascii position in file: 049-051
-                    nightsByPlace[2] = convertToInteger(recString.substring( 75, 78));  // ascii position in file: 076-078
-                    nightsByPlace[3] = convertToInteger(recString.substring(102,105));  // ascii position in file: 103-105
-                    nightsByPlace[4] = convertToInteger(recString.substring(129,132));  // ascii position in file: 130-132
-                    nightsByPlace[5] = convertToInteger(recString.substring(156,159));  // ascii position in file: 157-159
-                    nightsByPlace[6] = convertToInteger(recString.substring(183,186));  // ascii position in file: 184-186
-                    nightsByPlace[7] = convertToInteger(recString.substring(210,213));  // ascii position in file: 211-213
-                    nightsByPlace[8] = convertToInteger(recString.substring(237,240));  // ascii position in file: 238-240
-                    nightsByPlace[9] = convertToInteger(recString.substring(264,267));  // ascii position in file: 265-267
-                    nightsByPlace[10]= convertToInteger(recString.substring(291,294));  // ascii position in file: 292-294
-                    nightsByPlace[0] = convertToInteger(recString.substring(345,348));  // ascii position in file: 346-348
+                    nightsByPlace[1] = survey.convertToInteger(recString.substring( 48, 51));  // ascii position in file: 049-051
+                    nightsByPlace[2] = survey.convertToInteger(recString.substring( 75, 78));  // ascii position in file: 076-078
+                    nightsByPlace[3] = survey.convertToInteger(recString.substring(102,105));  // ascii position in file: 103-105
+                    nightsByPlace[4] = survey.convertToInteger(recString.substring(129,132));  // ascii position in file: 130-132
+                    nightsByPlace[5] = survey.convertToInteger(recString.substring(156,159));  // ascii position in file: 157-159
+                    nightsByPlace[6] = survey.convertToInteger(recString.substring(183,186));  // ascii position in file: 184-186
+                    nightsByPlace[7] = survey.convertToInteger(recString.substring(210,213));  // ascii position in file: 211-213
+                    nightsByPlace[8] = survey.convertToInteger(recString.substring(237,240));  // ascii position in file: 238-240
+                    nightsByPlace[9] = survey.convertToInteger(recString.substring(264,267));  // ascii position in file: 265-267
+                    nightsByPlace[10]= survey.convertToInteger(recString.substring(291,294));  // ascii position in file: 292-294
+                    nightsByPlace[0] = survey.convertToInteger(recString.substring(345,348));  // ascii position in file: 346-348
 //                    purp[purpose][nightsByPlace[0]] += weight;
                 }
-                float weight =  convertToFloat(recString.substring(475,491));    // ascii position in file: 476-492
+                float weight =  survey.convertToFloat(recString.substring(475,491));    // ascii position in file: 476-492
                 out.println(origProvince + "," + origCMA + "," + weight);
             }
             out.close();
@@ -197,6 +211,9 @@ public class mtoSurveyData {
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
         String recString;
         int totRecCount = 0;
+        Survey survey = dataDictionary.getVariables("TSRC", "Person");
+
+
         for (int month = 1; month <= 12; month++) {
             int recCount = 0;
             try {
@@ -208,21 +225,21 @@ public class mtoSurveyData {
                 BufferedReader in = new BufferedReader(new FileReader(fullFileName));
                 while ((recString = in.readLine()) != null) {
                     recCount++;
-                    int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 01-04
-                    int refMonth = convertToInteger(recString.substring(4, 6));  // ascii position in file: 05-06
-                    int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
+                    int refYear = survey.readInt(recString, "REFYEARP");  // ascii position in file: 01-04
+                    int refMonth = survey.convertToInteger(recString.substring(4, 6));  // ascii position in file: 05-06
+                    int origPumfId = survey.convertToInteger(recString.substring(6, 13));  // ascii position in file: 07-13
                     int pumfId = origPumfId * 100 + refYear%100;
-                    float weight = convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
-                    float weight2 = convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
-                    int prov = convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
-                    int cma = convertToInteger(recString.substring(42, 46));  // ascii position in file: 43-46
-                    int ageGroup = convertToInteger(recString.substring(46, 47));  // ascii position in file: 47-47
-                    int gender = convertToInteger(recString.substring(47, 48));  // ascii position in file: 48-48
-                    int education = convertToInteger(recString.substring(48, 49));  // ascii position in file: 49-49
-                    int laborStat = convertToInteger(recString.substring(49, 50));  // ascii position in file: 50-50
-                    int hhIncome = convertToInteger(recString.substring(50, 51));  // ascii position in file: 51-51
-                    int adultsInHh = convertToInteger(recString.substring(51, 53));  // ascii position in file: 52-53
-                    int kidsInHh = convertToInteger(recString.substring(53, 55));  // ascii position in file: 54-55
+                    float weight = survey.convertToFloat(recString.substring(13, 25));  // ascii position in file: 14-25
+                    float weight2 = survey.convertToFloat(recString.substring(25, 37));  // ascii position in file: 26-37
+                    int prov = survey.convertToInteger(recString.substring(37, 39));  // ascii position in file: 38-39
+                    int cma = survey.convertToInteger(recString.substring(42, 46));  // ascii position in file: 43-46
+                    int ageGroup = survey.convertToInteger(recString.substring(46, 47));  // ascii position in file: 47-47
+                    int gender = survey.convertToInteger(recString.substring(47, 48));  // ascii position in file: 48-48
+                    int education = survey.convertToInteger(recString.substring(48, 49));  // ascii position in file: 49-49
+                    int laborStat = survey.convertToInteger(recString.substring(49, 50));  // ascii position in file: 50-50
+                    int hhIncome = survey.convertToInteger(recString.substring(50, 51));  // ascii position in file: 51-51
+                    int adultsInHh = survey.convertToInteger(recString.substring(51, 53));  // ascii position in file: 52-53
+                    int kidsInHh = survey.convertToInteger(recString.substring(53, 55));  // ascii position in file: 54-55
                     new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
                 }
@@ -242,22 +259,23 @@ public class mtoSurveyData {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
         String recString;
         int recCount = 0;
+        Survey survey = dataDictionary.getVariables("TSRC", "Trip");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
-                int origPumfId = convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
+                int refYear = survey.convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = survey.convertToInteger(recString.substring(6, 13));  // ascii position in file: 007-013
                 int pumfId = origPumfId * 100 + refYear%100;
-                int tripId =       convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
-                int origProvince = convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
-                int destProvince = convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
-                int mainMode =     convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
-                int homeCma =      convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
-                int tripPurp =     convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
-                int numberNights = convertToInteger(recString.substring(120, 123));  // ascii position in file: 121-123
-                int numIdentical = convertToInteger(recString.substring(173, 175));  // ascii position in file: 174-175
+                int tripId =       survey.convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
+                int origProvince = survey.convertToInteger(recString.substring(16, 18));  // ascii position in file: 017-018
+                int destProvince = survey.convertToInteger(recString.substring(25, 27));  // ascii position in file: 026-027
+                int mainMode =     survey.convertToInteger(recString.substring(79, 81));  // ascii position in file: 080-081
+                int homeCma =      survey.convertToInteger(recString.substring(21, 25));  // ascii position in file: 022-025
+                int tripPurp =     survey.convertToInteger(recString.substring(72, 74));  // ascii position in file: 073-074
+                int numberNights = survey.convertToInteger(recString.substring(120, 123));  // ascii position in file: 121-123
+                int numIdentical = survey.convertToInteger(recString.substring(173, 175));  // ascii position in file: 174-175
                 new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
                         numIdentical);
                 surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
@@ -281,17 +299,18 @@ public class mtoSurveyData {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.visits"));
         String recString;
         int recCount = 0;
+        Survey survey = dataDictionary.getVariables("TSRC", "Visit");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_PUMF.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                int refYear = convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
-                int origPumfId = convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
+                int refYear = survey.convertToInteger(recString.substring(0, 4));  // ascii position in file: 001-004
+                int origPumfId = survey.convertToInteger(recString.substring( 6, 13));  // ascii position in file: 007-013
                 int pumfId = origPumfId * 100 + refYear%100;
-                int tripId = convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
-                int cmarea = convertToInteger(recString.substring(22, 26));  // ascii position in file: 023-026
-                int nights = convertToInteger(recString.substring(26, 29));  // ascii position in file: 027-029
+                int tripId = survey.convertToInteger(recString.substring(13, 15));  // ascii position in file: 014-015
+                int cmarea = survey.convertToInteger(recString.substring(22, 26));  // ascii position in file: 023-026
+                int nights = survey.convertToInteger(recString.substring(26, 29));  // ascii position in file: 027-029
                 surveyTour st = surveyTour.getTourFromId(util.createTourId(pumfId, tripId));
                 st.addTripDestinations (cmarea, nights);
                 recCount++;
@@ -302,43 +321,6 @@ public class mtoSurveyData {
         logger.info("  Read " + recCount + " visit records.");
     }
 
-
-    private int convertToInteger(String s) {
-        // converts s to an integer value, one or two leading spaces are allowed
-
-        try {
-            return Integer.parseInt(s.trim());
-        } catch (Exception e) {
-            boolean spacesOnly = true;
-            for (int pos = 0; pos < s.length(); pos++) {
-                if (!s.substring(pos, pos+1).equals(" ")) spacesOnly = false;
-            }
-            if (spacesOnly) return -999;
-            else {
-                logger.fatal("String " + s + " cannot be converted into an integer.");
-                return 0;
-            }
-        }
-    }
-
-    private float convertToFloat(String s) {
-        // converts s to a float value
-
-        try {
-            return Float.parseFloat(s.trim());
-        } catch (Exception e) {
-            if (s.contains(" . ")) return -999;
-            boolean spacesOnly = true;
-            for (int pos = 0; pos < s.length(); pos++) {
-                if (!s.substring(pos, pos+1).equals(" ")) spacesOnly = false;
-            }
-            if (spacesOnly) return -999;
-            else {
-                logger.fatal("String " + s + " cannot be converted into a float.");
-                return 0;
-            }
-        }
-    }
 
 
     public TableDataSet getProvinceList() {
