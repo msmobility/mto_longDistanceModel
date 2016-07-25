@@ -41,6 +41,35 @@
                     </compilerArguments>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <!--<mainClass>de.tum.bgu.msm.mto</mainClass>-->
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <!-- automatically creates the classpath using all project dependencies,
+                                     also adding the project build directory -->
+                                <classpath/>
+                                <argument>de.tum.bgu.msm.mto</argument>
+                                <argument>javaFiles\mto.properties</argument>
+                                <argument>2015</argument>
+                            </arguments>
+                            <workingDirectory>C:/models/mto</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
