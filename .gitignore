@@ -1,4 +1,17 @@
-out/production
+# Eclipse
+.classpath
+.project
+.settings/
 
-.idea/*
+# Intellij
+.idea/
+*.iml
+*.iws
 
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+out/production/
