@@ -196,7 +196,7 @@ public class readSP {
             ppByZone[zoneIndex[hh.getTaz()]] += hh.getHhSize();
         }
 
-        PrintWriter pw = util.openFileForSequentialWriting("popByZone.csv", false);
+        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
         pw.println("zone,hh,pp");
         for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
         pw.close();
@@ -211,7 +211,7 @@ public class readSP {
             ppByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]] += hh.getHhSize();
         }
 
-        PrintWriter pw2 = util.openFileForSequentialWriting("popByCd.csv", false);
+        PrintWriter pw2 = util.openFileForSequentialWriting("output/popByCd.csv", false);
         pw2.println("cd,hh,pp");
         for (int cds: cdsIndex) {
             if (cds!=0) pw2.println(cds+","+hhByCd[cdsIndex[cds]]+","+ppByCd[cdsIndex[cds]]);

@@ -21,6 +21,9 @@ import static de.tum.bgu.msm.syntheticPopulation.Person.*;
  * Technical Universty of Munich
  * <p>
  * Class to generate trips for the synthetic population
+ *
+ * works for domestic trips
+ *
  */
 
 public class tripGeneration {
@@ -41,24 +44,12 @@ public class tripGeneration {
     }
 
     //method to run the trip generation
-    public void runTripGeneration(boolean international) {
+    public void runTripGeneration() {
 
         //domestic trip generation
         //read the coefficients
         //read probabilities of increasing travel parties
 
-        if (international) {
-            //TODO consider adding this fileName as mto_property
-            String intTripGenCoefficientsFilename = "input/tripGeneration/intTripGenerationCoefficients.csv";
-
-            tripGenerationCoefficients = util.readCSVfile(intTripGenCoefficientsFilename);
-            tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
-
-            String travelPartyProbabilitiesFilename = "input/tripGeneration/intTravelPartyProbabilities.csv";
-            travelPartyProbabilities = util.readCSVfile(travelPartyProbabilitiesFilename);
-            travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
-        } else {
-            //read international trip coefficient table
             String tripGenCoefficientsFilename = "input/tripGeneration/tripGenerationCoefficients.csv";
             tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
             tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
@@ -67,13 +58,12 @@ public class tripGeneration {
             travelPartyProbabilities = util.readCSVfile(travelPartyProbabilitiesFilename);
             travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
-        }
+
 
         //apply model to determine whether a person is at home, away, in a daytrip or in an inbound/outbound trip
         // initialize the trip count to zero
         int tripCount = 0;
         for (Household hhold : getHouseholdArray()) {
-            //todo make this selection random instead 1 to n but see how to deal with the next purpose or non traveller
             //next lines shuffle the list of hh members
 
             Person[] hhMembers = hhold.getPersonsOfThisHousehold();
@@ -87,8 +77,6 @@ public class tripGeneration {
             }
             for (Person pers: membersList){
 
-            //next line commente before deleting, because selection of hh member started always by the first instead of being random
-            //for (Person pers : hhold.getPersonsOfThisHousehold()) {
                 int hhmember = 0;
                 //obtain a vector of socio-demographics of person "PersonFactors". It requires transforming part of the variables from Synthetic Pop structure to the mlogit models (TSRC)
                 int PersonFactors[] = new int[13];
@@ -214,6 +202,10 @@ public class tripGeneration {
                             pers.isDaytrip = false;
                             pers.isInOutTrip = true;
                             //is InOutTrip with the purpose i
+                            //calculates travel parties
+                            //first, in the household
+                            ArrayList<Person> hhTravelParty = new ArrayList<>(1);
+                            hhTravelParty.add(0,pers);
                             double randomChoice2 = Math.random();
                             for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
                                 if (pers2 != pers & !pers2.isAway & !pers2.isDaytrip & !pers2.isInOutTrip & pers2.getAge() > 17) {
@@ -224,25 +216,33 @@ public class tripGeneration {
                                         pers2.isDaytrip = false;
                                         pers2.isInOutTrip = true;
                                         hhmember++;
+                                        hhTravelParty.add(hhmember,pers2);
                                     }
                                 }
                             }
+                            //second: non hh members
+                            double randomChoice3 = Math.random();
+                            int k=0;
+                            String column =  tripPurpose + ".nonHh";
+                            while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k+1, column) & k < 10 ) k++;
                             //estimate the trip duration
                             //being away, one can only continue being away (0) or being in (2)
                             int tripDuration = 1;
-                            double randomChoice3 = Math.random();
+                            double randomChoice4 = Math.random();
                             while (tripDuration < 30 & randomChoice3 < probability[0] / (probability[0] + probability[2])) {
-                                randomChoice3 = Math.random();
+                                randomChoice4 = Math.random();
                                 tripDuration++;
                             }
                             //generate a trip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), international, i, 2, hhold.getTaz(), tripDuration, hhmember + 1);
+                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 2, hhold.getTaz(), tripDuration, hhmember + 1, hhTravelParty, k);
                             tripCount++;
                         } else if (randomChoice1 > probability[0]) {
                             pers.isAway = false;
                             pers.isDaytrip = true;
                             pers.isInOutTrip = false;
                             // is daytrip with the purpose i
+                            ArrayList<Person> hhTravelParty = new ArrayList<>(1);
+                            hhTravelParty.add(0,pers);
                             double randomChoice2 = Math.random();
                             for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
                                 if (pers2 != pers & !pers2.isAway & !pers2.isDaytrip & !pers2.isInOutTrip & pers2.getAge() > 17) {
@@ -253,16 +253,23 @@ public class tripGeneration {
                                         pers2.isDaytrip = true;
                                         pers2.isInOutTrip = false;
                                         hhmember++;
+                                        hhTravelParty.add(hhmember,pers2);
                                     }
                                 }
                             }
+                            int k=0;
+                            String column =  tripPurpose + ".nonHh";
+                            double randomChoice3 = Math.random();
+                            while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k+1, column) & k < 10 ) k++;
                             //generate a daytrip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), international, i, 1, hhold.getTaz(), 0, hhmember + 1);
+                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 1, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
                             tripCount++;
                         } else {
                             pers.isAway = true;
                             pers.isDaytrip = false;
                             pers.isInOutTrip = false;
+                            ArrayList<Person> hhTravelParty = new ArrayList<>(1);
+                            hhTravelParty.add(0,pers);
                             double randomChoice2 = Math.random();
                             //estimate travel party
                             for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
@@ -274,19 +281,24 @@ public class tripGeneration {
                                         pers2.isDaytrip = false;
                                         pers2.isInOutTrip = false;
                                         hhmember++;
+                                        hhTravelParty.add(hhmember,pers2);
                                     }
                                 }
                             }
+                            int k=0;
+                            String column =  tripPurpose + ".nonHh";
+                            double randomChoice3 = Math.random();
+                            while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k+1, column) & k < 10 ) k++;
                             //estimate trip duration
                             //while away, one can only be away or out
                             int tripDuration = 1;
-                            double randomChoice3 = Math.random();
+                            double randomChoice4 = Math.random();
                             while (tripDuration < 30 & randomChoice3 < probability[0] / (probability[0] + probability[2])) {
-                                randomChoice3 = Math.random();
+                                randomChoice4 = Math.random();
                                 tripDuration++;
                             }
                             //generate a trip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), international, i, 0, hhold.getTaz(),  tripDuration, hhmember + 1);
+                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 0, hhold.getTaz(),  tripDuration, hhmember + 1, hhTravelParty, k);
                             tripCount++;
                         }
                     }

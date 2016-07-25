@@ -9,6 +9,7 @@ import java.util.ResourceBundle;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import static de.tum.bgu.msm.syntheticPopulation.Person.*;
+import static de.tum.bgu.msm.syntheticPopulation.Household.*;
 
 import org.apache.log4j.Logger;
 
@@ -35,17 +36,21 @@ public class mtoAnalyzeTrips {
         String OutputTripsFileName = "output/trips";
                 PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName + ".csv", false);
 
-        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, travelParty");
+        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhTravelParty, nonHhTravelParty, personAge, personGender, " +
+                "personEducation, personWorkStatus, personIncome, adultsInHh, kidsInHh");
         pw.println();
         for (LongDistanceTrip tr : LongDistanceTrip.getLongDistanceTripArray()) {
 
+            Person traveller = getPersonFromId(tr.getPersonId());
+            Household hh = traveller.getHousehold();
+
             pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getTravelParty());
+                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getHhTravelPartySize()
+                     +"," + tr.getNonHhTravelPartySize() +"," + traveller.getAge() + "," + traveller.getGender() +"," + traveller.getEducation() + "," + traveller.getWorkStatus() +
+                    "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh()) ;
             pw.println();
         }
         pw.close();
-        //todo include some person-related variables to analyze income, age, etc. of travellers and compare it to the synthetic/survey population
-
 
         logger.info("Writing out data for trip generation (travellers)");
         //TODO add this file path and name to mto_properties?

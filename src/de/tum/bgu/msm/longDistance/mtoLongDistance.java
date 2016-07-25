@@ -39,23 +39,23 @@ public class mtoLongDistance {
 
 
         tripGeneration tgdomestic = new tripGeneration(rb);
-        tgdomestic.runTripGeneration(false);
+        tgdomestic.runTripGeneration();
 
-        logger.info("Domestic Trip: done");
+        logger.info("Domestic Trips generated");
 
         //this must be after domestic
         internationalTripGeneration tginternationa2 = new internationalTripGeneration(rb);
         tginternationa2.runInternationalTripGeneration();
 
-        logger.info("Int Trip v2: done");
+        logger.info("International trips generated");
 
 
 
         //international
-        tripGeneration tginternational = new tripGeneration(rb);
-        tginternational.runTripGeneration(true);
+        //tripGeneration tginternational = new tripGeneration(rb);
+        //tginternational.runTripGeneration(true);
 
-        logger.info("Int Trip: done");
+        //logger.info("Int Trip: done");
 
 
 

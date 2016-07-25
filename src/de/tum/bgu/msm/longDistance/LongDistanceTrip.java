@@ -2,6 +2,8 @@ package de.tum.bgu.msm.longDistance;
 
 
 
+import de.tum.bgu.msm.syntheticPopulation.Person;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,12 +25,16 @@ public class LongDistanceTrip {
     private int tripPurpose;
     private int tripState;
     private int originZone;
-    public int nights;
-    public int travelParty;
+    private int nights;
+    private int hhTravelPartySize;
+    private ArrayList<Person> hhTravelParty;
+    private int nonHhTravelPartySize;
+
+
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights, int travelParty /**,ArrayList<Long> destinations**/) {
+    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights, int hhTravelPartySize, ArrayList hhTravelParty, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripId;
         this.personId = personId;
         this.international = international;
@@ -36,7 +42,9 @@ public class LongDistanceTrip {
         this.tripState = tripState;
         this.originZone = originZone;
         this.nights = nights;
-        this.travelParty = travelParty;
+        this.hhTravelPartySize = hhTravelPartySize;
+        this.hhTravelParty = hhTravelParty;
+        this.nonHhTravelPartySize = nonHhTravelPartySize;
         //this.destinations = new ArrayList<>();
         tripMap.put(tripId,this);
     }
@@ -77,7 +85,9 @@ public class LongDistanceTrip {
         return nights;
     }
 
-    public int getTravelParty() { return travelParty; }
+    public int getHhTravelPartySize() { return hhTravelPartySize; }
 
-
+    public int getNonHhTravelPartySize() {
+        return nonHhTravelPartySize;
+    }
 }
