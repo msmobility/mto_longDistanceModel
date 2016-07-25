@@ -4,8 +4,8 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
 import de.tum.bgu.msm.dataAnalysis.mtoSurveyData;
 import de.tum.bgu.msm.longDistance.mtoLongDistance;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.util.ResourceBundle;
 
@@ -21,7 +21,7 @@ import java.util.ResourceBundle;
 
 public class mto {
     // main class
-    private static Logger logger = LogManager.getLogger(mto.class);
+    private static Logger logger = Logger.getLogger(mto.class);
     private ResourceBundle rb;
     private static int year;
 
@@ -36,6 +36,12 @@ public class mto {
         // main model run method
 
         logger.info("Ontario Provincial Model (MTO)");
+        // Check how many arguments were passed in
+        if(args.length != 2)
+        {
+            logger.error("Error: Please provide two parguments, 1. the model resources, 2. the start year");
+            System.exit(0);
+        }
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = util.mtoInitialization(args[0]);
         year = Integer.parseInt(args[1]);

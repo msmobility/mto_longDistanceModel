@@ -1,8 +1,8 @@
 package de.tum.bgu.msm.dataAnalysis;
 
 import de.tum.bgu.msm.util;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class surveyPerson implements Serializable {
 
-    static Logger logger = LogManager.getLogger(surveyPerson.class);
+    static Logger logger = Logger.getLogger(surveyPerson.class);
 
     private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
     int refYear;

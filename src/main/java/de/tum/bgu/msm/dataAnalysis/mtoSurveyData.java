@@ -4,8 +4,8 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
  *
  */
 public class mtoSurveyData {
-    static Logger logger = LogManager.getLogger(mto.class);
+    static Logger logger = Logger.getLogger(mto.class);
     private ResourceBundle rb;
     private String workDirectory;
     private TableDataSet provinceList;

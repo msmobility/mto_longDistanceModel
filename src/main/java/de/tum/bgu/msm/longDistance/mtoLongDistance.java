@@ -1,8 +1,8 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.syntheticPopulation.readSP;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.util.ResourceBundle;
 
@@ -17,7 +17,7 @@ import java.util.ResourceBundle;
  */
 
 public class mtoLongDistance {
-    static Logger logger = LogManager.getLogger(mtoLongDistance.class);
+    static Logger logger = Logger.getLogger(mtoLongDistance.class);
     private ResourceBundle rb;
 
 

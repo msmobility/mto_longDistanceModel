@@ -3,8 +3,8 @@ package de.tum.bgu.msm.syntheticPopulation;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.util;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
 
 public class readSP {
 
-    private static Logger logger = LogManager.getLogger(readSP.class);
+    private static Logger logger = Logger.getLogger(readSP.class);
     private ResourceBundle rb;
     private TableDataSet zoneTable;
     private int[] zones;

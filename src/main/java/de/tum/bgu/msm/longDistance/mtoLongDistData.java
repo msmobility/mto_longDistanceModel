@@ -9,8 +9,7 @@ import de.tum.bgu.msm.util;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.ResourceBundle;
@@ -26,7 +25,7 @@ import java.util.ResourceBundle;
  */
 
 public class mtoLongDistData {
-    private static Logger logger = LogManager.getLogger(mtoLongDistData.class);
+    private static Logger logger = Logger.getLogger(mtoLongDistData.class);
     private ResourceBundle rb;
     private Matrix autoTravelTime;
     private double[] autoAccessibility;

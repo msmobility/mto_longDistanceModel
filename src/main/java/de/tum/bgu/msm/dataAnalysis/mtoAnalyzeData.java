@@ -2,8 +2,8 @@ package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.ResourceBundle;
  **/
 
 public class mtoAnalyzeData {
-    static Logger logger = LogManager.getLogger(mtoAnalyzeData.class);
+    static Logger logger = Logger.getLogger(mtoAnalyzeData.class);
     private ResourceBundle rb;
     private mtoSurveyData data;
 
