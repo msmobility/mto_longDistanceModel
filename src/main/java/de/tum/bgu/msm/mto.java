@@ -4,7 +4,8 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
 import de.tum.bgu.msm.dataAnalysis.mtoSurveyData;
 import de.tum.bgu.msm.longDistance.mtoLongDistance;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ResourceBundle;
 
@@ -20,7 +21,7 @@ import java.util.ResourceBundle;
 
 public class mto {
     // main class
-    private static Logger logger = Logger.getLogger(mto.class);
+    private static Logger logger = LogManager.getLogger(mto.class);
     private ResourceBundle rb;
     private static int year;
 

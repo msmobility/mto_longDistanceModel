@@ -5,10 +5,10 @@ import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import omx.OmxLookup;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.time.YearMonth;
@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
  *
  */
 public class util {
-    static Logger logger = Logger.getLogger(mto.class);
+    static Logger logger = LogManager.getLogger(mto.class);
 
 
     public static ResourceBundle mtoInitialization(String resourceBundleName) {

@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.syntheticPopulation;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 public class Household {
 
-    static Logger logger = Logger.getLogger(Household.class);
+    static Logger logger = LogManager.getLogger(Household.class);
 
     private static final Map<Integer, Household> householdMap = new HashMap<>();
     private int id;

@@ -1,7 +1,8 @@
 package de.tum.bgu.msm.dataAnalysis;
 
 import de.tum.bgu.msm.util;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 public class surveyTour implements Serializable {
 
-    static Logger logger = Logger.getLogger(surveyTour.class);
+    static Logger logger = LogManager.getLogger(surveyTour.class);
 
     private static final Map<Long, surveyTour> tourMap = new HashMap<>();
     long tourId;
