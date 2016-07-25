@@ -42,7 +42,6 @@ public class readSP {
     public void readSyntheticPopulation() {
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        readZonalData();
         readSyntheticHouseholds();
         readSyntheticPersons();
         examSyntheticPopulation();
@@ -50,7 +49,7 @@ public class readSP {
     }
 
 
-    private void readZonalData () {
+    public void readZonalData () {
         // Read in zonal data
 
         zoneTable = util.importTable(rb.getString("zone.system"));
@@ -180,7 +179,7 @@ public class readSP {
             ppByZone[zoneIndex[hh.getTaz()]] += hh.getHhSize();
         }
 
-        PrintWriter pw = util.openFileForSequentialWriting("popByZone.csv", false);
+        PrintWriter pw = util.openFileForSequentialWriting("populationByZone.csv", false);
         pw.println("zone,hh,pp");
         for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
         pw.close();
