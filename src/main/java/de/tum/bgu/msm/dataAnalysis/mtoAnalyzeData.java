@@ -2,11 +2,13 @@ package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyPerson;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import org.apache.log4j.Logger;
 
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -103,7 +105,7 @@ public class mtoAnalyzeData {
             for (surveyTour st : ldTrips) {
                 int origProvince = st.getOrigProvince();
                 if (origProvince != 35) continue;
-                System.out.println(sp.pumfId + " " + st.getTripId() + " " + origProvince);
+                System.out.println(sp.getPumfId() + " " + st.getTripId() + " " + origProvince);
                 int destProvince = st.getDestProvince();
                 int mainMode = st.getMainMode();
                 int homeCma = st.getHomeCma();

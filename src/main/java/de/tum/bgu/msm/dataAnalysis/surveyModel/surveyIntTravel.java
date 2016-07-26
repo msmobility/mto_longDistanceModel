@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
  import org.apache.log4j.Logger;
 
 

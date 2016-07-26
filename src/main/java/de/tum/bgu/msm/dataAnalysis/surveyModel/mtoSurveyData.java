@@ -1,19 +1,10 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
-import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
-import de.tum.bgu.msm.mto;
-import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 
-import javax.xml.crypto.Data;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;

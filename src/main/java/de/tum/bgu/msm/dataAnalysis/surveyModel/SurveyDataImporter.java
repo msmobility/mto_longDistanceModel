@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;

@@ -1,9 +1,9 @@
 package de.tum.bgu.msm;
 
 import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.dataAnalysis.SurveyDataImporter;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
-import de.tum.bgu.msm.dataAnalysis.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
 import de.tum.bgu.msm.longDistance.mtoLongDistance;
 import org.apache.log4j.Logger;
 

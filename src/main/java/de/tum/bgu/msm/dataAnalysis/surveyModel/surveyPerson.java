@@ -1,14 +1,11 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
-import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class to hold person object of travelers and non-travelers of the TSRC survey
