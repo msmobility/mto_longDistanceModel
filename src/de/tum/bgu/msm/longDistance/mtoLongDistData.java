@@ -60,7 +60,7 @@ public class mtoLongDistData {
     public void calculateAccessibility(readSP rsp) {
         // calculate accessibility
 
-        logger.info("  Calculating accessibilities");
+        logger.info("Calculating accessibilities");
         float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
         float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
 

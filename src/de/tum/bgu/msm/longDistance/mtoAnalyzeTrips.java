@@ -42,7 +42,6 @@ public class mtoAnalyzeTrips {
         for (LongDistanceTrip tr : LongDistanceTrip.getLongDistanceTripArray()) {
 
             Person traveller = getPersonFromId(tr.getPersonId());
-            Household hh = traveller.getHousehold();
 
             pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
                     tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getHhTravelPartySize()

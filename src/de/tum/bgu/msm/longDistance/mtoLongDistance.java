@@ -36,8 +36,6 @@ public class mtoLongDistance {
         //md.readSkim();
         //md.calculateAccessibility(rsp);
 
-
-
         tripGeneration tgdomestic = new tripGeneration(rb);
         tgdomestic.runTripGeneration();
 
@@ -49,23 +47,10 @@ public class mtoLongDistance {
 
         logger.info("International trips generated");
 
-
-
-        //international
-        //tripGeneration tginternational = new tripGeneration(rb);
-        //tginternational.runTripGeneration(true);
-
-        //logger.info("Int Trip: done");
-
-
-
-
-
-
         //next method is used to analyze the outputs of the tripGeneration
 
-        mtoAnalyzeTrips at = new mtoAnalyzeTrips(rb);
-        at.runMtoAnalyzeTrips();
+        mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
+        tripAnalysis.runMtoAnalyzeTrips();
 
 
     }

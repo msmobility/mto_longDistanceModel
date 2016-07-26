@@ -4,7 +4,6 @@ package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.syntheticPopulation.Person;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
