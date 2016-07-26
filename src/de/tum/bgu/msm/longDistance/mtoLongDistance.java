@@ -29,6 +29,7 @@ public class mtoLongDistance {
         // main method to run long-distance model
 
         readSP rsp = new readSP(rb);
+        rsp.readZonalData();
         rsp.readSyntheticPopulation();
 
         //TODO next 3 lines commented by Carlos Llorca on 4/7/2016 because skim matrix and accessibility is not available

@@ -55,7 +55,7 @@ public class readSP {
         readSyntheticPersons();
         examSyntheticPopulation();
         summarizePopulationData();
-        }
+    }
 
 
     private void readZonalData () {
