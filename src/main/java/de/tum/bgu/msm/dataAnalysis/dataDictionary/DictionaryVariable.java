@@ -1,5 +1,7 @@
 package de.tum.bgu.msm.dataAnalysis.dataDictionary;
 
+import java.util.HashMap;
+
 /**
  * Created by Joe on 25/07/2016.
  */
@@ -9,11 +11,14 @@ public class DictionaryVariable {
     private int start;
     private int end;
 
-    public DictionaryVariable(String name, String question, int start, int end) {
+    private HashMap<Integer, String> answers;
+
+    public DictionaryVariable(String name, String question, int start, int end, HashMap answers) {
         this.name = name;
         this.question = question;
         this.start = start;
         this.end = end;
+        this.answers = answers;
     }
 
     public String getName() {
@@ -30,5 +35,10 @@ public class DictionaryVariable {
 
     public int getEnd() {
         return end;
+    }
+
+    public String decodeAnswer(int code) {
+        //get the decoded answer, or just return the code if not found
+        return answers.getOrDefault(code, String.valueOf(code));
     }
 }

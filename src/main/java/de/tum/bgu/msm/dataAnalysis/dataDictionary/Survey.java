@@ -24,24 +24,55 @@ public class Survey {
         for (int i=0; i<vars.getLength(); i++) {
             Node node = vars.item(i);
             String name = node.getAttributes().getNamedItem("name").getNodeValue();
+            logger.info("reading:" + name);
             String question = "";
             int start = 0;
             int end = 0;
 
             NodeList children = node.getChildNodes();
+            HashMap<Integer, String> answers = null;
             for (int j=0; j<children.getLength(); j++) {
-                if (children.item(j).getNodeName().equals("question")) {
-                    question = children.item(j).getTextContent();
-                } else if (children.item(j).getNodeName().equals("start")) {
-                    start =  Integer.parseInt(children.item(j).getTextContent());
-                } else if (children.item(j).getNodeName().equals("end")) {
-                    end =  Integer.parseInt(children.item(j).getTextContent());
+                Node item = children.item(j);
+                if (item.getNodeName().equals("question")) {
+                    question = item.getTextContent();
+                } else if (item.getNodeName().equals("start")) {
+                    start =  Integer.parseInt(item.getTextContent());
+                } else if (item.getNodeName().equals("end")) {
+                    end =  Integer.parseInt(item.getTextContent());
+                } else if (item.getNodeName().equals("answers")) {
+                    answers = parseAnswersFromVariableNode(item);
                 }
-
             }
-            variables.put(name, new DictionaryVariable(name, question, start, end));
+            variables.put(name, new DictionaryVariable(name, question, start, end, answers));
 
         }
+    }
+
+    private HashMap<Integer, String> parseAnswersFromVariableNode(Node item) {
+        HashMap<Integer, String> answers;NodeList answerNodes = item.getChildNodes();
+        answers = new HashMap<>();
+        for (int k=0; k<answerNodes.getLength(); k++) {
+            Node answerNode = answerNodes.item(k);
+            Integer code = null;
+            String answer = null;
+            NodeList answerComponents = answerNode.getChildNodes();
+            for (int l = 0; l < answerComponents.getLength(); l++) {
+                Node answerComponent = answerComponents.item(l);
+                if (answerComponent.getNodeName().equals("code")) {
+                    try {
+                        code = Integer.parseInt(answerComponent.getTextContent());
+                    } catch (NumberFormatException e) {
+                        logger.debug("incorrect format for answer code: " + answerComponent.getTextContent(), e);
+                    }
+                } else if (answerComponent.getNodeName().equals("answer")) {
+                    answer = answerComponent.getTextContent();
+                }
+            }
+            if (code != null) {
+                answers.put(code, answer);
+            }
+        }
+        return answers;
     }
 
 
@@ -63,6 +94,9 @@ public class Survey {
         return convertToFloat(recString.substring(start, end));
     }
 
+    public String decodeValue(String variable, int code) {
+        return variables.get(variable).decodeAnswer(code);
+    }
 
     public int convertToInteger(String s) {
         // converts s to an integer value, one or two leading spaces are allowed

@@ -7,15 +7,8 @@ import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
 import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -82,7 +75,7 @@ public class mtoSurveyData {
         int recCount = 0;
         PrintWriter out = util.openFileForSequentialWriting(rb.getString("its.out.file") + ".csv", false);
         out.println("province,cma,weight");
-        Survey survey = dataDictionary.getVariables("ITS", "Canadians");
+        Survey survey = dataDictionary.getSurvey("ITS", "Canadians");
 //        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
@@ -211,7 +204,7 @@ public class mtoSurveyData {
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
         String recString;
         int totRecCount = 0;
-        Survey survey = dataDictionary.getVariables("TSRC", "Person");
+        Survey survey = dataDictionary.getSurvey("TSRC", "Person");
 
 
         for (int month = 1; month <= 12; month++) {
@@ -259,7 +252,7 @@ public class mtoSurveyData {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
         String recString;
         int recCount = 0;
-        Survey survey = dataDictionary.getVariables("TSRC", "Trip");
+        Survey survey = dataDictionary.getSurvey("TSRC", "Trip");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
@@ -299,7 +292,7 @@ public class mtoSurveyData {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.visits"));
         String recString;
         int recCount = 0;
-        Survey survey = dataDictionary.getVariables("TSRC", "Visit");
+        Survey survey = dataDictionary.getSurvey("TSRC", "Visit");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_PUMF.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));

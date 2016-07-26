@@ -59,7 +59,7 @@ public class DataDictionary {
         }
     }
 
-    public Survey getVariables(String survey, String section) {
+    public Survey getSurvey(String survey, String section) {
         return surveys.get(survey + "_" + section);
     }
 
