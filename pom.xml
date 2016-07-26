@@ -13,6 +13,13 @@
         <connection>scm:git:git://github.com/msmobility/mto_longDistanceModel.git</connection>
         <developerConnection>scm:git:git@github.com:msmobility/mto_longDistanceModel.git</developerConnection>
     </scm>
+    <repositories>
+        <repository>
+            <id>bintray-msmobility-maven</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/msmobility/maven</url>
+        </repository>
+    </repositories>
     <build>
         <resources>
             <resource>
