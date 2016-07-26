@@ -2,3 +2,5 @@ out/production
 
 .idea/*
 
+*.iml
+*.log
