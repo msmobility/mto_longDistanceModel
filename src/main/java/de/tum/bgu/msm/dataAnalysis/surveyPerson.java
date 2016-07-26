@@ -22,7 +22,6 @@ public class surveyPerson implements Serializable {
 
     static Logger logger = Logger.getLogger(surveyPerson.class);
 
-    private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
     int refYear;
     int refMonth;
     long pumfId;
@@ -37,7 +36,7 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    ArrayList<Long> tours;
+    HashMap<Integer, surveyTour> tours;
 
 
     public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cma, int ageGroup,
@@ -58,33 +57,15 @@ public class surveyPerson implements Serializable {
         this.hhIncome = hhIncome;
         this.adultsInHh = adultsInHh;
         this.kidsInHh = kidsInHh;
-        this.tours = new ArrayList<>();
-        personMap.put(pumfId,this);
-    }
-
-
-    public static surveyPerson getPersonFromId(int id) {
-        return personMap.get(id);
-    }
-
-    public static int getPersonCount() {
-        return personMap.size();
-    }
-
-    public static Collection<surveyPerson> getPersons() {
-        return personMap.values();
-    }
-
-    public static surveyPerson[] getPersonArray() {
-        return personMap.values().toArray(new surveyPerson[personMap.size()]);
+        this.tours = new HashMap<>();
     }
 
     public int getRefYear() {
         return refYear;
     }
 
-    public void addTour(int tourId) {
-        tours.add(util.createTourId(pumfId, tourId));
+    public void addTour(surveyTour tour) {
+        tours.put(tour.getTripId(), tour);
     }
 
     public int getNumberOfTrips() {
@@ -131,8 +112,8 @@ public class surveyPerson implements Serializable {
         return cma;
     }
 
-    public ArrayList<Long> getTours() {
-        return tours;
+    public Collection<surveyTour> getTours() {
+        return tours.values();
     }
 
     public float getWeight() {
@@ -141,5 +122,9 @@ public class surveyPerson implements Serializable {
 
     public int getRefMonth() {
         return refMonth;
+    }
+
+    public surveyTour getTourFromId(int tripId) {
+        return tours.get(tripId);
     }
 }

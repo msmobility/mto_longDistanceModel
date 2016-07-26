@@ -13,6 +13,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -34,7 +36,7 @@ public class mtoSurveyData {
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
-
+    private HashMap<Integer, surveyPerson> personMap;
 
     public mtoSurveyData(ResourceBundle rb) {
         this.rb = rb;
@@ -46,6 +48,7 @@ public class mtoSurveyData {
         workDirectory = rb.getString("work.directory");
 
         dataDictionary = new DataDictionary(rb.getString("data.dictionary"));
+        personMap = new HashMap<>();
 
         provinceList = util.readCSVfile(rb.getString("province.list"));
         provinceList.buildIndex(provinceList.getColumnPosition("Code"));
@@ -233,11 +236,12 @@ public class mtoSurveyData {
                     int hhIncome = survey.readInt(recString, "INCOMGR2");  // ascii position in file: 51-51
                     int adultsInHh = survey.readInt(recString, "G_ADULTS");  // ascii position in file: 52-53
                     int kidsInHh = survey.readInt(recString, "G_KIDS");  // ascii position in file: 54-55
-                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
+                    surveyPerson person = new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
+                    personMap.put(pumfId, person);
                 }
             } catch (Exception e) {
-                logger.error("Could not read TSRC person data: " + e);
+                logger.error("Could not read TSRC person data: ",e);
             }
             // logger.info("  Read " + recCount + " person records for the month " + month);
             totRecCount += recCount;
@@ -269,18 +273,18 @@ public class mtoSurveyData {
                 int tripPurp =     survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
                 int numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
                 int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
-                new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
+                surveyTour tour = new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
                         numIdentical);
-                surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
+                surveyPerson sp = getPersonFromId(pumfId);
                 if (numIdentical < 30) {
-                    for (int i = 1; i <= numIdentical; i++) sp.addTour(tripId);
+                    for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
                 } else {
-                    sp.addTour(tripId);
+                    sp.addTour(tour); //TODO: why?
                 }
                 recCount++;
             }
         } catch (Exception e) {
-            logger.error("Could not read TSRC trip data: " + e);
+            logger.error("Could not read TSRC trip data: ",e);
         }
         logger.info("  Read " + recCount + " tour records.");
     }
@@ -304,12 +308,13 @@ public class mtoSurveyData {
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
-                surveyTour st = surveyTour.getTourFromId(util.createTourId(pumfId, tripId));
+                surveyPerson person = personMap.get(pumfId);
+                surveyTour st = person.getTourFromId(tripId);
                 st.addTripDestinations (cmarea, nights);
                 recCount++;
             }
         } catch (Exception e) {
-            logger.error("Could not read TSRC visit data: " + e);
+            logger.error("Could not read TSRC visit data: ", e);
         }
         logger.info("  Read " + recCount + " visit records.");
     }
@@ -331,6 +336,19 @@ public class mtoSurveyData {
     public TableDataSet getTripPurposes() {
         return tripPurposes;
     }
+
+    public surveyPerson getPersonFromId(int id) {
+        return personMap.get(id);
+    }
+
+    public int getPersonCount() {
+        return personMap.size();
+    }
+
+    public Collection<surveyPerson> getPersons() {
+        return personMap.values();
+    }
+
 }
 
 

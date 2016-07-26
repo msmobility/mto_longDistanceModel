@@ -24,7 +24,6 @@ public class Survey {
         for (int i=0; i<vars.getLength(); i++) {
             Node node = vars.item(i);
             String name = node.getAttributes().getNamedItem("name").getNodeValue();
-            logger.info("reading:" + name);
             String question = "";
             int start = 0;
             int end = 0;

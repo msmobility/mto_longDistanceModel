@@ -21,23 +21,22 @@ public class surveyTour implements Serializable {
 
     static Logger logger = Logger.getLogger(surveyTour.class);
 
-    private static final Map<Long, surveyTour> tourMap = new HashMap<>();
-    long tourId;
-
-    int origProvince;
-    int destProvince;
+    private int origProvince;
+    private int destProvince;
     private int mainMode;
-    int homeCma;
-    int tripPurp;
-    int numberNights;
-    int numIdentical;
-    ArrayList<int[]> tourStops;
+    private int homeCma;
+    private int tripPurp;
+    private int numberNights;
+    private int numIdentical;
+    private ArrayList<int[]> tourStops;
+    private int tripId;
 
-    public surveyTour(int tourId, int pumfId, int origProvince, int destProvince, int mainMode, int homeCma,
-                      int tripPurp, int numberNights, int numIdentical) {
+    protected surveyTour(int tripId, int pumfId, int origProvince, int destProvince, int mainMode, int homeCma,
+               int tripPurp, int numberNights, int numIdentical) {
         // constructor of new survey tour
 
-        this.tourId = util.createTourId(pumfId, tourId);
+
+        this.tripId = tripId;
         this.origProvince = origProvince;
         this.destProvince = destProvince;
         this.mainMode = mainMode;
@@ -46,7 +45,6 @@ public class surveyTour implements Serializable {
         this.numberNights = numberNights;
         this.numIdentical = numIdentical;
         tourStops = new ArrayList<>();
-        tourMap.put(this.tourId,this);
     }
 
 
@@ -54,10 +52,6 @@ public class surveyTour implements Serializable {
         int[] stopData = {cmarea, nights};
         tourStops.add(stopData);
 
-    }
-
-    public static surveyTour getTourFromId(long id) {
-        return tourMap.get(id);
     }
 
     public int getOrigProvince() {
@@ -90,5 +84,9 @@ public class surveyTour implements Serializable {
 
     public int getNumberOfStop () {
         return tourStops.size();
+    }
+
+    public int getTripId() {
+        return tripId;
     }
 }
