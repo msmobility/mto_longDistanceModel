@@ -109,6 +109,7 @@ public class internationalTripGeneration {
                         }
                         //second: non hh members
                         double randomChoice3 = Math.random();
+                        //comment
                         int k = 0;
                         String column = tripPurposes[i] + ".nonHh";
                         while (randomChoice3 < intTravelPartyProbabilities.getIndexedValueAt(k + 1, column) & k < 10)
