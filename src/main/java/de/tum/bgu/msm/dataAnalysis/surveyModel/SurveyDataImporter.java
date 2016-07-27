@@ -240,8 +240,10 @@ public class SurveyDataImporter {
                     int hhIncome = survey.readInt(recString, "INCOMGR2");  // ascii position in file: 51-51
                     int adultsInHh = survey.readInt(recString, "G_ADULTS");  // ascii position in file: 52-53
                     int kidsInHh = survey.readInt(recString, "G_KIDS");  // ascii position in file: 54-55
-                    surveyPerson person = new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
+
+                    surveyPerson person = buildPerson(survey, refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
+
                     personMap.put(pumfId, person);
                 }
             } catch (Exception e) {
@@ -251,6 +253,22 @@ public class SurveyDataImporter {
             totRecCount += recCount;
         }
         logger.info("  Read " + totRecCount + " person records");
+    }
+
+    private surveyPerson buildPerson(Survey survey, int refYear, int refMonth, int pumfId, float weight, float weight2,
+                                     int prov, int cma, int ageGroup, int gender, int education,
+                                     int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
+
+        Gender gender2 = Gender.getGender(gender);
+        LaborStatus laborStat2 = LaborStatus.getStatus(laborStat);
+
+        String ageGroup2 = survey.decodeValue("AGE_GR2", ageGroup);
+        String education2 = survey.decodeValue("EDLEVGR", education);
+
+        surveyPerson person = new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup2, gender2, education2,
+                laborStat2, hhIncome, adultsInHh, kidsInHh);
+
+        return person;
     }
 
 

@@ -26,18 +26,18 @@ public class surveyPerson implements Serializable {
     float weight2;
     int prov;
     int cma;
-    int ageGroup;
-    int gender;
-    int education;
-    int laborStat;
+    String ageGroup;
+    Gender gender;
+    String education;
+    LaborStatus laborStat;
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
     HashMap<Integer, surveyTour> tours;
 
 
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cma, int ageGroup,
-                        int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cma, String ageGroup,
+                        Gender gender, String education, LaborStatus laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
         this.refYear = refYear;
@@ -73,11 +73,11 @@ public class surveyPerson implements Serializable {
         return hhIncome;
     }
 
-    public int getAgeGroup() {
+    public String getAgeGroup() {
         return ageGroup;
     }
 
-    public int getGender() {
+    public Gender getGender() {
         return gender;
     }
 
@@ -85,11 +85,11 @@ public class surveyPerson implements Serializable {
         return pumfId;
     }
 
-    public int getEducation() {
+    public String getEducation() {
         return education;
     }
 
-    public int getLaborStat() {
+    public LaborStatus getLaborStat() {
         return laborStat;
     }
 
