@@ -295,9 +295,12 @@ public class SurveyDataImporter {
                 int tripPurp =     survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
                 int numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
                 int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
-                surveyTour tour = new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
-                        numIdentical);
+
+
                 surveyPerson sp = personMap.get(pumfId);
+
+                surveyTour tour = new surveyTour(tripId, sp, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
+                        numIdentical);
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
                 } else {
@@ -328,13 +331,16 @@ public class SurveyDataImporter {
                 int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
+                int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 014-015
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
                 surveyPerson person = personMap.get(pumfId);
                 surveyTour st = person.getTourFromId(tripId);
-                st.addTripDestinations (cmarea, nights);
+                st.addTripDestinations (new SurveyVisit(visitId, cmarea, nights));
                 recCount++;
             }
+            //sort all the visits in order
+            personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(surveyTour::sortVisits));
         } catch (Exception e) {
             logger.error("Could not read TSRC visit data: ", e);
         }

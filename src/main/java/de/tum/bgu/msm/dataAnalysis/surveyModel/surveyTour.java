@@ -1,10 +1,15 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import org.apache.log4j.Logger;
+import org.omg.CORBA.NameValuePairHelper;
 
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 /**
  * Class to hold tour object of the TSRC survey
@@ -25,14 +30,15 @@ public class surveyTour implements Serializable {
     private int tripPurp;
     private int numberNights;
     private int numIdentical;
-    private ArrayList<int[]> tourStops;
+    private ArrayList<SurveyVisit> tourStops;
     private int tripId;
+    private surveyPerson person;
 
-    protected surveyTour(int tripId, int pumfId, int origProvince, int destProvince, int mainMode, int homeCma,
+    protected surveyTour(int tripId, surveyPerson person, int origProvince, int destProvince, int mainMode, int homeCma,
                int tripPurp, int numberNights, int numIdentical) {
         // constructor of new survey tour
 
-
+        this.person = person;
         this.tripId = tripId;
         this.origProvince = origProvince;
         this.destProvince = destProvince;
@@ -45,9 +51,8 @@ public class surveyTour implements Serializable {
     }
 
 
-    public void addTripDestinations(int cmarea, int nights) {
-        int[] stopData = {cmarea, nights};
-        tourStops.add(stopData);
+    public void addTripDestinations(SurveyVisit sv) {
+        tourStops.add(sv);
 
     }
 
@@ -85,5 +90,38 @@ public class surveyTour implements Serializable {
 
     public int getTripId() {
         return tripId;
+    }
+
+    public ArrayList<SurveyVisit> getStops() {
+        return tourStops;
+    }
+
+    public long getDistinctNumRegions() {
+        return  getStops().stream().filter(v -> v.cma != homeCma).map(v -> v.cma).distinct().count();
+    }
+
+    public boolean isReturnTrip() {
+        return homeCma == tourStops.get(tourStops.size()-1).cma;
+    }
+
+    public int[] getTourStops() { //TODO: include homeCma
+        int[] stops = new int[tourStops.size()+1];
+        stops[0] = getHomeCma();
+        for (int i=0; i<getStops().size(); i++) {
+            stops[i+1] = getStops().get(i).cma;
+        }
+        return stops;
+    }
+
+    public void sortVisits() {
+        tourStops.sort((o1, o2) -> Integer.compare(o1.visitId,o2.visitId));
+    }
+
+    public String getUniqueId() {
+        return Long.toString(getPerson().getPumfId()) + Integer.toString(getTripId());
+    }
+
+    public surveyPerson getPerson() {
+        return person;
     }
 }
