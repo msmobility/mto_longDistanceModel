@@ -332,11 +332,13 @@ public class SurveyDataImporter {
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
                 int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 014-015
+                int province = survey.readInt(recString, "VPROV");
+                int cd = survey.readInt(recString, "VCD2");
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
                 surveyPerson person = personMap.get(pumfId);
                 surveyTour st = person.getTourFromId(tripId);
-                st.addTripDestinations (new SurveyVisit(visitId, cmarea, nights));
+                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights));
                 recCount++;
             }
             //sort all the visits in order

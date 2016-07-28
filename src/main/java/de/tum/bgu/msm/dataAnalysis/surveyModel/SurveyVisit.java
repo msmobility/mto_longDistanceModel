@@ -5,11 +5,15 @@ package de.tum.bgu.msm.dataAnalysis.surveyModel;
  */
 public class SurveyVisit {
     public final int visitId;
+    public final int province;
+    public final int cd;
     public final int cma;
     public final int nights;
 
-    public SurveyVisit(int visitId, int cmarea, int nights) {
+    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights) {
         this.visitId = visitId;
+        this.province = province;
+        this.cd = cd;
         this.cma = cmarea;
         this.nights = nights;
     }
