@@ -33,14 +33,16 @@ public class surveyTour implements Serializable {
     private ArrayList<SurveyVisit> tourStops;
     private int tripId;
     private surveyPerson person;
+    private int origCD;
 
-    protected surveyTour(int tripId, surveyPerson person, int origProvince, int destProvince, int mainMode, int homeCma,
+    protected surveyTour(int tripId, surveyPerson person, int origProvince, int origCD, int destProvince, int mainMode, int homeCma,
                int tripPurp, int numberNights, int numIdentical) {
         // constructor of new survey tour
 
         this.person = person;
         this.tripId = tripId;
         this.origProvince = origProvince;
+        this.origCD = origCD;
         this.destProvince = destProvince;
         this.mainMode = mainMode;
         this.homeCma = homeCma;
@@ -104,11 +106,11 @@ public class surveyTour implements Serializable {
         return homeCma == tourStops.get(tourStops.size()-1).cma;
     }
 
-    public int[] getTourStops() { //TODO: include homeCma
-        int[] stops = new int[tourStops.size()+1];
-        stops[0] = getHomeCma();
-        for (int i=0; i<getStops().size(); i++) {
-            stops[i+1] = getStops().get(i).cma;
+    public SurveyVisit[] getTourStops() { //TODO: include homeCma
+        SurveyVisit[] stops = new SurveyVisit[tourStops.size() + 1];
+        stops[0] = new SurveyVisit(-1, getOrigProvince(), getOrigCD(), getHomeCma(), 0);
+        for (int i = 0; i < getStops().size(); i++) {
+            stops[i + 1] = getStops().get(i);
         }
         return stops;
     }
@@ -124,4 +126,9 @@ public class surveyTour implements Serializable {
     public surveyPerson getPerson() {
         return person;
     }
+
+    public int getOrigCD() {
+        return origCD;
+    }
+
 }

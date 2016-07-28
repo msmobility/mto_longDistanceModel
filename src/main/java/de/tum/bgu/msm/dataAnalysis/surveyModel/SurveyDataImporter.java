@@ -289,6 +289,7 @@ public class SurveyDataImporter {
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId =       survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
                 int origProvince = survey.readInt(recString, "ORCPROVT");  // ascii position in file: 017-018
+                int origCd      =  survey.readInt(recString, "ORCCDT2");  // ascii position in file: 017-018
                 int destProvince = survey.readInt(recString, "MDDPLFL");  // ascii position in file: 026-027
                 int mainMode =     survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
                 int homeCma =      survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
@@ -299,7 +300,7 @@ public class SurveyDataImporter {
 
                 surveyPerson sp = personMap.get(pumfId);
 
-                surveyTour tour = new surveyTour(tripId, sp, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
+                surveyTour tour = new surveyTour(tripId, sp, origProvince, origCd, destProvince, mainMode, homeCma, tripPurp, numberNights,
                         numIdentical);
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);

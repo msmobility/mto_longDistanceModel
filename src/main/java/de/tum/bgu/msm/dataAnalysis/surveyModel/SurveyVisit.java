@@ -17,4 +17,8 @@ public class SurveyVisit {
         this.cma = cmarea;
         this.nights = nights;
     }
+
+    public boolean stopInProvince(int provice) {
+        return this.province == provice;
+    }
 }
