@@ -5,6 +5,7 @@ import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
 import org.apache.log4j.Logger;
 
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -70,6 +71,9 @@ public class mtoSurveyData {
         return personMap.values();
     }
 
+    public boolean validCma(int cma) {
+        return Arrays.binarySearch(getCmaList().getColumnAsInt("CMAUID"), cma) > -1;
+    }
 }
 
 

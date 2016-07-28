@@ -5,6 +5,9 @@ import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
@@ -14,7 +17,13 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.YearMonth;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -168,6 +177,85 @@ public class util {
         for (double val: array) highestVal = Math.max(val, highestVal);
         for (int i = 0; i < array.length; i++) array[i] = ((array[i] * maxVal * 1.) / (highestVal * 1.));
         return array;
+    }
+
+
+    public static <K,V> void outputCsv(String filename, String[] headers, Map<K,V> lines, BiFunction<K,V, Optional<String>> f) {
+        try {
+            FileWriter writer = new FileWriter(filename);
+            //write headers
+            writer.write(Arrays.stream(headers).collect(Collectors.joining(",")));
+            writer.write("\n");
+            for (K k : lines.keySet()) {
+                Optional<String> toWrite = f.apply(k,lines.get(k));
+                if (toWrite.isPresent()) {
+                    writer.write(toWrite.get());
+                    writer.write("\n");
+                }
+            }
+        } catch (IOException e) {
+            logger.error(e);
+        }
+
+    }
+
+    public static void outputCsvTours(mtoSurveyData data, String filename, Map<surveyTour, SurveyVisit[]> tripStops) {
+        String[] headers = new String[]{"id", "triplength", "path"};
+        outputCsv(filename, headers, tripStops, (st, ints) -> {
+            String ret = "";
+            String wkt = buildTourWKT(data, ints);
+            if (wkt.isEmpty()) {
+                return Optional.empty();
+            } else {
+                ret += st.getUniqueId();
+                ret += ',';
+                ret += Integer.toString(tripStops.get(st).length);
+                ret += ',';
+                ret += wkt;
+                return Optional.of(ret);
+            }
+        });
+
+    }
+
+
+    public static void outputTourCounts(mtoSurveyData data, String filename, Map<String, Long> tripStops) {
+        String[] headers = new String[]{"path", "triplength", "count"};
+        outputCsv(filename, headers, tripStops, (wkt, count) -> {
+            String ret = "";
+            if (wkt.isEmpty()) {
+                return Optional.empty();
+            } else {
+                ret += wkt;
+                ret += ',';
+                ret += wkt.split(",").length; //hack to get the number of stops in the trip again
+                ret += ',';
+                ret += Long.toString(count);
+                return Optional.of(ret);
+            }
+        });
+    }
+
+    public static String cmaToXY(mtoSurveyData data, int cma) {
+        //logger.info(cma);
+        TableDataSet cmaList = data.getCmaList();
+        if (data.validCma(cma)) {
+            float x = cmaList.getIndexedValueAt(cma, "X");
+            float y = cmaList.getIndexedValueAt(cma, "Y");
+            return Float.toString(x) + " " + Float.toString(y);
+        } else return "-75.0 35.0";
+
+    }
+
+    public static String buildTourWKT(mtoSurveyData data, SurveyVisit[] a) {
+        String coordString = Arrays.stream(a)
+                .map(v -> cmaToXY(data, v.cma))
+                .collect(Collectors.joining(","));
+        if (!coordString.isEmpty())
+            return String.format("\"LINESTRING (%s)\"", coordString);
+        else {
+            return "";
+        }
     }
 
 }
