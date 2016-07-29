@@ -44,7 +44,7 @@ public class SurveyDataImporter {
     }
 
     private mtoSurveyData buildDataModel() {
-        return  new mtoSurveyData(rb, personMap, dataDictionary, provinceList, mainModeList, cmaList, tripPurposes);
+        return  new mtoSurveyData(rb, personMap, dataDictionary);
     }
 
     private void readInput() {
@@ -54,17 +54,7 @@ public class SurveyDataImporter {
         dataDictionary = new DataDictionary(rb.getString("data.dictionary"));
         personMap = new HashMap<>();
 
-        provinceList = util.readCSVfile(rb.getString("province.list"));
-        provinceList.buildIndex(provinceList.getColumnPosition("Code"));
 
-        mainModeList = util.readCSVfile(rb.getString("main.mode.list"));
-        mainModeList.buildIndex(mainModeList.getColumnPosition("Code"));
-
-        cmaList = util.readCSVfile(rb.getString("cma.list"));
-        cmaList.buildIndex(cmaList.getColumnPosition("CMAUID"));
-
-        tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
-        tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
         // read all TSRC data
         for (int year: ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
