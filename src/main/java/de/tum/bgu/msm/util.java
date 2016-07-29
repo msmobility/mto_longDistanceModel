@@ -17,12 +17,11 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.YearMonth;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -201,9 +200,9 @@ public class util {
 
     public static void outputCsvTours(mtoSurveyData data, String filename, Map<surveyTour, SurveyVisit[]> tripStops) {
         String[] headers = new String[]{"id", "triplength", "path"};
-        outputCsv(filename, headers, tripStops, (st, ints) -> {
+        outputCsv(filename, headers, tripStops, (st, svs) -> {
             String ret = "";
-            String wkt = buildTourWKT(data, ints);
+            String wkt = buildTourWKT(data, svs, SurveyVisit::getUniqueCD);
             if (wkt.isEmpty()) {
                 return Optional.empty();
             } else {
@@ -240,16 +239,33 @@ public class util {
         //logger.info(cma);
         TableDataSet cmaList = data.getCmaList();
         if (data.validCma(cma)) {
-            float x = cmaList.getIndexedValueAt(cma, "X");
-            float y = cmaList.getIndexedValueAt(cma, "Y");
-            return Float.toString(x) + " " + Float.toString(y);
+            return polygonIdToXY(cmaList, cma);
         } else return "-75.0 35.0";
 
     }
 
-    public static String buildTourWKT(mtoSurveyData data, SurveyVisit[] a) {
+    public static String cdToXY(mtoSurveyData data, int cd) {
+        //logger.info(cma);
+        TableDataSet cdList = data.getCensusDivisionList();
+        if (data.validCd(cd)) {
+            return polygonIdToXY(cdList, cd);
+        } else {
+            logger.warn("Invalid census district: " + cd + ", trip will be ignored");
+            return "";
+        }
+
+    }
+
+    private static String polygonIdToXY(TableDataSet list, int id) {
+        //logger.info(cma);
+        float x = list.getIndexedValueAt(id, "X");
+        float y = list.getIndexedValueAt(id, "Y");
+        return Float.toString(x) + " " + Float.toString(y);
+    }
+
+    public static String buildTourWKT(mtoSurveyData data, SurveyVisit[] a, ToIntFunction<SurveyVisit> field) {
         String coordString = Arrays.stream(a)
-                .map(v -> cmaToXY(data, v.cma))
+                .map(v -> cdToXY(data, field.applyAsInt(v)))
                 .collect(Collectors.joining(","));
         if (!coordString.isEmpty())
             return String.format("\"LINESTRING (%s)\"", coordString);
@@ -258,4 +274,12 @@ public class util {
         }
     }
 
+    public static String buildTourWKT(List<String> coordinates) {
+        String coordString = coordinates.stream().collect(Collectors.joining(","));
+        if (!coordString.isEmpty())
+            return String.format("\"LINESTRING (%s)\"", coordString);
+        else {
+            return "";
+        }
+    }
 }

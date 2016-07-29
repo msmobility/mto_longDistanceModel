@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by Joe on 27/07/2016.
@@ -39,21 +40,18 @@ public class TripChainingAnalysis {
         mtoSurveyData data = SurveyDataImporter.importData(rb);
         Stream<surveyTour> allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         //Map<Long, List<surveyTour>> cmaHistogram = allTours.filter(t -> t.getHomeCma() > 0).collect(Collectors.groupingBy(surveyTour::getDistinctNumRegions));
-        List<surveyTour> oneWayTrips = allTours.filter(t -> !t.isReturnTrip()).collect(Collectors.toList());
-
-        allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
-        List<surveyTour> norfolkTrips = allTours.filter(t -> t.getStops().stream().mapToInt(s->s.cma).anyMatch(c->c==535)).collect(Collectors.toList());
-        logger.info("number of trips including norfolk: " + norfolkTrips.size());
-
+        List<surveyTour> oneWayTrips = allTours.filter(t -> !t.isReturnTrip()).collect(toList());
 
         allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         Map<surveyTour, SurveyVisit[]> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getTourStops));
 
         Map<String, Long> histo = tripStops.values().stream()
                 .filter(stops -> Arrays.stream(stops).anyMatch(v -> v.stopInProvince(35)))
+                .filter(stops -> Arrays.stream(stops).allMatch(SurveyVisit::cdStated))
+                .map(stops -> Arrays.stream(stops).map(v -> (util.cdToXY(data, v.getUniqueCD()))).collect(toList()))
+                .filter(coordinates -> coordinates.stream().allMatch(x -> !x.isEmpty()))
                 //.filter(a1 -> Arrays.stream(a1).distinct().count() == 1)
-                .map(x -> util.buildTourWKT(data, x))
-                .filter(x -> !x.isEmpty())
+                .map(util::buildTourWKT)
                 .collect(groupingBy(a -> a, HashMap::new, counting()));
 
         util.outputCsvTours(data, "output/tripChaining.csv", tripStops);
