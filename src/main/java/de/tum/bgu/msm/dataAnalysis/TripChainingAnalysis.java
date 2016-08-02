@@ -40,27 +40,28 @@ public class TripChainingAnalysis {
         mtoSurveyData data = SurveyDataImporter.importData(rb);
         Stream<surveyTour> allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         //Map<Long, List<surveyTour>> cmaHistogram = allTours.filter(t -> t.getHomeCma() > 0).collect(Collectors.groupingBy(surveyTour::getDistinctNumRegions));
-        List<surveyTour> oneWayTrips = allTours.filter(t -> !t.isReturnTrip()).collect(toList());
 
         allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         Map<surveyTour, SurveyVisit[]> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getTourStops));
 
-
+        //TODO: hat about summed weights?
         List<surveyTour> ontarioTrips = data.getPersons().stream()
                 .flatMap(p -> p.getTours().stream())
-                .filter(p -> p.getStops().stream().anyMatch(v -> v.stopInProvince(35)))
-                .filter(p -> p.getStops().stream().allMatch(SurveyVisit::cdStated))
+                //.filter(t -> t.getMainMode() == 1 || t.getMainMode() == 3 || t.getMainMode() == 4) //1: Car, 3: RV, 4: Bus
+                .filter(t -> t.getMainModeStr().equals("Auto") || t.getMainModeStr().equals("Air")) //2: Air, 5: Train
+                .filter(t -> t.getStops().stream().anyMatch(v -> v.stopInProvince(35)))
+                .filter(t -> t.getUniqueOrigCD() != 5925)
+                .filter(t -> t.getStops().stream().allMatch(SurveyVisit::cdStated))
                 .collect(Collectors.toList());
 
+        logger.info("Number of trips passing through ontario: " + ontarioTrips.size());
 
-        Map<LineString, List<LineString>> uniqueTours =
+
+        Map<String, List<surveyTour>> uniqueTours =
                 ontarioTrips.stream()
-                .map(st -> st.generateTourLineString(data))
-                        .collect(Collectors.groupingBy(i -> i));
+                .collect(Collectors.groupingBy(st -> String.valueOf(st.getMainMode())+st.generateTourLineString(data)));
 
         util.outputTourCounts(data, "output/tripCounts.csv", uniqueTours);
-
-        logger.info(oneWayTrips.size());
 
     }
 

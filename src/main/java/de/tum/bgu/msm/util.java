@@ -206,21 +206,28 @@ public class util {
 
     }
 
-    public static void outputTourCounts(mtoSurveyData data, String filename, Map<LineString, List<LineString>> tourMap) {
-        String[] headers = new String[]{"path", "triplength", "distance", "count"};
+    public static void outputTourCounts(mtoSurveyData data, String filename, Map<String, List<surveyTour>> tourMap) {
+        String[] headers = new String[]{"path", "mode", "trip_length", "tour_distance", "min_distance", "num_trips", "weighted_num_trips"};
         outputCsv(filename, headers, tourMap, (key, tours) -> {
             String ret = "";
-            LineString line = key;
+            LineString line = tours.get(0).generateTourLineString(data);
+            double weightedCount = tours.stream().mapToDouble(surveyTour::getWeight).sum();
             if (line.isEmpty()) {
                 return Optional.empty();
             } else {
                 ret += String.format("\"%s\"", line.toText());
                 ret += ',';
-                ret += line.getNumPoints(); //hack to get the number of stops in the trip again
+                ret += tours.get(0).getMainModeStr();
                 ret += ',';
-                ret += getTourDistance(line);
+                ret += line.getNumPoints()-1; //hack to get the number of stops in the trip again
+                ret += ',';
+                ret += (int) getTourDistance(line) / 1000;
+                ret += ',';
+                ret += (tours.get(0).calculateFurthestDistance(data)) * 2;
                 ret += ',';
                 ret += tours.size();
+                ret += ',';
+                ret += weightedCount;
                 return Optional.of(ret);
             }
         });

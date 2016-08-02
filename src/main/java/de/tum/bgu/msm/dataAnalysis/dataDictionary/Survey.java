@@ -93,6 +93,12 @@ public class Survey {
         return convertToFloat(recString.substring(start, end));
     }
 
+    public double readDouble(String recString, String variable) {
+        int start = variables.get(variable).getStart();
+        int end = variables.get(variable).getEnd();
+        return convertToFloat(recString.substring(start, end));
+    }
+
     public String decodeValue(String variable, int code) {
         return variables.get(variable).decodeAnswer(code);
     }
@@ -133,7 +139,5 @@ public class Survey {
             }
         }
     }
-
-
 
 }

@@ -35,15 +35,19 @@ public class surveyTour implements Serializable {
     private int mainMode;
     private int homeCma;
     private int tripPurp;
+    private final int distance;
     private int numberNights;
     private int numIdentical;
+    private double weight;
     private ArrayList<SurveyVisit> tourStops;
     private int tripId;
     private surveyPerson person;
     private int origCD;
+    private LineString tourGeometry = null;
+
 
     protected surveyTour(int tripId, surveyPerson person, int origProvince, int origCD, int destProvince, int mainMode, int homeCma,
-               int tripPurp, int numberNights, int numIdentical) {
+               int tripPurp, int distance, int numberNights, int numIdentical, double weight) {
         // constructor of new survey tour
 
         this.person = person;
@@ -54,8 +58,10 @@ public class surveyTour implements Serializable {
         this.mainMode = mainMode;
         this.homeCma = homeCma;
         this.tripPurp = tripPurp;
+        this.distance = distance;
         this.numberNights = numberNights;
         this.numIdentical = numIdentical;
+        this.weight = weight;
         tourStops = new ArrayList<>();
 
     }
@@ -116,7 +122,7 @@ public class surveyTour implements Serializable {
 
     public SurveyVisit[] getTourStops() { //TODO: include homeCma
         SurveyVisit[] stops = new SurveyVisit[tourStops.size() + 1];
-        stops[0] = new SurveyVisit(-1, getOrigProvince(), getOrigCD(), getHomeCma(), 0);
+        stops[0] = new SurveyVisit(-1, getOrigProvince(), getOrigCD(), getHomeCma(), 0, 0);
         for (int i = 0; i < getStops().size(); i++) {
             stops[i + 1] = getStops().get(i);
         }
@@ -139,13 +145,40 @@ public class surveyTour implements Serializable {
         return origCD;
     }
 
-    public LineString generateTourLineString(mtoSurveyData data) {
-        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
+    //4 digit code of combined province and census division is needed for boundary files
+    public int getUniqueOrigCD() {
+        return getOrigProvince() * 100 + getOrigCD();
+    }
 
-        Coordinate[] coordinates  = Arrays.stream(getTourStops()).map(sv -> sv.cdToCoords(data)).toArray(Coordinate[]::new);
-        return geometryFactory.createLineString(coordinates);
+    public double getWeight() { return weight; }
+
+    public int getDistance() { return distance; }
+
+    public int calculateFurthestDistance(mtoSurveyData data) {
+        return tourStops.stream().mapToInt(sv -> sv.distanceFromCd(data, getUniqueOrigCD())).max().getAsInt();
+    }
+
+    public LineString generateTourLineString(mtoSurveyData data) {
+        //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData
+        if (tourGeometry == null) {
+            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
+            Coordinate[] coordinates = Arrays.stream(getTourStops()).map(sv -> sv.cdToCoords(data)).toArray(Coordinate[]::new);
+            tourGeometry = geometryFactory.createLineString(coordinates);
+        }
+        return tourGeometry;
     }
 
 
-
+    public String getMainModeStr() {
+        switch (mainMode) {
+            case 1: return "Auto";
+            case 2: return "Air";
+            case 3: return "Auto";
+            case 4: return "Bus";
+            case 5: return "Train";
+            case 6: return "Sea";
+            case 7: return "Sea";
+        }
+        return "Other";
+    }
 }

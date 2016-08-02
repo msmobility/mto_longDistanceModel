@@ -286,12 +286,14 @@ public class SurveyDataImporter {
                 int tripPurp =     survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
                 int numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
                 int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
+                double weight = survey.readDouble(recString, "WTTP");
+                int distance = survey.readInt(recString, "DIST2");
 
 
                 surveyPerson sp = personMap.get(pumfId);
 
-                surveyTour tour = new surveyTour(tripId, sp, origProvince, origCd, destProvince, mainMode, homeCma, tripPurp, numberNights,
-                        numIdentical);
+                surveyTour tour = new surveyTour(tripId, sp, origProvince, origCd, destProvince, mainMode, homeCma, tripPurp, distance, numberNights,
+                        numIdentical, weight);
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
                 } else {
@@ -327,9 +329,10 @@ public class SurveyDataImporter {
                 int cd = survey.readInt(recString, "VCD2");
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
+                int airFlag = survey.readInt(recString, "AIRFLAG");  // ascii position in file: 027-029
                 surveyPerson person = personMap.get(pumfId);
                 surveyTour st = person.getTourFromId(tripId);
-                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights));
+                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights, airFlag));
                 recCount++;
             }
             //sort all the visits in order

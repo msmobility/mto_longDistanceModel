@@ -2,7 +2,11 @@ package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
+import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 
 /**
  * Created by Joe on 27/07/2016.
@@ -14,13 +18,16 @@ public class SurveyVisit {
     public final int cd;
     public final int cma;
     public final int nights;
+    public final boolean visitAirport;
 
-    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights) {
+    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights, int airFlag) {
         this.visitId = visitId;
         this.province = province;
         this.cd = cd;
         this.cma = cmarea;
         this.nights = nights;
+
+        this.visitAirport = airFlag == 1;
     }
 
     public boolean stopInProvince(int provice) {
@@ -63,5 +70,19 @@ public class SurveyVisit {
             return new Coordinate(-90, 60);
         }
 
+    }
+
+    public int distanceFromCd(mtoSurveyData data, int origCD) {
+        //calculate origin location
+        TableDataSet cdList = data.getCensusDivisionList();
+        float latitude = cdList.getIndexedValueAt(origCD, "LATITUDE");
+        float longitude = cdList.getIndexedValueAt(origCD, "LONGITUDE");
+        Coordinate origin_coord = new Coordinate(longitude, latitude);
+
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
+
+        LineString ls = geometryFactory.createLineString(new Coordinate[]{origin_coord, cdToCoords(data)});
+
+        return (int) util.getTourDistance(ls) / 1000;
     }
 }
