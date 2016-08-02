@@ -1,16 +1,18 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
 import de.tum.bgu.msm.util;
 import javafx.scene.control.Tab;
 import org.apache.log4j.Logger;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -107,6 +109,7 @@ public class mtoSurveyData {
     public TableDataSet getCensusDivisionList() {
         return censusDivisionList;
     }
+
 }
 
 

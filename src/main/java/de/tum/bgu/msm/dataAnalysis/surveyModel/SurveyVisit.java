@@ -1,9 +1,14 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
+import com.pb.common.datafile.TableDataSet;
+import com.vividsolutions.jts.geom.Coordinate;
+import org.apache.log4j.Logger;
+
 /**
  * Created by Joe on 27/07/2016.
  */
 public class SurveyVisit {
+    public static final Logger logger = Logger.getLogger(SurveyVisit.class);
     public final int visitId;
     public final int province;
     public final int cd;
@@ -43,5 +48,20 @@ public class SurveyVisit {
 
     public boolean cdStated() {
         return getCd() != 999;
+    }
+
+
+    public Coordinate cdToCoords(mtoSurveyData data) {
+        //logger.info(cma);
+        try {
+            TableDataSet cdList = data.getCensusDivisionList();
+            float latitude = cdList.getIndexedValueAt(getUniqueCD(), "LATITUDE");
+            float longitude = cdList.getIndexedValueAt(getUniqueCD(), "LONGITUDE");
+            return new Coordinate(longitude, latitude);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            logger.warn(String.format("cd %d not found in record", getUniqueCD()));
+            return new Coordinate(-90, 60);
+        }
+
     }
 }

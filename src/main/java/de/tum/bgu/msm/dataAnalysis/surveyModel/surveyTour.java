@@ -1,15 +1,22 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
+import com.pb.common.datafile.TableDataSet;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
+import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
-import org.omg.CORBA.NameValuePairHelper;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.GeodeticCalculator;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * Class to hold tour object of the TSRC survey
@@ -50,6 +57,7 @@ public class surveyTour implements Serializable {
         this.numberNights = numberNights;
         this.numIdentical = numIdentical;
         tourStops = new ArrayList<>();
+
     }
 
 
@@ -130,5 +138,14 @@ public class surveyTour implements Serializable {
     public int getOrigCD() {
         return origCD;
     }
+
+    public LineString generateTourLineString(mtoSurveyData data) {
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
+
+        Coordinate[] coordinates  = Arrays.stream(getTourStops()).map(sv -> sv.cdToCoords(data)).toArray(Coordinate[]::new);
+        return geometryFactory.createLineString(coordinates);
+    }
+
+
 
 }

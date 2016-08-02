@@ -5,12 +5,18 @@ import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 
 
 import java.io.*;
@@ -23,6 +29,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
+
+import static java.lang.System.exit;
 
 /**
  *
@@ -53,7 +61,7 @@ public class util {
             String s = currentRelativePath.toAbsolutePath().toString();
             System.out.println("Current relative path is: " + s);
             logger.error("File not found: " + dataFile.getAbsolutePath());
-            System.exit(1);
+            exit(1);
         }
         try {
             TableDataFileReader reader = TableDataFileReader.createReader(dataFile);
@@ -139,7 +147,7 @@ public class util {
             return mat;
         } else {
             logger.info("OMX Matrix type " + type.toString() + " not yet implemented. Program exits.");
-            System.exit(1);
+            exit(1);
             return null;
         }
     }
@@ -198,88 +206,45 @@ public class util {
 
     }
 
-    public static void outputCsvTours(mtoSurveyData data, String filename, Map<surveyTour, SurveyVisit[]> tripStops) {
-        String[] headers = new String[]{"id", "triplength", "path"};
-        outputCsv(filename, headers, tripStops, (st, svs) -> {
+    public static void outputTourCounts(mtoSurveyData data, String filename, Map<LineString, List<LineString>> tourMap) {
+        String[] headers = new String[]{"path", "triplength", "distance", "count"};
+        outputCsv(filename, headers, tourMap, (key, tours) -> {
             String ret = "";
-            String wkt = buildTourWKT(data, svs, SurveyVisit::getUniqueCD);
-            if (wkt.isEmpty()) {
+            LineString line = key;
+            if (line.isEmpty()) {
                 return Optional.empty();
             } else {
-                ret += st.getUniqueId();
+                ret += String.format("\"%s\"", line.toText());
                 ret += ',';
-                ret += Integer.toString(tripStops.get(st).length);
+                ret += line.getNumPoints(); //hack to get the number of stops in the trip again
                 ret += ',';
-                ret += wkt;
-                return Optional.of(ret);
-            }
-        });
-
-    }
-
-
-    public static void outputTourCounts(mtoSurveyData data, String filename, Map<String, Long> tripStops) {
-        String[] headers = new String[]{"path", "triplength", "count"};
-        outputCsv(filename, headers, tripStops, (wkt, count) -> {
-            String ret = "";
-            if (wkt.isEmpty()) {
-                return Optional.empty();
-            } else {
-                ret += wkt;
+                ret += getTourDistance(line);
                 ret += ',';
-                ret += wkt.split(",").length; //hack to get the number of stops in the trip again
-                ret += ',';
-                ret += Long.toString(count);
+                ret += tours.size();
                 return Optional.of(ret);
             }
         });
     }
 
-    public static String cmaToXY(mtoSurveyData data, int cma) {
-        //logger.info(cma);
-        TableDataSet cmaList = data.getCmaList();
-        if (data.validCma(cma)) {
-            return polygonIdToXY(cmaList, cma);
-        } else return "-75.0 35.0";
+    public static double getTourDistance(LineString ls) {
+        //this could also be done using a distance matrix, or even the skim matrix
+        double totalDistance = 0;
+        try {
+            Coordinate c0 = ls.getCoordinateN(0);
+            for (int i=1; i<ls.getNumPoints(); i++) {
+                Coordinate c1 = ls.getCoordinateN(i);
+                //flip lat and long
+                Coordinate c0flipped = new Coordinate(c0.y, c0.x);
+                Coordinate c1flipped = new Coordinate(c1.y, c1.x);
 
-    }
-
-    public static String cdToXY(mtoSurveyData data, int cd) {
-        //logger.info(cma);
-        TableDataSet cdList = data.getCensusDivisionList();
-        if (data.validCd(cd)) {
-            return polygonIdToXY(cdList, cd);
-        } else {
-            logger.warn("Invalid census district: " + cd + ", trip will be ignored");
-            return "";
+                totalDistance += JTS.orthodromicDistance(c0flipped, c1flipped, CRS.decode("EPSG:4269"));
+                c0 = c1;
+            }
+        } catch (TransformException | FactoryException | IllegalArgumentException e) {
+            logger.error(ls, e);
+            exit(1);
         }
-
+        return totalDistance;
     }
 
-    private static String polygonIdToXY(TableDataSet list, int id) {
-        //logger.info(cma);
-        float x = list.getIndexedValueAt(id, "X");
-        float y = list.getIndexedValueAt(id, "Y");
-        return Float.toString(x) + " " + Float.toString(y);
-    }
-
-    public static String buildTourWKT(mtoSurveyData data, SurveyVisit[] a, ToIntFunction<SurveyVisit> field) {
-        String coordString = Arrays.stream(a)
-                .map(v -> cdToXY(data, field.applyAsInt(v)))
-                .collect(Collectors.joining(","));
-        if (!coordString.isEmpty())
-            return String.format("\"LINESTRING (%s)\"", coordString);
-        else {
-            return "";
-        }
-    }
-
-    public static String buildTourWKT(List<String> coordinates) {
-        String coordString = coordinates.stream().collect(Collectors.joining(","));
-        if (!coordString.isEmpty())
-            return String.format("\"LINESTRING (%s)\"", coordString);
-        else {
-            return "";
-        }
-    }
 }

@@ -1,18 +1,18 @@
 package de.tum.bgu.msm.dataAnalysis;
 
+import com.vividsolutions.jts.geom.Geometry;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
+import com.vividsolutions.jts.geom.LineString;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -45,17 +45,20 @@ public class TripChainingAnalysis {
         allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         Map<surveyTour, SurveyVisit[]> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getTourStops));
 
-        Map<String, Long> histo = tripStops.values().stream()
-                .filter(stops -> Arrays.stream(stops).anyMatch(v -> v.stopInProvince(35)))
-                .filter(stops -> Arrays.stream(stops).allMatch(SurveyVisit::cdStated))
-                .map(stops -> Arrays.stream(stops).map(v -> (util.cdToXY(data, v.getUniqueCD()))).collect(toList()))
-                .filter(coordinates -> coordinates.stream().allMatch(x -> !x.isEmpty()))
-                //.filter(a1 -> Arrays.stream(a1).distinct().count() == 1)
-                .map(util::buildTourWKT)
-                .collect(groupingBy(a -> a, HashMap::new, counting()));
 
-        util.outputCsvTours(data, "output/tripChaining.csv", tripStops);
-        util.outputTourCounts(data, "output/tripCounts.csv", histo);
+        List<surveyTour> ontarioTrips = data.getPersons().stream()
+                .flatMap(p -> p.getTours().stream())
+                .filter(p -> p.getStops().stream().anyMatch(v -> v.stopInProvince(35)))
+                .filter(p -> p.getStops().stream().allMatch(SurveyVisit::cdStated))
+                .collect(Collectors.toList());
+
+
+        Map<LineString, List<LineString>> uniqueTours =
+                ontarioTrips.stream()
+                .map(st -> st.generateTourLineString(data))
+                        .collect(Collectors.groupingBy(i -> i));
+
+        util.outputTourCounts(data, "output/tripCounts.csv", uniqueTours);
 
         logger.info(oneWayTrips.size());
 
