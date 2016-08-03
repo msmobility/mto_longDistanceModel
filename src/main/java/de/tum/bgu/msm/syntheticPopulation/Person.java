@@ -1,6 +1,6 @@
 package de.tum.bgu.msm.syntheticPopulation;
+ import org.apache.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 import java.util.Collection;
 import java.util.HashMap;

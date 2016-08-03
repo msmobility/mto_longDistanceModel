@@ -5,12 +5,14 @@ import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import omx.OmxLookup;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
 
+
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.YearMonth;
 import java.util.ResourceBundle;
 
@@ -23,7 +25,7 @@ import java.util.ResourceBundle;
  *
  */
 public class util {
-    static Logger logger = Logger.getLogger(mto.class);
+    static Logger logger = Logger.getLogger(util.class);
 
 
     public static ResourceBundle mtoInitialization(String resourceBundleName) {
@@ -39,7 +41,10 @@ public class util {
         TableDataSet dataTable;
         boolean exists = dataFile.exists();
         if (!exists) {
-            logger.error("File not found: " + fileName);
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
+            System.out.println("Current relative path is: " + s);
+            logger.error("File not found: " + dataFile.getAbsolutePath());
             System.exit(1);
         }
         try {
