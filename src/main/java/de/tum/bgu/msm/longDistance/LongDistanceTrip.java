@@ -17,7 +17,6 @@ import java.util.ArrayList;
  */
 public class LongDistanceTrip {
 
-    private static final Map<Integer, LongDistanceTrip> tripMap = new HashMap<>();
     private int tripId;
     private int personId;
     private boolean international;
@@ -45,15 +44,6 @@ public class LongDistanceTrip {
         this.hhTravelParty = hhTravelParty;
         this.nonHhTravelPartySize = nonHhTravelPartySize;
         //this.destinations = new ArrayList<>();
-        tripMap.put(tripId,this);
-    }
-
-    public static LongDistanceTrip getLongDistanceTripFromId(int tripId) {
-        return tripMap.get(tripId);
-    }
-
-    public static LongDistanceTrip[] getLongDistanceTripArray() {
-        return tripMap.values().toArray(new LongDistanceTrip[tripMap.size()]);
     }
 
     public int getLongDistanceTripId() {

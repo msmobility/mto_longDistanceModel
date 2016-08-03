@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 
-import static de.tum.bgu.msm.longDistance.LongDistanceTrip.getLongDistanceTripFromId;
 import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
 import static de.tum.bgu.msm.syntheticPopulation.Person.*;
 
@@ -27,6 +26,8 @@ public class tripGeneration {
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
 
+    public static final int PERSON_INDEX = 1;
+
     String[] tripPurposes = {"visit", "business", "leisure"};
     String[] tripStates = {"away", "daytrip", "inout"};
 
@@ -40,7 +41,8 @@ public class tripGeneration {
     }
 
     //method to run the trip generation
-    public void runTripGeneration() {
+    public ArrayList<LongDistanceTrip> runTripGeneration() {
+        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
@@ -229,7 +231,8 @@ public class tripGeneration {
                                 tripDuration++;
                             }
                             //generate a trip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 2, hhold.getTaz(), tripDuration, hhmember + 1, hhTravelParty, k);
+                            LongDistanceTrip trip = new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 2, hhold.getTaz(), tripDuration, hhmember + 1, hhTravelParty, k);
+                            trips.add(trip);
                             tripCount++;
                         } else if (randomChoice1 > probability[0]) {
                             pers.isAway = false;
@@ -258,7 +261,8 @@ public class tripGeneration {
                             while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) & k < 10)
                                 k++;
                             //generate a daytrip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 1, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
+                            LongDistanceTrip trip = new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 1, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
+                            trips.add(trip);
                             tripCount++;
                         } else {
                             pers.isAway = true;
@@ -295,13 +299,15 @@ public class tripGeneration {
                                 tripDuration++;
                             }
                             //generate a trip
-                            new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 0, hhold.getTaz(), tripDuration, hhmember + 1, hhTravelParty, k);
+                            LongDistanceTrip trip = new LongDistanceTrip(tripCount, pers.getPersonId(), false, i, 0, hhold.getTaz(), tripDuration, hhmember + 1, hhTravelParty, k);
+                            trips.add(trip);
                             tripCount++;
                         }
                     }
                 }
             }
         }
+        return trips;
     }
 }
 

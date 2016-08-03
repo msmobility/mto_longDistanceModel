@@ -1,8 +1,10 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.syntheticPopulation.readSP;
+import javafx.collections.FXCollections;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /**
@@ -38,20 +40,23 @@ public class mtoLongDistance {
         //md.calculateAccessibility(rsp);
 
         tripGeneration tgdomestic = new tripGeneration(rb);
-        tgdomestic.runTripGeneration();
+        ArrayList<LongDistanceTrip> trips_domestic = tgdomestic.runTripGeneration();
 
         logger.info("Domestic Trips generated");
 
         //this must be after domestic
         internationalTripGeneration tginternationa2 = new internationalTripGeneration(rb);
-        tginternationa2.runInternationalTripGeneration();
+        ArrayList<LongDistanceTrip> trips_international = tginternationa2.runInternationalTripGeneration();
 
         logger.info("International trips generated");
 
         //next method is used to analyze the outputs of the tripGeneration
+        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
+        trips.addAll(trips_international);
+        trips.addAll(trips_domestic);
 
         mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
-        tripAnalysis.runMtoAnalyzeTrips();
+        tripAnalysis.runMtoAnalyzeTrips(trips);
 
 
     }

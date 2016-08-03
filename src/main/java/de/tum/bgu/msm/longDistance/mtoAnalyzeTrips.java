@@ -5,6 +5,7 @@ import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
 import de.tum.bgu.msm.util;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.syntheticPopulation.*;
@@ -30,16 +31,17 @@ public class mtoAnalyzeTrips {
         this.rb = rb;
     }
 
-    public void runMtoAnalyzeTrips() {
+    public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips) {
         logger.info("Writing out data for trip generation (trips)");
         //TODO add this file path and name to mto_properties?
         String OutputTripsFileName = "output/trips";
                 PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName + ".csv", false);
 
+
         pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhTravelParty, nonHhTravelParty, personAge, personGender, " +
                 "personEducation, personWorkStatus, personIncome, adultsInHh, kidsInHh");
         pw.println();
-        for (LongDistanceTrip tr : LongDistanceTrip.getLongDistanceTripArray()) {
+        for (LongDistanceTrip tr : trips) {
 
             Person traveller = getPersonFromId(tr.getPersonId());
 

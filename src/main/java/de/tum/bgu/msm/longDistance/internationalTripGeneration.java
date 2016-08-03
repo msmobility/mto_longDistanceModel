@@ -35,7 +35,9 @@ public class internationalTripGeneration {
     }
 
     //method to run the trip generation
-    public void runInternationalTripGeneration() {
+    public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
+
+        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         String numberOfInternationalTripsFilename = "input/tripGeneration/intNumberOfTrips.csv";
 
@@ -114,7 +116,8 @@ public class internationalTripGeneration {
                         String column = tripPurposes[i] + ".nonHh";
                         while (randomChoice3 < intTravelPartyProbabilities.getIndexedValueAt(k + 1, column) & k < 10)
                             k++;
-                        new LongDistanceTrip(tripId, pers.getPersonId(), true, i, j, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
+                        LongDistanceTrip trip = new LongDistanceTrip(tripId, pers.getPersonId(), true, i, j, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
+                        trips.add(trip);
                         tripId++;
                         tripCount++;
                     }
@@ -123,6 +126,7 @@ public class internationalTripGeneration {
             }
         }
         logger.info("Int Trip: all trips generated");
+        return trips;
     }
 }
 
