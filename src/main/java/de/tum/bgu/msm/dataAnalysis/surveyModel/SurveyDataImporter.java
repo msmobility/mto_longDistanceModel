@@ -51,7 +51,7 @@ public class SurveyDataImporter {
         // read input data
         workDirectory = rb.getString("work.directory");
 
-        dataDictionary = new DataDictionary(rb.getString("data.dictionary"));
+        dataDictionary = new DataDictionary(rb);
         personMap = new HashMap<>();
 
 
@@ -72,7 +72,7 @@ public class SurveyDataImporter {
         int recCount = 0;
         PrintWriter out = util.openFileForSequentialWriting(rb.getString("its.out.file") + ".csv", false);
         out.println("province,cma,weight");
-        Survey survey = dataDictionary.getSurvey("ITS", "Canadians");
+        Survey survey = dataDictionary.getSurvey("ITS", year, "Canadians");
 //        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
@@ -201,7 +201,7 @@ public class SurveyDataImporter {
         String personFileName = ResourceUtil.getProperty(rb, ("tsrc.persons"));
         String recString;
         int totRecCount = 0;
-        Survey survey = dataDictionary.getSurvey("TSRC", "Person");
+        Survey survey = dataDictionary.getSurvey("TSRC", year, "Person");
 
 
         for (int month = 1; month <= 12; month++) {
@@ -269,7 +269,7 @@ public class SurveyDataImporter {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.trips"));
         String recString;
         int recCount = 0;
-        Survey survey = dataDictionary.getSurvey("TSRC", "Trip");
+        Survey survey = dataDictionary.getSurvey("TSRC", year, "Trip");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
@@ -315,7 +315,7 @@ public class SurveyDataImporter {
         String tripFileName = ResourceUtil.getProperty(rb, ("tsrc.visits"));
         String recString;
         int recCount = 0;
-        Survey survey = dataDictionary.getSurvey("TSRC", "Visit");
+        Survey survey = dataDictionary.getSurvey("TSRC", year, "Visit");
         try {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_PUMF.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
@@ -325,15 +325,19 @@ public class SurveyDataImporter {
                 int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
-                int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 014-015
+                int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 016-017
                 int province = survey.readInt(recString, "VPROV");
                 int cd = survey.readInt(recString, "VCD2");
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
                 int airFlag = survey.readInt(recString, "AIRFLAG");  // ascii position in file: 027-029
+                int visitIndentification = survey.readInt(recString, "VISRECFL");
                 surveyPerson person = personMap.get(pumfId);
                 surveyTour st = person.getTourFromId(tripId);
-                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights, airFlag));
+                if (st == null) {
+                    logger.error(Integer.toString(year) + " - " + Integer.toString(origPumfId) + " - " + tripId + " - " + visitId);
+                }
+                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights, visitIndentification, airFlag));
                 recCount++;
             }
             //sort all the visits in order

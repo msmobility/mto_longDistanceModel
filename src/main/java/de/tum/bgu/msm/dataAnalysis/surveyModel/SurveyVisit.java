@@ -19,13 +19,15 @@ public class SurveyVisit {
     public final int cma;
     public final int nights;
     public final boolean visitAirport;
+    public final int visitIdentification;
 
-    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights, int airFlag) {
+    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights, int visitIdentification, int airFlag) {
         this.visitId = visitId;
         this.province = province;
         this.cd = cd;
         this.cma = cmarea;
         this.nights = nights;
+        this.visitIdentification = visitIdentification;
 
         this.visitAirport = airFlag == 1;
     }

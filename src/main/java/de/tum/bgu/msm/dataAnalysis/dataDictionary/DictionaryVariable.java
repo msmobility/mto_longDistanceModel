@@ -7,15 +7,15 @@ import java.util.HashMap;
  */
 public class DictionaryVariable {
     private String name;
-    private String question;
+    private String type;
     private int start;
     private int end;
 
     private HashMap<Integer, String> answers;
 
-    public DictionaryVariable(String name, String question, int start, int end, HashMap answers) {
+    public DictionaryVariable(String name, String type, int start, int end, HashMap<Integer, String> answers) {
         this.name = name;
-        this.question = question;
+        this.type = type;
         this.start = start;
         this.end = end;
         this.answers = answers;
@@ -23,10 +23,6 @@ public class DictionaryVariable {
 
     public String getName() {
         return name;
-    }
-
-    public String getQuestion() {
-        return question;
     }
 
     public int getStart() {

@@ -122,7 +122,7 @@ public class surveyTour implements Serializable {
 
     public SurveyVisit[] getTourStops() { //TODO: include homeCma
         SurveyVisit[] stops = new SurveyVisit[tourStops.size() + 1];
-        stops[0] = new SurveyVisit(-1, getOrigProvince(), getOrigCD(), getHomeCma(), 0, 0);
+        stops[0] = new SurveyVisit(-1, getOrigProvince(), getOrigCD(), getHomeCma(), 0, -1, 0);
         for (int i = 0; i < getStops().size(); i++) {
             stops[i + 1] = getStops().get(i);
         }
