@@ -1,8 +1,9 @@
 package de.tum.bgu.msm;
 
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
-import de.tum.bgu.msm.dataAnalysis.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
 import de.tum.bgu.msm.longDistance.mtoLongDistance;
 import org.apache.log4j.Logger;
 
@@ -60,8 +61,7 @@ public class mto {
     private void runDataAnalysis() {
         // main method to run data analysis
 
-        mtoSurveyData data = new mtoSurveyData(rb);
-        data.readInput();
+        mtoSurveyData data = SurveyDataImporter.importData(rb);
         mtoAnalyzeData ld = new mtoAnalyzeData(rb, data);
         ld.runAnalyses();
         logger.info("Module runDataAnalysis completed.");

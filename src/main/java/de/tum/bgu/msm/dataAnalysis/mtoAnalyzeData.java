@@ -2,11 +2,14 @@ package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyPerson;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import org.apache.log4j.Logger;
 
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 
@@ -45,7 +48,7 @@ public class mtoAnalyzeData {
 
         int[] incomeCountTrips = new int[10];
         int[] incomeCountPersons = new int[10];
-        surveyPerson[] spList = surveyPerson.getPersonArray();
+        Collection<surveyPerson> spList = data.getPersons();
         for (surveyPerson sp : spList) {
             incomeCountPersons[sp.getHhIncome()] += sp.getWeight();
             if (sp.getNumberOfTrips() > 0) {
@@ -95,15 +98,14 @@ public class mtoAnalyzeData {
         int[] stopFrequency = new int[100];
 
 //      iterate over all tours:
-        for (surveyPerson sp : surveyPerson.getPersonArray()) {
+        for (surveyPerson sp : data.getPersons()) {
             if (sp.getNumberOfTrips() == 0) continue;  //Person did not make long-distance trip
             float weight = sp.getWeight();
-            ArrayList<Long> ldTrips = sp.tours;
-            for (long tripRecord : ldTrips) {
-                surveyTour st = surveyTour.getTourFromId(tripRecord);
+            Collection<surveyTour> ldTrips = sp.getTours();
+            for (surveyTour st : ldTrips) {
                 int origProvince = st.getOrigProvince();
                 if (origProvince != 35) continue;
-                System.out.println(sp.pumfId + " " + tripRecord + " " + origProvince);
+                System.out.println(sp.getPumfId() + " " + st.getTripId() + " " + origProvince);
                 int destProvince = st.getDestProvince();
                 int mainMode = st.getMainMode();
                 int homeCma = st.getHomeCma();
@@ -165,20 +167,19 @@ public class mtoAnalyzeData {
             pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
         pw.println();
 
-        for (surveyPerson sp : surveyPerson.getPersonArray()) {
-            ArrayList<Long> tours = sp.getTours();
+        for (surveyPerson sp : data.getPersons()) {
+            Collection<surveyTour> tours = sp.getTours();
             int[] daysInOut = new int[purposes.length];
             int[] daysDayTrip = new int[purposes.length];
             int[] daysAway = new int[purposes.length];
             int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
             // First, count day trips
-            for (long tour : tours) {
-                surveyTour st = surveyTour.getTourFromId(tour);
+            for (surveyTour st : tours) {
                 int tripPurp = 0;
                 try {
                     tripPurp = translateTripPurpose(purposes, st.getTripPurp());
                 } catch (Exception e) {
-                    logger.error(tour); //+" "+st.tourStops+" "+st.getOrigProvince());
+                    logger.error(st.getTripId()); //+" "+st.tourStops+" "+st.getOrigProvince());
                     logger.error(st.getTripPurp());
                 }
                 if (st.getNumberNights() == 0) {
@@ -187,8 +188,7 @@ public class mtoAnalyzeData {
                 }
             }
             // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
-            for (long tour : tours) {
-                surveyTour st = surveyTour.getTourFromId(tour);
+            for (surveyTour st : tours) {
                 int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
                 if (st.getNumberNights() > 0) {
                     // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,

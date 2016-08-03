@@ -59,7 +59,7 @@ public class readSP {
     }
 
 
-    private void readZonalData () {
+    public void readZonalData () {
         // Read in zonal data
 
         zoneTable = util.importTable(rb.getString("zone.system"));

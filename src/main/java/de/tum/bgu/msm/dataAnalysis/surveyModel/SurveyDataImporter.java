@@ -1,63 +1,60 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
-import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
-
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
- *
- * Ontario Provincial Model
- * Class to hold data
- * Author: Rolf Moeckel, Technische Universität München (TUM), rolf.moeckel@tum.de
- * Date: 14 December 2015
- * Version 1
- *
+ * Created by Joe on 26/07/2016.
  */
-public class mtoSurveyData {
-    static Logger logger = Logger.getLogger(mto.class);
+public class SurveyDataImporter {
+    private Logger logger = Logger.getLogger(this.getClass());
     private ResourceBundle rb;
     private String workDirectory;
+
     private TableDataSet provinceList;
     private TableDataSet mainModeList;
     private TableDataSet cmaList;
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
+    HashMap<Integer, surveyPerson> personMap;
 
+    private SurveyDataImporter() {
 
-    public mtoSurveyData(ResourceBundle rb) {
-        this.rb = rb;
     }
 
+    public static mtoSurveyData importData(ResourceBundle rb) {
+        SurveyDataImporter sdi = new SurveyDataImporter();
+        sdi.rb = rb;
+        sdi.readInput();
+        mtoSurveyData mtoSurveyData2 = sdi.buildDataModel();
 
-    public void readInput () {
+        return mtoSurveyData2;
+    }
+
+    private mtoSurveyData buildDataModel() {
+        return  new mtoSurveyData(rb, personMap, dataDictionary);
+    }
+
+    private void readInput() {
         // read input data
         workDirectory = rb.getString("work.directory");
 
         dataDictionary = new DataDictionary(rb.getString("data.dictionary"));
+        personMap = new HashMap<>();
 
-        provinceList = util.readCSVfile(rb.getString("province.list"));
-        provinceList.buildIndex(provinceList.getColumnPosition("Code"));
 
-        mainModeList = util.readCSVfile(rb.getString("main.mode.list"));
-        mainModeList.buildIndex(mainModeList.getColumnPosition("Code"));
-
-        cmaList = util.readCSVfile(rb.getString("cma.list"));
-        cmaList.buildIndex(cmaList.getColumnPosition("CMAUID"));
-
-        tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
-        tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
         // read all TSRC data
         for (int year: ResourceUtil.getIntegerArray(rb, "tsrc.years")) readTSRCdata(year);
@@ -67,7 +64,7 @@ public class mtoSurveyData {
     }
 
 
-    public void readITSdata(int year) {
+    private void readITSdata(int year) {
         // read ITS data
         logger.info ("  Reading ITS data for " + year);
         String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data");
@@ -117,7 +114,7 @@ public class mtoSurveyData {
     }
 
 
-    public void readTSRCdata(int year) {
+    private void readTSRCdata(int year) {
         // read TSRC data
         logger.info ("  Reading TSRC data for " + year);
 
@@ -225,6 +222,7 @@ public class mtoSurveyData {
                     float weight = survey.readFloat(recString, "WTPM");  // ascii position in file: 14-25
                     float weight2 = survey.readFloat(recString, "WTPM2");  // ascii position in file: 26-37
                     int prov = survey.readInt(recString, "RESPROV");  // ascii position in file: 38-39
+                    int cd = survey.readInt(recString, "RESCD2");  // ascii position in file: 43-46
                     int cma = survey.readInt(recString, "RESCMA2");  // ascii position in file: 43-46
                     int ageGroup = survey.readInt(recString, "AGE_GR2");  // ascii position in file: 47-47
                     int gender = survey.readInt(recString, "SEX");  // ascii position in file: 48-48
@@ -233,16 +231,35 @@ public class mtoSurveyData {
                     int hhIncome = survey.readInt(recString, "INCOMGR2");  // ascii position in file: 51-51
                     int adultsInHh = survey.readInt(recString, "G_ADULTS");  // ascii position in file: 52-53
                     int kidsInHh = survey.readInt(recString, "G_KIDS");  // ascii position in file: 54-55
-                    new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cma, ageGroup, gender, education,
+
+                    surveyPerson person = buildPerson(survey, refYear, refMonth, pumfId, weight, weight2, prov, cd, cma, ageGroup, gender, education,
                             laborStat, hhIncome, adultsInHh, kidsInHh);
+
+                    personMap.put(pumfId, person);
                 }
             } catch (Exception e) {
-                logger.error("Could not read TSRC person data: " + e);
+                logger.error("Could not read TSRC person data: ",e);
             }
             // logger.info("  Read " + recCount + " person records for the month " + month);
             totRecCount += recCount;
         }
         logger.info("  Read " + totRecCount + " person records");
+    }
+
+    private surveyPerson buildPerson(Survey survey, int refYear, int refMonth, int pumfId, float weight, float weight2,
+                                     int prov, int cd, int cma, int ageGroup, int gender, int education,
+                                     int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
+
+        Gender gender2 = Gender.getGender(gender);
+        LaborStatus laborStat2 = LaborStatus.getStatus(laborStat);
+
+        String ageGroup2 = survey.decodeValue("AGE_GR2", ageGroup);
+        String education2 = survey.decodeValue("EDLEVGR", education);
+
+        surveyPerson person = new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cd, cma, ageGroup2, gender2, education2,
+                laborStat2, hhIncome, adultsInHh, kidsInHh);
+
+        return person;
     }
 
 
@@ -263,24 +280,30 @@ public class mtoSurveyData {
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId =       survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
                 int origProvince = survey.readInt(recString, "ORCPROVT");  // ascii position in file: 017-018
+                int origCd      =  survey.readInt(recString, "ORCCDT2");  // ascii position in file: 017-018
                 int destProvince = survey.readInt(recString, "MDDPLFL");  // ascii position in file: 026-027
                 int mainMode =     survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
                 int homeCma =      survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
                 int tripPurp =     survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
                 int numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
                 int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
-                new surveyTour(tripId, pumfId, origProvince, destProvince, mainMode, homeCma, tripPurp, numberNights,
-                        numIdentical);
-                surveyPerson sp = surveyPerson.getPersonFromId(pumfId);
+                double weight = survey.readDouble(recString, "WTTP");
+                int distance = survey.readInt(recString, "DIST2");
+
+
+                surveyPerson sp = personMap.get(pumfId);
+
+                surveyTour tour = new surveyTour(tripId, sp, origProvince, origCd, destProvince, mainMode, homeCma, tripPurp, distance, numberNights,
+                        numIdentical, weight);
                 if (numIdentical < 30) {
-                    for (int i = 1; i <= numIdentical; i++) sp.addTour(tripId);
+                    for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
                 } else {
-                    sp.addTour(tripId);
+                    sp.addTour(tour); //TODO: why?
                 }
                 recCount++;
             }
         } catch (Exception e) {
-            logger.error("Could not read TSRC trip data: " + e);
+            logger.error("Could not read TSRC trip data: ",e);
         }
         logger.info("  Read " + recCount + " tour records.");
     }
@@ -302,36 +325,25 @@ public class mtoSurveyData {
                 int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
                 int pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
+                int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 014-015
+                int province = survey.readInt(recString, "VPROV");
+                int cd = survey.readInt(recString, "VCD2");
                 int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
                 int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
-                surveyTour st = surveyTour.getTourFromId(util.createTourId(pumfId, tripId));
-                st.addTripDestinations (cmarea, nights);
+                int airFlag = survey.readInt(recString, "AIRFLAG");  // ascii position in file: 027-029
+                surveyPerson person = personMap.get(pumfId);
+                surveyTour st = person.getTourFromId(tripId);
+                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights, airFlag));
                 recCount++;
             }
+            //sort all the visits in order
+            personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(surveyTour::sortVisits));
         } catch (Exception e) {
-            logger.error("Could not read TSRC visit data: " + e);
+            logger.error("Could not read TSRC visit data: ", e);
         }
         logger.info("  Read " + recCount + " visit records.");
     }
 
 
 
-    public TableDataSet getProvinceList() {
-        return provinceList;
-    }
-
-    public TableDataSet getMainModeList() {
-        return mainModeList;
-    }
-
-    public TableDataSet getCmaList() {
-        return cmaList;
-    }
-
-    public TableDataSet getTripPurposes() {
-        return tripPurposes;
-    }
 }
-
-
-

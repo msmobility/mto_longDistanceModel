@@ -1,14 +1,11 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
-import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class to hold person object of travelers and non-travelers of the TSRC survey
@@ -22,7 +19,6 @@ public class surveyPerson implements Serializable {
 
     static Logger logger = Logger.getLogger(surveyPerson.class);
 
-    private static final Map<Integer,surveyPerson> personMap = new HashMap<>();
     int refYear;
     int refMonth;
     long pumfId;
@@ -31,14 +27,14 @@ public class surveyPerson implements Serializable {
     int prov;
     int cd;
     int cma;
-    int ageGroup;
-    int gender;
-    int education;
-    int laborStat;
+    String ageGroup;
+    Gender gender;
+    String education;
+    LaborStatus laborStat;
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    ArrayList<Long> tours;
+    HashMap<Integer, surveyTour> tours;
 
     //addded by Carlos Llorca on 6/7/16 to evaluate the tripGeneration of the surveyPerson individuals instead of Synthetic pop
     //this should not be used if this survey population is not used to test the models
@@ -46,9 +42,8 @@ public class surveyPerson implements Serializable {
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
 
-
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, int ageGroup,
-                        int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, String ageGroup,
+                        Gender gender, String education, LaborStatus laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
         this.refYear = refYear;
@@ -66,33 +61,15 @@ public class surveyPerson implements Serializable {
         this.hhIncome = hhIncome;
         this.adultsInHh = adultsInHh;
         this.kidsInHh = kidsInHh;
-        this.tours = new ArrayList<>();
-        personMap.put(pumfId,this);
-    }
-
-
-    public static surveyPerson getPersonFromId(int id) {
-        return personMap.get(id);
-    }
-
-    public static int getPersonCount() {
-        return personMap.size();
-    }
-
-    public static Collection<surveyPerson> getPersons() {
-        return personMap.values();
-    }
-
-    public static surveyPerson[] getPersonArray() {
-        return personMap.values().toArray(new surveyPerson[personMap.size()]);
+        this.tours = new HashMap<>();
     }
 
     public int getRefYear() {
         return refYear;
     }
 
-    public void addTour(int tourId) {
-        tours.add(util.createTourId(pumfId, tourId));
+    public void addTour(surveyTour tour) {
+        tours.put(tour.getTripId(), tour);
     }
 
     public int getNumberOfTrips() {
@@ -103,11 +80,11 @@ public class surveyPerson implements Serializable {
         return hhIncome;
     }
 
-    public int getAgeGroup() {
+    public String getAgeGroup() {
         return ageGroup;
     }
 
-    public int getGender() {
+    public Gender getGender() {
         return gender;
     }
 
@@ -115,11 +92,11 @@ public class surveyPerson implements Serializable {
         return pumfId;
     }
 
-    public int getEducation() {
+    public String getEducation() {
         return education;
     }
 
-    public int getLaborStat() {
+    public LaborStatus getLaborStat() {
         return laborStat;
     }
 
@@ -143,8 +120,8 @@ public class surveyPerson implements Serializable {
         return cma;
     }
 
-    public ArrayList<Long> getTours() {
-        return tours;
+    public Collection<surveyTour> getTours() {
+        return tours.values();
     }
 
     public float getWeight() {
@@ -155,5 +132,7 @@ public class surveyPerson implements Serializable {
         return refMonth;
     }
 
-
+    public surveyTour getTourFromId(int tripId) {
+        return tours.get(tripId);
+    }
 }
