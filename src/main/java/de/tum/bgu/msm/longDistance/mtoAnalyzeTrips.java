@@ -38,7 +38,7 @@ public class mtoAnalyzeTrips {
                 PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName + ".csv", false);
 
 
-        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhTravelParty, nonHhTravelParty, personAge, personGender, " +
+        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhAdultsTravelParty, hhKidsTravelParty, nonHhTravelParty, personAge, personGender, " +
                 "personEducation, personWorkStatus, personIncome, adultsInHh, kidsInHh");
         pw.println();
         for (LongDistanceTrip tr : trips) {
@@ -46,8 +46,8 @@ public class mtoAnalyzeTrips {
             Person traveller = getPersonFromId(tr.getPersonId());
 
             pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getHhTravelPartySize()
-                     +"," + tr.getNonHhTravelPartySize() +"," + traveller.getAge() + "," + traveller.getGender() +"," + traveller.getEducation() + "," + traveller.getWorkStatus() +
+                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                     + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize() +"," + traveller.getAge() + "," + traveller.getGender() +"," + traveller.getEducation() + "," + traveller.getWorkStatus() +
                     "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh()) ;
             pw.println();
         }

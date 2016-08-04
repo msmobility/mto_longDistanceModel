@@ -8,24 +8,22 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+import de.tum.bgu.msm.longDistance.tripGeneration.*;
+
+
 /**
- * Created by carlloga on 7/19/2016.
- * <p>
- * Class to generate international trips following Rolf's method: pick up individuals according to their probability
- * of domestic trips until the number of trips per day is reached
- * <p>
- * <p>
+ * Created by Carlos on 7/19/2016.
  * Based on number of trips and increased later with travel parties.
  */
 public class internationalTripGeneration {
 
-    private TableDataSet numberOfInternationalTrips;
-    private TableDataSet intTravelPartyProbabilities;
 
-    String[] tripPurposes = {"visit", "business", "leisure"};
-    String[] tripStates = {"away", "daytrip", "inout"};
+
+    private ArrayList<String> tripPurposes = mtoLongDistance.getTripPurposes();
+    private ArrayList<String> tripStates = mtoLongDistance.getTripStates();
 
     static Logger logger = Logger.getLogger(tripGeneration.class);
     private ResourceBundle rb;
@@ -40,13 +38,12 @@ public class internationalTripGeneration {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         String numberOfInternationalTripsFilename = "input/tripGeneration/intNumberOfTrips.csv";
-
-        numberOfInternationalTrips = util.readCSVfile(numberOfInternationalTripsFilename);
+        TableDataSet numberOfInternationalTrips = util.readCSVfile(numberOfInternationalTripsFilename);
         numberOfInternationalTrips.buildIndex(numberOfInternationalTrips.getColumnPosition("tripState"));
 
         String intTravelPartyProbabilitiesFilename = "input/tripGeneration/intTravelPartyProbabilities.csv";
-        intTravelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
-        intTravelPartyProbabilities.buildIndex(intTravelPartyProbabilities.getColumnPosition("travelParty"));
+        TableDataSet travelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
+        travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
         double[][] sumProbabilities = new double[3][3];
         int[] personIdMatrix = new int[Person.getSyntheticPersonArray().length];
@@ -56,8 +53,10 @@ public class internationalTripGeneration {
         for (Person pers : Person.getSyntheticPersonArray()) {
             personIdMatrix[p] = pers.getPersonId();
 
-            for (int i = 0; i < tripPurposes.length; i++) {
-                for (int j = 0; j < tripStates.length; j++) {
+            for (String tripPurpose : tripPurposes) {
+                for (String tripState : tripStates) {
+                    int i = tripPurposes.indexOf(tripPurpose);
+                    int j = tripStates.indexOf(tripState);
                     sumProbabilities[i][j] += pers.travelProbabilities[i][j];
                     probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j];
                 }
@@ -65,13 +64,12 @@ public class internationalTripGeneration {
             p++;
         }
         logger.info("Int Trip: sum of probabilities done");
-        int tripId = 1000000;
-        for (int i = 0; i < tripPurposes.length; i++) {
-            for (int j = 0; j < tripStates.length; j++) {
-                logger.info("starting trip generation for purpose " + i + " and state " + j);
+        for (String tripPurpose : tripPurposes) {
+            for (String tripState : tripStates) {
+                logger.info("starting trip generation for purpose " + tripPurpose + " and state " + tripState);
                 int tripCount = 0;
-                // multiplied by 2 to get more chances of assigning all trips, if not, there are some individuals that are travellong
-                double[] randomChoice = new double[(int) numberOfInternationalTrips.getIndexedValueAt(j, tripPurposes[i]) * 2];
+                // multiplied by 2 to get more chances of assigning all trips, if not, there are some individuals that are travelling already
+                double[] randomChoice = new double[(int) numberOfInternationalTrips.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*2 ];
                 for (int k = 0; k < randomChoice.length; k++) {
                     randomChoice[k] = Math.random();
                 }
@@ -79,56 +77,45 @@ public class internationalTripGeneration {
                 Arrays.sort(randomChoice);
                 //look up for the n travellers
                 p = 0;
-                double cumulative = probabilityMatrix[i][j][p];
-                for (int m = 0; m < randomChoice.length; m++) {
-                    while (randomChoice[m] > cumulative & p < personIdMatrix.length - 1) {
+                double cumulative = probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
+                for (double randomNumber : randomChoice){
+                    while (randomNumber > cumulative & p < personIdMatrix.length - 1) {
                         p++;
-                        cumulative += probabilityMatrix[i][j][p] / sumProbabilities[i][j];
+                        cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
                     Person pers = Person.getPersonFromId(personIdMatrix[p]);
-                    if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfInternationalTrips.getIndexedValueAt(j, tripPurposes[i])) {
-                        if (j == 0) pers.isAway = true;
-                        else if (j == 1) pers.isDaytrip = true;
-                        else if (j == 2) pers.isInOutTrip = true;
-                        ArrayList<Person> hhTravelParty = new ArrayList<>(1);
-                        hhTravelParty.add(0, pers);
-                        //travel parties
-                        int hhmember = 0;
-                        Household hhold = pers.getHousehold();
-                        double randomChoice2 = Math.random();
-                        for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
-                            if (pers2 != pers & !pers2.isAway & !pers2.isDaytrip & !pers2.isInOutTrip & pers2.getAge() > 17) {
-                                String column = tripPurposes[i] + "." + Math.min(pers.getAdultsHh(), 5);
-                                double probability2 = intTravelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
-                                if (randomChoice2 < probability2) {
-                                    pers2.isAway = false;
-                                    pers2.isDaytrip = false;
-                                    pers2.isInOutTrip = true;
-                                    hhmember++;
-                                    hhTravelParty.add(hhmember, pers2);
-                                }
-                            }
+                    if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfInternationalTrips.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)) {
+                        switch (tripState) {
+                            case "away" :
+                                pers.isAway = true;
+                            case "daytrip":
+                                pers.isDaytrip = true;
+                            case "inout":
+                                pers.isInOutTrip = true;
                         }
-                        //second: non hh members
-                        double randomChoice3 = Math.random();
-                        //comment
-                        int k = 0;
-                        String column = tripPurposes[i] + ".nonHh";
-                        while (randomChoice3 < intTravelPartyProbabilities.getIndexedValueAt(k + 1, column) & k < 10)
-                            k++;
-                        LongDistanceTrip trip = new LongDistanceTrip(tripId, pers.getPersonId(), true, i, j, hhold.getTaz(), 0, hhmember + 1, hhTravelParty, k);
+                        LongDistanceTrip trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, tripCount, travelPartyProbabilities);
                         trips.add(trip);
-                        tripId++;
                         tripCount++;
                     }
                 }
-                logger.info(tripCount + " trips generated for purpose " + tripPurposes[i] + " and state " + tripStates[j]);
+                logger.info(tripCount + " trips generated for purpose " + tripPurpose + " and state " + tripState);
             }
         }
         logger.info("Int Trip: all trips generated");
         return trips;
     }
+
+    private LongDistanceTrip createIntLongDistanceTrip(Person pers, String tripPurpose, String tripState, int tripCount, TableDataSet travelPartyProbabilities ){
+        ArrayList<Person> adultsHhTravelParty = mtoLongDistance.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = mtoLongDistance.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> hhTravelParty = new ArrayList<>();
+        hhTravelParty.addAll(adultsHhTravelParty);
+        hhTravelParty.addAll(adultsHhTravelParty);
+        int nonHhTravelPartySize = mtoLongDistance.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        Household hhold = pers.getHousehold();
+        return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), hhold.getTaz(),
+                0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
+
+    }
+
 }
-
-
-

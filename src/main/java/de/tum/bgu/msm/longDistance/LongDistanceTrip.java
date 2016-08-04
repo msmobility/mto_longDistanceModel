@@ -24,7 +24,8 @@ public class LongDistanceTrip {
     private int tripState;
     private int originZone;
     private int nights;
-    private int hhTravelPartySize;
+    private int hhAdultsTravelPartySize;
+    private int hhKidsTravelPartySize;
     private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
 
@@ -32,7 +33,8 @@ public class LongDistanceTrip {
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights, int hhTravelPartySize, ArrayList hhTravelParty, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
+    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights,
+                            int hhAdultsTravelPartySize, int hhKidsTravelPartySize, ArrayList hhTravelParty, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripId;
         this.personId = personId;
         this.international = international;
@@ -40,7 +42,8 @@ public class LongDistanceTrip {
         this.tripState = tripState;
         this.originZone = originZone;
         this.nights = nights;
-        this.hhTravelPartySize = hhTravelPartySize;
+        this.hhAdultsTravelPartySize = hhAdultsTravelPartySize;
+        this.hhKidsTravelPartySize = hhKidsTravelPartySize;
         this.hhTravelParty = hhTravelParty;
         this.nonHhTravelPartySize = nonHhTravelPartySize;
         //this.destinations = new ArrayList<>();
@@ -74,7 +77,9 @@ public class LongDistanceTrip {
         return nights;
     }
 
-    public int getHhTravelPartySize() { return hhTravelPartySize; }
+    public int getAdultsHhTravelPartySize() { return hhAdultsTravelPartySize; }
+
+    public int getKidsHhTravelPartySize() { return hhKidsTravelPartySize; }
 
     public int getNonHhTravelPartySize() {
         return nonHhTravelPartySize;
