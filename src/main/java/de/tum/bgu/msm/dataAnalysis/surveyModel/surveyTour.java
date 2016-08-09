@@ -123,7 +123,7 @@ public class surveyTour implements Serializable {
     }
 
     public void sortVisits() {
-        tourStops.sort((o1, o2) -> Integer.compare(o1.visitId, o2.visitId));
+        tourStops.sort((o1, o2) -> Integer.compare(o2.visitId, o1.visitId)); //reverse order
     }
 
     public String getUniqueId() {
@@ -209,6 +209,7 @@ public class surveyTour implements Serializable {
                 ", tripPurp=" + tripPurp +
                 ", numberNights=" + numberNights +
                 ", weight=" + weight +
-                '}';
+                "\n\tgeometry=" + tourGeometry +
+                "\n}";
     }
 }

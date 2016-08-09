@@ -85,7 +85,7 @@ public class mtoSurveyData {
         return tripPurposes;
     }
 
-    public surveyPerson getPersonFromId(int id) {
+    public surveyPerson getPersonFromId(long id) {
         return personMap.get(id);
     }
 

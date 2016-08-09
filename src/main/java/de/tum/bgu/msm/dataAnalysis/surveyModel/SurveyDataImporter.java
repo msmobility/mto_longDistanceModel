@@ -40,6 +40,11 @@ public class SurveyDataImporter {
         sdi.readInput();
         mtoSurveyData mtoSurveyData2 = sdi.buildDataModel();
 
+        //generate all geometries
+        mtoSurveyData2.getPersons().stream().forEach(p ->
+                p.getTours().stream().forEach(t -> t.generateTourLineString(mtoSurveyData2))
+        );
+
         return mtoSurveyData2;
     }
 
@@ -70,7 +75,8 @@ public class SurveyDataImporter {
         String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data");
         String recString;
         int recCount = 0;
-        PrintWriter out = util.openFileForSequentialWriting(rb.getString("its.out.file") + ".csv", false);
+        String its_out_location = rb.getString("output.folder") + File.separator + rb.getString("its.out.file");
+        PrintWriter out = util.openFileForSequentialWriting(its_out_location + ".csv", false);
         out.println("province,cma,weight");
         Survey survey = dataDictionary.getSurvey("ITS", year, "Canadians");
 //        float[][] purp = new float[5][365];
@@ -221,6 +227,7 @@ public class SurveyDataImporter {
             }
             //sort all the visits in order
             personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(surveyTour::sortVisits));
+
         } catch (Exception e) {
             logger.error("Could not read TSRC visit data: ", e);
         }

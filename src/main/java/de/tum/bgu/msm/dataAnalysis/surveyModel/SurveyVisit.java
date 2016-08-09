@@ -98,4 +98,16 @@ public class SurveyVisit {
 
         return (int) util.getTourDistance(ls) / 1000;
     }
+
+    @Override
+    public String toString() {
+        return "SurveyVisit{" +
+                "visitId=" + visitId +
+                ", province=" + province +
+                ", cd=" + cd +
+                ", nights=" + nights +
+                ", visitIdentification=" + visitIdentification +
+                ", airport='" + airport + '\'' +
+                '}';
+    }
 }

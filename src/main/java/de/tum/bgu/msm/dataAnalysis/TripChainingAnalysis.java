@@ -9,6 +9,7 @@ import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 import com.vividsolutions.jts.geom.LineString;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,21 +49,35 @@ public class TripChainingAnalysis {
         List<surveyTour> ontarioTrips = data.getPersons().stream()
                 .flatMap(p -> p.getTours().stream())
                 //.filter(t -> t.getMainMode() == 1 || t.getMainMode() == 3 || t.getMainMode() == 4) //1: Car, 3: RV, 4: Bus
-                .filter(t -> t.getMainModeStr().equals("Auto") || t.getMainModeStr().equals("Air")) //2: Air, 5: Train
-                .filter(t -> t.getStops().stream().anyMatch(v -> v.stopInProvince(35)))
+                //.filter(t -> t.getMainModeStr().equals("Auto") || t.getMainModeStr().equals("Air")) //2: Air, 5: Train
+                .filter(t -> t.getMainModeStr().equals("Auto")) //2: Air, 5: Train
+                .filter(t -> t.getOrigProvince() == 35)
                 .filter(t -> t.getUniqueOrigCD() != 5925)
                 .filter(t -> t.getStops().stream().allMatch(SurveyVisit::cdStated))
-               // .filter(t -> t.getStops().size() == 4 && t.getMainModeStr().equals("Air"))
+                //.filter(t -> t.getStops().size() == 4 && t.getMainModeStr().equals("Air"))
+                //.filter(t -> t.getStops().stream().filter(v -> !v.airport.equals("000")).count() > 2) //odd airport
+                .filter(t -> t.getStops().size() > 2)
+                .filter(t -> t.getStops().stream().filter(v -> v.nights > 0).count() > 2)
                 .collect(Collectors.toList());
 
         logger.info("Number of trips passing through ontario: " + ontarioTrips.size());
 
 
+        //only ontario:
+        List<surveyTour> internalOntarioTrips = data.getPersons().stream()
+                .flatMap(p -> p.getTours().stream())
+                .filter(t -> t.getOrigProvince() == 35)
+                .filter(t -> t.getUniqueOrigCD() != 5925)
+                .filter(t -> t.getStops().stream().allMatch(v -> v.province == 35))
+                .filter(t -> t.getStops().size() > 2)
+                .collect(Collectors.toList());
+
         Map<String, List<surveyTour>> uniqueTours =
                 ontarioTrips.stream()
                 .collect(Collectors.groupingBy(st -> String.valueOf(st.getMainMode())+st.generateTourLineString(data)));
 
-        util.outputTourCounts(data, "output/tripCounts.csv", uniqueTours);
+        String output_filename = rb.getString("output.folder") + File.separator + "tripCounts.csv";
+                util.outputTourCounts(data, output_filename, uniqueTours);
 
     }
 
