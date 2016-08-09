@@ -28,7 +28,7 @@ public class SurveyDataImporter {
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
-    HashMap<Integer, surveyPerson> personMap;
+    HashMap<Long, surveyPerson> personMap;
 
     private SurveyDataImporter() {
 
@@ -116,7 +116,7 @@ public class SurveyDataImporter {
 
     private void readTSRCdata(int year) {
         // read TSRC data
-        logger.info ("  Reading TSRC data for " + year);
+        logger.info("  Reading TSRC data for " + year);
 
         String dirName = workDirectory + ResourceUtil.getProperty(rb, ("tsrc.data.dir"));
 
@@ -124,76 +124,7 @@ public class SurveyDataImporter {
         readTSRCtripData(dirName, year);
         readTSRCvisitData(dirName, year);
 
-//        // Create HashMap by destination province by mode
-//        HashMap<Integer, Integer[]> destinationCounter = new HashMap<>();
-//        for (int pr: provinceList.getColumnAsInt("Code")) {
-//            destinationCounter.put(pr, new Integer[]{0,0,0,0,0,0,0,0,0});
-//        }
-//
-//        // Create list of main modes
-//        int[] mainModes = mainModeList.getColumnAsInt("Code");
-//        int highestCode = util.getHighestVal(mainModes);
-//        int[] mainModeIndex = new int[highestCode + 1];
-//        for (int mode = 0; mode < mainModes.length; mode++) {
-//            mainModeIndex[mainModes[mode]] = mode;
-//        }
-//
-//        // Create list of CMA regions
-//        int[] homeCmaList = cmaList.getColumnAsInt("CMAUID");
-//        int[] cmaIndex = new int[util.getHighestVal(homeCmaList) + 1];
-//        for (int i = 0; i < homeCmaList.length; i++) cmaIndex[homeCmaList[i]] = i;
-//        int[] tripsByHomeCma = new int[homeCmaList.length];
-//
-//        // Create list of trip purposes
-//        int[] purpList = tripPurposes.getColumnAsInt("Code");
-//        int highestPurp = util.getHighestVal(purpList);
-//        int[] purposeIndex = new int[highestPurp + 1];
-//        for (int purp = 0; purp < purpList.length; purp++) purposeIndex[purpList[purp]] = purp;
-//        int[] purpCnt = new int[purpList.length];
-//
-//        int[][] modePurpCnt = new int[mainModes.length][purpList.length];
-
-
-
-//        iterate over all tours:
-//        Integer[] tripsByMode = destinationCounter.get(destProvince);
-//        tripsByMode[mainModeIndex[mainMode]] = tripsByMode[mainModeIndex[mainMode]] + 1;
-//        if (util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]]++;
-//        purpCnt[purposeIndex[tripPurp]]++;
-//        modePurpCnt[mainModeIndex[mainMode]][purposeIndex[tripPurp]]++;
-//
-//        String txt1 = "Destination";
-//        for (int mode: mainModes) txt1 += "," + mainModeList.getIndexedStringValueAt(mode, "MainMode");
-//        logger.info(txt1);
-//        for (Integer pr: provinceList.getColumnAsInt("Code")) {
-//            String txt2 = "Trips to " + pr + " (" + provinceList.getIndexedStringValueAt(pr, "Province") + ")";
-//            for (int mode: mainModes) txt2 += ","+destinationCounter.get(pr)[mainModeIndex[mode]];
-//            logger.info(txt2);
-//        }
-//
-//        logger.info("Trips by purpose");
-//        for (int i: purpList) {
-//            if (purpCnt[purposeIndex[i]] > 0) logger.info(tripPurposes.getIndexedStringValueAt(i, "Purpose") + ";" + purpCnt[purposeIndex[i]]);
-//        }
-//
-//        logger.info("Trip origin by CMA");
-//        for (int i: homeCmaList) {
-//            if (tripsByHomeCma[cmaIndex[i]] > 0) logger.info(i + " " + tripsByHomeCma[cmaIndex[i]]);
-//        }
-//
-//        logger.info("Trips by mode and purpose");
-//        String tx = "Purpose";
-//        for (int mode: mainModes) tx = tx.concat("," + mainModeList.getIndexedStringValueAt(mode, "MainMode"));
-//        logger.info(tx);
-//        for (int purp: purpList) {
-//            tx = tripPurposes.getIndexedStringValueAt(purp, "Purpose");
-//            for (int mode: mainModes) {
-//                tx = tx.concat("," + modePurpCnt[mainModeIndex[mode]][purposeIndex[purp]]);
-//            }
-//            logger.info(tx);
-//        }
     }
-
 
     private void readTSRCpersonData (String dirName, int year) {
         // read person file
@@ -214,28 +145,10 @@ public class SurveyDataImporter {
                         "_Mth" + month + "_pumf.txt";
                 BufferedReader in = new BufferedReader(new FileReader(fullFileName));
                 while ((recString = in.readLine()) != null) {
+
+                    surveyPerson person = new surveyPerson(survey, recString);
+                    personMap.put(person.getPumfId(), person);
                     recCount++;
-                    int refYear = survey.readInt(recString, "REFYEARP");  // ascii position in file: 01-04
-                    int refMonth = survey.readInt(recString, "REFMTHP");  // ascii position in file: 05-06
-                    int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 07-13
-                    int pumfId = origPumfId * 100 + refYear%100;
-                    float weight = survey.readFloat(recString, "WTPM");  // ascii position in file: 14-25
-                    float weight2 = survey.readFloat(recString, "WTPM2");  // ascii position in file: 26-37
-                    int prov = survey.readInt(recString, "RESPROV");  // ascii position in file: 38-39
-                    int cd = survey.readInt(recString, "RESCD2");  // ascii position in file: 43-46
-                    int cma = survey.readInt(recString, "RESCMA2");  // ascii position in file: 43-46
-                    int ageGroup = survey.readInt(recString, "AGE_GR2");  // ascii position in file: 47-47
-                    int gender = survey.readInt(recString, "SEX");  // ascii position in file: 48-48
-                    int education = survey.readInt(recString, "EDLEVGR");  // ascii position in file: 49-49
-                    int laborStat = survey.readInt(recString, "LFSSTATG");  // ascii position in file: 50-50
-                    int hhIncome = survey.readInt(recString, "INCOMGR2");  // ascii position in file: 51-51
-                    int adultsInHh = survey.readInt(recString, "G_ADULTS");  // ascii position in file: 52-53
-                    int kidsInHh = survey.readInt(recString, "G_KIDS");  // ascii position in file: 54-55
-
-                    surveyPerson person = buildPerson(survey, refYear, refMonth, pumfId, weight, weight2, prov, cd, cma, ageGroup, gender, education,
-                            laborStat, hhIncome, adultsInHh, kidsInHh);
-
-                    personMap.put(pumfId, person);
                 }
             } catch (Exception e) {
                 logger.error("Could not read TSRC person data: ",e);
@@ -245,23 +158,6 @@ public class SurveyDataImporter {
         }
         logger.info("  Read " + totRecCount + " person records");
     }
-
-    private surveyPerson buildPerson(Survey survey, int refYear, int refMonth, int pumfId, float weight, float weight2,
-                                     int prov, int cd, int cma, int ageGroup, int gender, int education,
-                                     int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
-
-        Gender gender2 = Gender.getGender(gender);
-        LaborStatus laborStat2 = LaborStatus.getStatus(laborStat);
-
-        String ageGroup2 = survey.decodeValue("AGE_GR2", ageGroup);
-        String education2 = survey.decodeValue("EDLEVGR", education);
-
-        surveyPerson person = new surveyPerson(refYear, refMonth, pumfId, weight, weight2, prov, cd, cma, ageGroup2, gender2, education2,
-                laborStat2, hhIncome, adultsInHh, kidsInHh);
-
-        return person;
-    }
-
 
     private void readTSRCtripData (String dirName, int year) {
         // read trip file
@@ -274,27 +170,16 @@ public class SurveyDataImporter {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_pumf.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
-                recCount++;
-                int refYear = survey.readInt(recString, "REFYEAR");  // ascii position in file: 001-004
-                int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
-                int pumfId = origPumfId * 100 + refYear%100;
-                int tripId =       survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
-                int origProvince = survey.readInt(recString, "ORCPROVT");  // ascii position in file: 017-018
-                int origCd      =  survey.readInt(recString, "ORCCDT2");  // ascii position in file: 017-018
-                int destProvince = survey.readInt(recString, "MDDPLFL");  // ascii position in file: 026-027
-                int mainMode =     survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
-                int homeCma =      survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
-                int tripPurp =     survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
-                int numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
-                int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
-                double weight = survey.readDouble(recString, "WTTP");
-                int distance = survey.readInt(recString, "DIST2");
 
+                int numIdentical = survey.readInt(recString, "TR_D11");  // ascii position in file: 174-175
+
+                long origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
+                int refYear = survey.readInt(recString, "REFYEAR");  // ascii position in file: 001-004
+                long pumfId = origPumfId * 100 + refYear%100;
 
                 surveyPerson sp = personMap.get(pumfId);
+                surveyTour tour = new surveyTour(survey, sp, recString);
 
-                surveyTour tour = new surveyTour(tripId, sp, origProvince, origCd, destProvince, mainMode, homeCma, tripPurp, distance, numberNights,
-                        numIdentical, weight);
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
                 } else {
@@ -320,24 +205,18 @@ public class SurveyDataImporter {
             String fullFileName = dirName + File.separator + year + File.separator + tripFileName + year + "_PUMF.txt";
             BufferedReader in = new BufferedReader(new FileReader(fullFileName));
             while ((recString = in.readLine()) != null) {
-                recCount++;
                 int refYear = survey.readInt(recString, "REFYEAR");  // ascii position in file: 001-004
                 int origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
-                int pumfId = origPumfId * 100 + refYear%100;
+                long pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
-                int visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 016-017
-                int province = survey.readInt(recString, "VPROV");
-                int cd = survey.readInt(recString, "VCD2");
-                int cmarea = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
-                int nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
-                int airFlag = survey.readInt(recString, "AIRFLAG");  // ascii position in file: 027-029
-                int visitIndentification = survey.readInt(recString, "VISRECFL");
+
                 surveyPerson person = personMap.get(pumfId);
-                surveyTour st = person.getTourFromId(tripId);
-                if (st == null) {
-                    logger.error(Integer.toString(year) + " - " + Integer.toString(origPumfId) + " - " + tripId + " - " + visitId);
+                surveyTour tour = person.getTourFromId(tripId);
+                if (tour == null) {
+                    logger.error(Integer.toString(year) + " - " + Integer.toString(origPumfId) + " - " + tripId + " - ?");
+                } else {
+                    tour.addTripDestinations(new SurveyVisit(survey, tour, recString));
                 }
-                st.addTripDestinations (new SurveyVisit(visitId, province, cd, cmarea, nights, visitIndentification, airFlag));
                 recCount++;
             }
             //sort all the visits in order

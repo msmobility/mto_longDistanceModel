@@ -42,7 +42,7 @@ public class TripChainingAnalysis {
         //Map<Long, List<surveyTour>> cmaHistogram = allTours.filter(t -> t.getHomeCma() > 0).collect(Collectors.groupingBy(surveyTour::getDistinctNumRegions));
 
         allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
-        Map<surveyTour, SurveyVisit[]> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getTourStops));
+        Map<surveyTour, ArrayList<SurveyVisit>> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getStops));
 
         //TODO: hat about summed weights?
         List<surveyTour> ontarioTrips = data.getPersons().stream()
@@ -52,6 +52,7 @@ public class TripChainingAnalysis {
                 .filter(t -> t.getStops().stream().anyMatch(v -> v.stopInProvince(35)))
                 .filter(t -> t.getUniqueOrigCD() != 5925)
                 .filter(t -> t.getStops().stream().allMatch(SurveyVisit::cdStated))
+               // .filter(t -> t.getStops().size() == 4 && t.getMainModeStr().equals("Air"))
                 .collect(Collectors.toList());
 
         logger.info("Number of trips passing through ontario: " + ontarioTrips.size());

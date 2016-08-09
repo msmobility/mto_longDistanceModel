@@ -34,11 +34,11 @@ public class mtoSurveyData {
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
-    private HashMap<Integer, surveyPerson> personMap;
+    private HashMap<Long, surveyPerson> personMap;
     private int[] sortedCensusDivisions;
     private int[] sortedCMAList;
 
-    mtoSurveyData(ResourceBundle rb, HashMap<Integer, surveyPerson> personMap, DataDictionary dd) {
+    mtoSurveyData(ResourceBundle rb, HashMap<Long, surveyPerson> personMap, DataDictionary dd) {
         this.dataDictionary = dd;
         this.personMap = personMap;
 
