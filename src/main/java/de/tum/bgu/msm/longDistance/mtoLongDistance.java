@@ -39,10 +39,12 @@ public class mtoLongDistance {
         rsp.readZonalData();
         rsp.readSyntheticPopulation();
 
-        //TODO next 3 lines commented by Carlos Llorca on 4/7/2016 because skim matrix and accessibility is not available
-//        mtoLongDistData md = new mtoLongDistData(rb);
-//        md.readSkim();
-//        md.calculateAccessibility(rsp);
+        //added omx.jar; if not this doesn't work
+        mtoLongDistData md = new mtoLongDistData(rb);
+        md.readSkim();
+        md.calculateAccessibility(rsp);
+
+        logger.info("Accessibility calculated");
 
 
         //add the purposes and states to be used in the trip generation
