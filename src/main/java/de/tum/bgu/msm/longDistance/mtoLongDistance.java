@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Household;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 import de.tum.bgu.msm.syntheticPopulation.readSP;
@@ -36,13 +37,14 @@ public class mtoLongDistance {
         // main method to run long-distance model
 
         readSP rsp = new readSP(rb);
-        rsp.readZonalData();
-        rsp.readSyntheticPopulation();
+        ArrayList<Zone> internalZoneList= rsp.readInternalZones();
+        rsp.readSyntheticPopulation(internalZoneList);
 
         //added omx.jar; if not this doesn't work
         mtoLongDistData md = new mtoLongDistData(rb);
+        ArrayList<Zone> zoneList = md.readInternalAndExternalZones(internalZoneList);
         md.readSkim();
-        md.calculateAccessibility(rsp);
+        md.calculateAccessibility(zoneList);
 
         logger.info("Accessibility calculated");
 
@@ -73,7 +75,7 @@ public class mtoLongDistance {
         trips.addAll(trips_domestic);
 
         mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
-        tripAnalysis.runMtoAnalyzeTrips(trips);
+        tripAnalysis.runMtoAnalyzeTrips(trips, internalZoneList);
 
 
     }
@@ -86,8 +88,8 @@ public class mtoLongDistance {
         return tripStates;
     }
 
-    public static int[] readPersonSocioDemographics(Person pers) {
-        int personDescription[] = new int[13];
+    public static float[] readPersonSocioDemographics(Person pers) {
+        float personDescription[] = new float[14];
         //intercept always = 1
         personDescription[0] = 1;
         //Young = 1 if age is under 25
@@ -155,6 +157,9 @@ public class mtoLongDistance {
             personDescription[11] = 0;
             personDescription[12] = 0;
         }
+
+        personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
+
         return personDescription;
     }
 

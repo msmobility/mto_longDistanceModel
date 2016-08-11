@@ -112,8 +112,7 @@ public class internationalTripGeneration {
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(adultsHhTravelParty);
         int nonHhTravelPartySize = mtoLongDistance.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
-        Household hhold = pers.getHousehold();
-        return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), hhold.getTaz(),
+        return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
 
     }

@@ -1,4 +1,5 @@
 package de.tum.bgu.msm.syntheticPopulation;
+ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
  import org.apache.log4j.Logger;
 
 
@@ -28,10 +29,11 @@ public class Household {
     private int numWrks;
     private int numKids;
     private int taz;
+    private Zone zone;
     private Person[] persons;
 
 
-    public Household(int id, int hhInc, int ddType, int taz) {
+    public Household(int id, int hhInc, int ddType, int taz, Zone zone) {
         this.id      = id;
         this.hhSize  = 0;
         this.hhInc   = hhInc;
@@ -40,6 +42,7 @@ public class Household {
 //        this.numKids = numKids;
 //        persons = new Person[hhSize];
         this.taz = taz;
+        this.zone = zone;
         this.persons = new Person[0];
         householdMap.put(id,this);
     }
@@ -90,6 +93,8 @@ public class Household {
     public int getTaz() {
         return taz;
     }
+
+    public Zone getZone() {return zone;}
 
     public Person[] getPersonsOfThisHousehold() {
         return persons;

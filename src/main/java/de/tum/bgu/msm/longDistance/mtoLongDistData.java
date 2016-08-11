@@ -3,8 +3,9 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.mto;
-import de.tum.bgu.msm.syntheticPopulation.readSP;
 import de.tum.bgu.msm.util;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -37,6 +38,11 @@ public class mtoLongDistData {
     private int[] externalZonesUs;
     private int[] externalZonesOverseas;
 
+    //todo define as a property
+    boolean externalCanada = false;
+    boolean externalUs = false;
+    boolean externalOverseas = false;
+
 
     public mtoLongDistData(ResourceBundle rb) {
         this.rb = rb;
@@ -68,29 +74,22 @@ public class mtoLongDistData {
         }
     }
 
+    ArrayList<Zone> readInternalAndExternalZones(ArrayList<Zone> internalZoneList){
 
-    public void calculateAccessibility(readSP rsp) {
-        // calculate accessibility
-
-        logger.info("Calculating accessibilities");
-        float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
-        float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
-
-        //todo define as a property
-        boolean externalCanada = false;
-        boolean externalUs = true;
-        boolean externalOverseas = true;
 
         ArrayList<Zone> zonesArray = new ArrayList<>();
 
-        //first read the internal zones from RSP
+        //first read the internal zones already created
+        zonesArray.addAll(internalZoneList);
+
+       /* //first read the internal zones from RSP //this part won't be required
         int[] zones = rsp.getZones();
         int[] pop = rsp.getPpByZone();
 
         for (int i=0; i< zones.length; i++){
             Zone zone = new Zone (zones[i], pop[i], ZoneType.ONTARIO);
             zonesArray.add(zone);
-        }
+        }*/
 
         //second, read the external zones from files
 
@@ -120,11 +119,22 @@ public class mtoLongDistData {
             }
         }
 
+        return zonesArray;
+    }
+
+    public void calculateAccessibility(ArrayList<Zone> zoneList) {
+        // calculate accessibility
+
+        logger.info("Calculating accessibilities");
+        float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
+        float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
+
+
         //calculate accessibilities
 
-        for (Zone origZone : zonesArray) {
+        for (Zone origZone : zoneList) {
             autoAccessibility = 0;
-            for (Zone destZone : zonesArray){
+            for (Zone destZone : zoneList){
                 double autoImpedance;
                 if (getAutoTravelTime(origZone.getId(), destZone.getId()) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
@@ -139,16 +149,16 @@ public class mtoLongDistData {
         }
 
         //scaling accessibilities
-        double[] autoAccessibilityArray = new double[zonesArray.size()];
+        double[] autoAccessibilityArray = new double[zoneList.size()];
 
         int i = 0;
-        for (Zone zone : zonesArray){
+        for (Zone zone : zoneList){
             autoAccessibilityArray[i] = zone.getAccessibility();
             i++;
         }
         autoAccessibilityArray = util.scaleArray(autoAccessibilityArray, 100);
         i = 0;
-        for (Zone zone : zonesArray){
+        for (Zone zone : zoneList){
             zone.setAccessibility(autoAccessibilityArray[i]);
             i++;
         }
@@ -172,7 +182,7 @@ public class mtoLongDistData {
 
         logger.info("Accessibility parameters: alpha = " + alphaAuto + " and beta = "+ betaAuto);
 
-        for (Zone zone: zonesArray) pw.println(zone.getId() + "," + zone.getAccessibility());
+        for (Zone zone: zoneList) pw.println(zone.getId() + "," + zone.getAccessibility());
         pw.close();
 
         //original Rolf version below
