@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModel;
+import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModelSingleConstrained;
 import de.tum.bgu.msm.longDistance.mtoLongDistData;
 import de.tum.bgu.msm.util;
 import omx.OmxMatrix;
@@ -48,9 +49,11 @@ public class CanadaTripAnalysis {
         double[] productions = new double[max_zone_num];
         double[] attractions = new double[max_zone_num];
         int[] zone_index = new int[max_zone_num];
+        int[] zone_index_reverse = new int[max_zone_num];
         int next_zone_index = 0;
         Arrays.fill(productions, 0);
         Arrays.fill(attractions, 0);
+        Arrays.fill(zone_index, -1);
         Arrays.fill(zone_index, -1);
 
         for (surveyTour t : allTours) {
@@ -76,7 +79,9 @@ public class CanadaTripAnalysis {
             for (int z : affectedZones) {
                 if (z > 0) {
                     if (zone_index[z] == -1) {
-                        zone_index[z] = next_zone_index++;
+                        zone_index[z] = next_zone_index;
+                        zone_index_reverse[next_zone_index] = z;
+                        next_zone_index++;
                     }
                     productions[zone_index[z]] += t.getWeight();
                     attractions[zone_index[z]] += t.getWeight();
@@ -118,9 +123,9 @@ public class CanadaTripAnalysis {
                     boolean i_in_cd = Arrays.binarySearch(cd_zones, i) >= 0;
                     boolean j_in_cd = Arrays.binarySearch(cd_zones, j) >= 0;
                     boolean isConnection = false;
-                    if (i_in_cd && j >= 9750 && j <= 9785) {
+                    if (i_in_cd && j >= 9750 && j <= 9797) {
                         isConnection = true;
-                    } else if (i >= 9750 && i <= 9785 && j_in_cd) {
+                    } else if (i >= 9750 && i <= 9797 && j_in_cd) {
                         isConnection = true;
                     } else if (i != j && i_in_cd && j_in_cd) {
                         isConnection = true;
