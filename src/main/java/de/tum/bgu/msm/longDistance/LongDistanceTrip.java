@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 
 
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 
 import java.util.HashMap;
@@ -22,25 +23,25 @@ public class LongDistanceTrip {
     private boolean international;
     private int tripPurpose;
     private int tripState;
-    private int originZone;
     private int nights;
     private int hhAdultsTravelPartySize;
     private int hhKidsTravelPartySize;
     private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
+    private Zone origZone;
 
 
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, int originZone, int nights,
+    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
                             int hhAdultsTravelPartySize, int hhKidsTravelPartySize, ArrayList hhTravelParty, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripId;
         this.personId = personId;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
-        this.originZone = originZone;
+        this.origZone = origZone;
         this.nights = nights;
         this.hhAdultsTravelPartySize = hhAdultsTravelPartySize;
         this.hhKidsTravelPartySize = hhKidsTravelPartySize;
@@ -69,8 +70,8 @@ public class LongDistanceTrip {
         return tripPurpose;
     }
 
-    public int getLongDistanceOriginZone() {
-        return originZone;
+    public Zone getLongDistanceOrigZone() {
+        return origZone;
     }
 
     public int getLongDistanceNights() {

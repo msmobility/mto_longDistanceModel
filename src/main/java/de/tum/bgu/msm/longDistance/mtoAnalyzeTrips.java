@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.util;
 
 import java.io.PrintWriter;
@@ -31,7 +32,7 @@ public class mtoAnalyzeTrips {
         this.rb = rb;
     }
 
-    public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips) {
+    public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips, ArrayList<Zone> internalZoneList) {
         logger.info("Writing out data for trip generation (trips)");
         //TODO add this file path and name to mto_properties?
         String OutputTripsFileName = "output/trips";
@@ -46,7 +47,7 @@ public class mtoAnalyzeTrips {
             Person traveller = getPersonFromId(tr.getPersonId());
 
             pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOriginZone()+ "," + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOrigZone().getId()+ "," + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
                      + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize() +"," + traveller.getAge() + "," + traveller.getGender() +"," + traveller.getEducation() + "," + traveller.getWorkStatus() +
                     "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh()) ;
             pw.println();
@@ -68,5 +69,36 @@ public class mtoAnalyzeTrips {
             }
         }
         pw2.close();
+
+        logger.info("Writing out data for trip generation (trips by zone)");
+
+        //TODO add this file path and name to mto_properties?
+        String OutputZonesFilename = "output/tripsByZone";
+        PrintWriter pw3 = util.openFileForSequentialWriting(OutputZonesFilename + ".csv", false);
+
+        pw3.print("zone, population, visit, business, leisure");
+        pw3.println();
+        for (Zone zone : internalZoneList){
+            //todo is valuable to add the list or the number of trips to the objects of class zone?
+            int visitTrips = 0;
+            int businessTrips = 0;
+            int leisureTrips = 0;
+
+            for (LongDistanceTrip trip : trips) {
+                if (zone.equals(trip.getLongDistanceOrigZone())){
+                    switch (trip.getLongDistanceTripPurpose()) {
+                        case 0:
+                            visitTrips++;
+                        case 1:
+                            businessTrips++;
+                        case 2:
+                            leisureTrips++;
+                    }
+                }
+            }
+            pw3.print(zone.getId() + "," + zone.getPopulation() + "," +   visitTrips + "," + businessTrips + "," + leisureTrips );
+            pw3.println();
+        }
+        pw3.close();
     }
 }

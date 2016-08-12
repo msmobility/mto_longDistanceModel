@@ -2,6 +2,8 @@ package de.tum.bgu.msm.syntheticPopulation;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
@@ -10,6 +12,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -34,6 +39,8 @@ public class readSP {
     private int[] hhByZone;
     private int[] ppByZone;
 
+    private Map<Integer, Zone> internalZoneMap = new HashMap<>();
+
 
     private TableDataSet cdTable;
     int [] cds;
@@ -48,24 +55,43 @@ public class readSP {
     }
 
 
-    public void readSyntheticPopulation() {
+
+    public ArrayList<Zone> readInternalZones(){
+        //create zones objects (empty) and a map to find them in hh zone assignment
+        ArrayList<Zone> internalZoneList = new ArrayList<>();
+        zoneTable = util.importTable(rb.getString("zone.system"));
+        zones = zoneTable.getColumnAsInt("ID");
+        for (int zone : zones) {
+            Zone internalZone = new Zone (zone, 0, ZoneType.ONTARIO);
+            internalZoneList.add(internalZone);
+            internalZoneMap.put(zone, internalZone);
+        }
+        return internalZoneList;
+
+    }
+
+    public void readSyntheticPopulation(ArrayList<Zone> internalZoneList) {
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        readZonalData();
+        //readZonalData();
+        //ArrayList<Zone> internalZoneList = readInternalZones();
         readSyntheticHouseholds();
         readSyntheticPersons();
         examSyntheticPopulation();
-        summarizePopulationData();
+        //summarizePopulationData();
+        summarizePopulationByZone(internalZoneList);
     }
 
-
-    public void readZonalData () {
+    /*public void readZonalData () {
         // Read in zonal data
 
         zoneTable = util.importTable(rb.getString("zone.system"));
         zones = zoneTable.getColumnAsInt("ID");
         zoneIndex = new int[util.getHighestVal(zones) + 1];
-        for (int i = 0; i < zones.length; i++) zoneIndex[zones[i]] = i;
+        for (int i = 0; i < zones.length; i++) {
+            zoneIndex[zones[i]] = i;
+        }
+
 
 //todo change directory and filename in properties
         cdTable = util.importTable("input/listOfCd.csv");
@@ -74,8 +100,7 @@ public class readSP {
         for (int i = 0; i < cds.length; i++) cdsIndex[cds[i]] = cds[i];
 
         cdTable.buildIndex(cdTable.getColumnPosition("ID"));
-    }
-
+    }*/
 
     private void readSyntheticHouseholds() {
 
@@ -112,7 +137,9 @@ public class readSP {
 //                int numKids = Integer.parseInt(lineElements[posKids]);
                 int taz     = Integer.parseInt(lineElements[posTaz]);
 
-                new Household(id, hhInc, ddType, taz);  // this automatically puts it in id->household map in Household class
+                Zone zone = internalZoneMap.get(taz);
+
+                new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop household file: " + fileName);
@@ -186,7 +213,7 @@ public class readSP {
     }
 
 
-    private void summarizePopulationData () {
+    /*private void summarizePopulationData () {
         // calculate households and persons by zone
 
         hhByZone = new int[zones.length];
@@ -218,11 +245,27 @@ public class readSP {
             if (cds!=0) pw2.println(cds+","+hhByCd[cdsIndex[cds]]+","+ppByCd[cdsIndex[cds]]);
         }
         pw2.close();
+        logger.info("Synthetic population summary written");
 
+    }*/
 
-    logger.info("Synthetic population summary written");
+    private void summarizePopulationByZone(ArrayList<Zone> internalZoneList){
+        for (Household hh : Household.getHouseholdArray()){
+            Zone zone = hh.getZone();
+            zone.addHouseholds(1);
+            zone.addPopulation(hh.getHhSize());
+        }
 
+        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
+        pw.println("zone,hh,pp");
+        for (Zone zone: internalZoneList){
+            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
+        }
+        pw.close();
     }
+
+
+
 
     public int[] getZones() {
         return zones;

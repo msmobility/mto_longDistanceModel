@@ -55,26 +55,20 @@ public class tripGeneration {
          // initialize the trip count to zero
         int tripCount = 0;
         for (Household hhold : getHouseholdArray()) {
-            //next lines shuffle the list of hh members
+            //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
-//            Person[] hhMembers = hhold.getPersonsOfThisHousehold();
-//            for (int m = 0; m < hhold.getHhSize(); m++) {
-//                membersList.add(hhMembers[m]);
-//            }
             Collections.shuffle(membersList);
-//            for (int m = 0; m < membersList.size(); m++) {
-//                hhMembers[m] = membersList.get(m);
-//            }
+
             for (Person pers : membersList) {
 
                 //obtain a vector of socio-demographics of person and transform to TSRC
-                int[] personDescription = mtoLongDistance.readPersonSocioDemographics(pers);
+                float[] personDescription = mtoLongDistance.readPersonSocioDemographics(pers);
                 for (String tripPurpose : tripPurposes) {
                     //the model would only be applied to a person who is an adult and is not in a long distance travel already
                     if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
 
                         double[] probability = estimateMlogitFormula(personDescription, tripPurpose, tripGenerationCoefficients);
-
+                        //store the probabilities for later international trip generation
                         for (String tripState : tripStates){
                             pers.travelProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probability[tripStates.indexOf(tripState)];
                         }
@@ -103,7 +97,7 @@ public class tripGeneration {
         return trips;
     }
 
-    private double[] estimateMlogitFormula(int[] personDescription, String tripPurpose, TableDataSet tripGenerationCoefficients) {
+    private double[] estimateMlogitFormula(float[] personDescription, String tripPurpose, TableDataSet tripGenerationCoefficients) {
         double utility[] = new double[3];
         double probability[] = new double[3];
         // set sum of utilities of the 4 alternatives
@@ -142,8 +136,8 @@ public class tripGeneration {
         else {
             tripDuration = mtoLongDistance.estimateTripDuration(probability);
         }
-        Household hhold = pers.getHousehold();
-        return new LongDistanceTrip(tripCount, pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), hhold.getTaz(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
+
+        return new LongDistanceTrip(tripCount, pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
 
     }
 
