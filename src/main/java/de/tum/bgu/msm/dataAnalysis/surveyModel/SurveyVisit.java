@@ -4,6 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
+import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -13,19 +14,31 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
  */
 public class SurveyVisit {
     public static final Logger logger = Logger.getLogger(SurveyVisit.class);
+
+    public final surveyTour tour;
+
     public final int visitId;
     public final int province;
     public final int cd;
     public final int cma;
     public final int nights;
     public final boolean visitAirport;
+    public final int visitIdentification;
+    public final String airport;
 
-    public SurveyVisit(int visitId, int province, int cd, int cmarea, int nights, int airFlag) {
-        this.visitId = visitId;
-        this.province = province;
-        this.cd = cd;
-        this.cma = cmarea;
-        this.nights = nights;
+    public SurveyVisit(Survey survey, surveyTour tour, String recString) {
+
+        this.visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 016-017
+        this.province = survey.readInt(recString, "VPROV");
+        this.cd = survey.readInt(recString, "VCD2");
+        this.cma = survey.readInt(recString, "VCMA2");  // ascii position in file: 023-026
+        this.nights = survey.readInt(recString, "AC_Q04");  // ascii position in file: 027-029
+        int airFlag = survey.readInt(recString, "AIRFLAG");  // ascii position in file: 027-029
+
+        this.airport = survey.read(recString, "AIRCODE2");  // ascii position in file: 027-029
+        this.visitIdentification = survey.readInt(recString, "VISRECFL");
+        this.tour = tour;
+
 
         this.visitAirport = airFlag == 1;
     }
@@ -84,5 +97,17 @@ public class SurveyVisit {
         LineString ls = geometryFactory.createLineString(new Coordinate[]{origin_coord, cdToCoords(data)});
 
         return (int) util.getTourDistance(ls) / 1000;
+    }
+
+    @Override
+    public String toString() {
+        return "SurveyVisit{" +
+                "visitId=" + visitId +
+                ", province=" + province +
+                ", cd=" + cd +
+                ", nights=" + nights +
+                ", visitIdentification=" + visitIdentification +
+                ", airport='" + airport + '\'' +
+                '}';
     }
 }

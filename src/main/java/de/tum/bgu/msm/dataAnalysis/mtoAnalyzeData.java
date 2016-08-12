@@ -8,6 +8,7 @@ import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import org.apache.log4j.Logger;
 
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -158,8 +159,9 @@ public class mtoAnalyzeData {
     public void writeOutData() {
         // write out travel data for model estimation
         logger.info("Writing out data for external model estimation");
+        String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
-        PrintWriter pw = util.openFileForSequentialWriting(fileName + ".csv", false);
+        PrintWriter pw = util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
         pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cma," +
                 "income,expansionFactor,longDistanceTrips,daysAtHome");

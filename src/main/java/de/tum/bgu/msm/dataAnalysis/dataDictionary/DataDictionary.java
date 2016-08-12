@@ -24,31 +24,25 @@ public class DataDictionary {
     private Document dataDictionary;
     HashMap<String, Survey> surveys;
 
-    public DataDictionary(String data_dictionary_location) {
+    public DataDictionary(ResourceBundle rb) {
+        //get survey from models/mto/input
         surveys = new HashMap<>();
         try {
-            XPath xPath = XPathFactory.newInstance().newXPath();
-
-            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            dataDictionary = dBuilder.parse(new File(data_dictionary_location));
-
-            NodeList surveyNodeList = (NodeList) xPath.evaluate("/data_dictionary/*", dataDictionary, XPathConstants.NODESET);
-
-            for (int i=0; i<surveyNodeList.getLength(); i++) {
-                Node surveyNode = surveyNodeList.item(i);
-                String surveyName = xPath.evaluate("@name", surveyNode);
-                NodeList sectionsNodeList = (NodeList) xPath.evaluate("./*", surveyNode, XPathConstants.NODESET);;
-                for (int j=0; j<sectionsNodeList.getLength(); j++) {
-                    Node surveySectionNode = sectionsNodeList.item(j);
-                    String sectionName = xPath.evaluate("@name", surveySectionNode);
-                    String full_name = surveyName + "_" + sectionName;
-                    Survey survey = new Survey(surveySectionNode);
-                    surveys.put(full_name, survey);
+            //tsrc
+            File tsrcLoc = new File(rb.getString("tsrc.data.dir"));
+            String[] tsrcYears = rb.getString("tsrc.years").split(",");
+            String[] sections = new String[]{"Person", "Trip", "Visit"};
+            for (String year : tsrcYears) {
+                for (String section : sections) {
+                    String key = ("tsrc" + "_" + year + "_" + section).toLowerCase();
+                    String fileName = rb.getString("tsrc.data.dir") + File.separator + year + File.separator;
+                    fileName += String.format("datadict_tsrc_%s_%s.csv", section, year);
+                    File surveyFile = new File(fileName);
+                    surveys.put(key, new Survey(surveyFile));
 
                 }
-
-
             }
+
             logger.info("dictionary creation successful");
 
 
@@ -59,8 +53,9 @@ public class DataDictionary {
         }
     }
 
-    public Survey getSurvey(String survey, String section) {
-        return surveys.get(survey + "_" + section);
+    public Survey getSurvey(String survey, int year, String section) {
+        String key = (survey + "_" + year + "_" + section).toLowerCase();
+        return surveys.get(key);
     }
 
 }

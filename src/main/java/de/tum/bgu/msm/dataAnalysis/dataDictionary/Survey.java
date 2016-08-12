@@ -1,11 +1,17 @@
 package de.tum.bgu.msm.dataAnalysis.dataDictionary;
 
+import com.pb.common.datafile.CSVFileReader;
+import com.pb.common.datafile.TableDataSet;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import static de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary.logger;
 
@@ -43,6 +49,33 @@ public class Survey {
                 }
             }
             variables.put(name, new DictionaryVariable(name, question, start, end, answers));
+
+        }
+    }
+
+    public Survey(File surveyFile) throws IOException {
+        CSVFileReader reader = new CSVFileReader();
+        variables = new HashMap<>();
+        TableDataSet data = reader.readFile(surveyFile);
+
+
+        for (int i=1; i<=data.getRowCount(); i++) { //rows are 1-indexed in TableDataSet
+            String name = data.getStringValueAt(i, "Variable Name");
+            int start = (int) data.getValueAt(i, "Start");
+            int end = (int) data.getValueAt(i, "End");
+            String type = data.getStringValueAt(i, "Type");
+            String answersString = data.getStringValueAt(i, "Answers");
+            HashMap<Integer, String> answers = new HashMap<>();
+
+            Arrays.stream(answersString.split(",")).forEach(s ->  {
+                try { //TODO: need to using different separator for answers
+                    String[] parts = s.split(":");
+                    answers.put(Integer.parseInt(parts[0]), parts[1]);
+                } catch (NumberFormatException ex) {
+                    logger.warn(name + " variable answers skipped: " + answersString);
+                }
+            });
+            variables.put(name, new DictionaryVariable(name, type, start, end, answers));
 
         }
     }
