@@ -26,7 +26,7 @@ public class tripGeneration {
     private ArrayList<String> tripStates = mtoLongDistance.getTripStates();
 
 
-    // TODO review if next 4 lines are needed or should be changed
+
     static Logger logger = Logger.getLogger(tripGeneration.class);
     private ResourceBundle rb;
 
@@ -43,11 +43,12 @@ public class tripGeneration {
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
 
-        String tripGenCoefficientsFilename = "input/tripGeneration/tripGenerationCoefficients.csv";
+        //todo add properties
+        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
         TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
-        String travelPartyProbabilitiesFilename = "input/tripGeneration/travelPartyProbabilities.csv";
+        String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");;
         TableDataSet travelPartyProbabilities =  util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 

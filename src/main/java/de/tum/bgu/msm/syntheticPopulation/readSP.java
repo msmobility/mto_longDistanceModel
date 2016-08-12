@@ -93,7 +93,7 @@ public class readSP {
         }
 
 
-//todo change directory and filename in properties
+
         cdTable = util.importTable("input/listOfCd.csv");
         cds = cdTable.getColumnAsInt("CD");
         cdsIndex = new int[util.getHighestVal(cds) + 1];

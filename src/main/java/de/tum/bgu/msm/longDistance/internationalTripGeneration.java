@@ -36,12 +36,12 @@ public class internationalTripGeneration {
     public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-
-        String numberOfInternationalTripsFilename = "input/tripGeneration/intNumberOfTrips.csv";
+//todo add properties
+        String numberOfInternationalTripsFilename = rb.getString("int.trips");
         TableDataSet numberOfInternationalTrips = util.readCSVfile(numberOfInternationalTripsFilename);
         numberOfInternationalTrips.buildIndex(numberOfInternationalTrips.getColumnPosition("tripState"));
 
-        String intTravelPartyProbabilitiesFilename = "input/tripGeneration/intTravelPartyProbabilities.csv";
+        String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
         TableDataSet travelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 

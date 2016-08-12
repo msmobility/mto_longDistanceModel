@@ -11,6 +11,7 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
+import sun.security.tools.keytool.Resources_sv;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -38,10 +39,6 @@ public class mtoLongDistData {
     private int[] externalZonesUs;
     private int[] externalZonesOverseas;
 
-    //todo define as a property
-    boolean externalCanada = false;
-    boolean externalUs = false;
-    boolean externalOverseas = false;
 
 
     public mtoLongDistData(ResourceBundle rb) {
@@ -77,6 +74,10 @@ public class mtoLongDistData {
     ArrayList<Zone> readInternalAndExternalZones(ArrayList<Zone> internalZoneList){
 
 
+        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can",false);
+        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us",false);;
+        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os",false);
+
         ArrayList<Zone> zonesArray = new ArrayList<>();
 
         //first read the internal zones already created
@@ -94,7 +95,7 @@ public class mtoLongDistData {
         //second, read the external zones from files
 
         if (externalCanada) {
-            externalCanadaTable = util.importTable("input/external/externalCanada.csv");
+            externalCanadaTable = util.importTable(rb.getString("ext.can.file"));
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
@@ -102,7 +103,7 @@ public class mtoLongDistData {
                 zonesArray.add(zone);
             }
         }else if (externalUs) {
-            externalUsTable = util.importTable("input/external/externalUs.csv");
+            externalUsTable = util.importTable(rb.getString("ext.us.file"));
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
@@ -110,7 +111,7 @@ public class mtoLongDistData {
                 zonesArray.add(zone);
             }
         }else if (externalOverseas){
-            externalOverseasTable = util.importTable("input/external/externalOvserseas.csv");
+            externalOverseasTable = util.importTable(rb.getString("ext.ov.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
@@ -164,6 +165,9 @@ public class mtoLongDistData {
         }
 
 
+        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can",false);
+        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us",false);;
+        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os",false);
 
         String destArea = new String();
         if (externalCanada){
@@ -176,7 +180,7 @@ public class mtoLongDistData {
             destArea = "ON";
         }
 
-        String fileName = "output/accessibility" + "OnTo" + destArea + alphaAuto + betaAuto + ".csv";
+        String fileName = rb.getString("access.out.file") + "OnTo" + destArea + alphaAuto + betaAuto + ".csv";
         PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility");
 

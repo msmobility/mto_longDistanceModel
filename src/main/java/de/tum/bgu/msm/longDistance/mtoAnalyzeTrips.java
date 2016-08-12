@@ -34,9 +34,9 @@ public class mtoAnalyzeTrips {
 
     public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips, ArrayList<Zone> internalZoneList) {
         logger.info("Writing out data for trip generation (trips)");
-        //TODO add this file path and name to mto_properties?
-        String OutputTripsFileName = "output/trips";
-                PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName + ".csv", false);
+
+        String OutputTripsFileName = rb.getString("trip.out.file");
+                PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName, false);
 
 
         pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhAdultsTravelParty, hhKidsTravelParty, nonHhTravelParty, personAge, personGender, " +
@@ -55,9 +55,9 @@ public class mtoAnalyzeTrips {
         pw.close();
 
         logger.info("Writing out data for trip generation (travellers)");
-        //TODO add this file path and name to mto_properties?
-        String OutputTravellersFilename = "output/travellers";
-        PrintWriter pw2 = util.openFileForSequentialWriting(OutputTravellersFilename + ".csv", false);
+
+        String OutputTravellersFilename = rb.getString("trav.out.file");
+        PrintWriter pw2 = util.openFileForSequentialWriting(OutputTravellersFilename, false);
 
         pw2.print("personId, away, daytrip, inOutTrip");
         pw2.println();
@@ -72,9 +72,9 @@ public class mtoAnalyzeTrips {
 
         logger.info("Writing out data for trip generation (trips by zone)");
 
-        //TODO add this file path and name to mto_properties?
-        String OutputZonesFilename = "output/tripsByZone";
-        PrintWriter pw3 = util.openFileForSequentialWriting(OutputZonesFilename + ".csv", false);
+
+        String OutputZonesFilename = rb.getString("zone.out.file");
+        PrintWriter pw3 = util.openFileForSequentialWriting(OutputZonesFilename , false);
 
         pw3.print("zone, population, visit, business, leisure");
         pw3.println();

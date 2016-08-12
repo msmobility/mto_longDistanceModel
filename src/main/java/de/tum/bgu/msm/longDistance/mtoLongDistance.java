@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Household;
 import de.tum.bgu.msm.syntheticPopulation.Person;
@@ -74,8 +75,10 @@ public class mtoLongDistance {
         trips.addAll(trips_international);
         trips.addAll(trips_domestic);
 
+
+
         mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
-        tripAnalysis.runMtoAnalyzeTrips(trips, internalZoneList);
+        if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(trips, internalZoneList);
 
 
     }
