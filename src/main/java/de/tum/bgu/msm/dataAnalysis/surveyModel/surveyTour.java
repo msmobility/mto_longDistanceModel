@@ -35,7 +35,8 @@ public class surveyTour implements Serializable {
     private int origProvince;
     private int destProvince;
     private int mainMode;
-    private int homeCma;
+    private int originCma;
+    private int destCma;
     private int tripPurp;
     private int numberNights;
     private double weight;
@@ -45,10 +46,7 @@ public class surveyTour implements Serializable {
     private int origCD;
     private int destCD;
     private LineString tourGeometry = null;
-
-
-
-
+    private int destCMA;
 
 
     public surveyTour(Survey survey, surveyPerson person, String recString) {
@@ -62,7 +60,8 @@ public class surveyTour implements Serializable {
         this.destProvince = survey.readInt(recString, "MDDPLFL");  // ascii position in file: 026-027
         this.destCD = survey.readInt(recString, "MDCCD");  // ascii position in file: 026-027
         this.mainMode = survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
-        this.homeCma = survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
+        this.originCma = survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
+        this.destCma = survey.readInt(recString, "MDCCMA2");  // ascii position in file: 022-025
         this.tripPurp = survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
         this.numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
         this.weight = survey.readDouble(recString, "WTTP");
@@ -91,7 +90,7 @@ public class surveyTour implements Serializable {
     }
 
     public int getHomeCma() {
-        return homeCma;
+        return originCma;
     }
 
     public int getTripPurp() {
@@ -115,11 +114,11 @@ public class surveyTour implements Serializable {
     }
 
     public long getDistinctNumRegions() {
-        return getStops().stream().filter(v -> v.cma != homeCma).map(v -> v.cma).distinct().count();
+        return getStops().stream().filter(v -> v.cma != originCma).map(v -> v.cma).distinct().count();
     }
 
     public boolean isReturnTrip() {
-        return homeCma == tourStops.get(tourStops.size() - 1).cma;
+        return originCma == tourStops.get(tourStops.size() - 1).cma;
     }
 
     public void sortVisits() {
@@ -211,5 +210,13 @@ public class surveyTour implements Serializable {
                 ", weight=" + weight +
                 "\n\tgeometry=" + tourGeometry +
                 "\n}";
+    }
+
+    public int getUniqueDestCD() {
+        return destProvince * 100 + destCD;
+    }
+
+    public int getDestCma() {
+        return destCMA;
     }
 }

@@ -32,6 +32,8 @@ public class mtoSurveyData {
     private TableDataSet cmaList;
     private TableDataSet censusDivisionList;
     private TableDataSet tripPurposes;
+    private TableDataSet externalZones;
+
 
     private DataDictionary dataDictionary;
     private HashMap<Long, surveyPerson> personMap;
@@ -56,6 +58,9 @@ public class mtoSurveyData {
 
         tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
+
+        externalZones = util.readCSVfile(rb.getString("zones.external"));
+        externalZones.buildIndex(externalZones.getColumnPosition("Province_or_cma"));
 
         //sorted cma and cd lists for searching cds
         int[] cduidCol = censusDivisionList.getColumnAsInt("CDUID");
@@ -85,6 +90,10 @@ public class mtoSurveyData {
         return tripPurposes;
     }
 
+    public TableDataSet getExternalZones() {
+        return externalZones;
+    }
+
     public surveyPerson getPersonFromId(long id) {
         return personMap.get(id);
     }
@@ -110,6 +119,26 @@ public class mtoSurveyData {
         return censusDivisionList;
     }
 
+    public int getZoneIdForProvince(int origProvince) {
+        try {
+            int value = (int) getExternalZones().getIndexedValueAt(origProvince, "ID");
+            return value;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return 0;
+        }
+    }
+
+    public int getZoneIdForCMA(int cma) {
+        return getZoneIdForProvince(cma);
+    }
+
+    public int getZoneForCd(int cd) {
+        if (validCd(cd)) {
+            return (int) getCensusDivisionList().getIndexedValueAt(cd, "ID");
+        } else {
+            return -1;
+        }
+    }
 }
 
 

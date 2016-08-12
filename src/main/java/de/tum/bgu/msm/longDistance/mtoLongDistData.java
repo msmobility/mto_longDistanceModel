@@ -32,15 +32,17 @@ public class mtoLongDistData {
 
 
     public mtoLongDistData(ResourceBundle rb) {
+
         this.rb = rb;
+        this.readSkim(2013);
     }
 
 
-    public void readSkim() {
+    public void readSkim(int year) {
         // read skim file
         logger.info("  Reading skims files");
 
-        String hwyFileName = rb.getString("auto.skim." + mto.getYear());
+        String hwyFileName = rb.getString("auto.skim." + year);
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
@@ -56,7 +58,7 @@ public class mtoLongDistData {
         try {
             return autoTravelTime.getValueAt(orig, dest);
         } catch (Exception e) {
-            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
+            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***", e);
             return -999;
         }
     }

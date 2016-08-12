@@ -75,11 +75,11 @@ public class SurveyVisit {
         //logger.info(cma);
         try {
             TableDataSet cdList = data.getCensusDivisionList();
-            float latitude = cdList.getIndexedValueAt(getUniqueCD(), "LATITUDE");
-            float longitude = cdList.getIndexedValueAt(getUniqueCD(), "LONGITUDE");
+            float latitude = cdList.getIndexedValueAt(getUniqueCD(), "Y");
+            float longitude = cdList.getIndexedValueAt(getUniqueCD(), "X");
             return new Coordinate(longitude, latitude);
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.warn(String.format("cd %d not found in record", getUniqueCD()));
+            //logger.warn(String.format("cd %d not found in record", getUniqueCD()));
             return new Coordinate(-90, 60);
         }
 
@@ -88,8 +88,8 @@ public class SurveyVisit {
     public int distanceFromCd(mtoSurveyData data, int origCD) {
         //calculate origin location
         TableDataSet cdList = data.getCensusDivisionList();
-        float latitude = cdList.getIndexedValueAt(origCD, "LATITUDE");
-        float longitude = cdList.getIndexedValueAt(origCD, "LONGITUDE");
+        float latitude = cdList.getIndexedValueAt(origCD, "X");
+        float longitude = cdList.getIndexedValueAt(origCD, "Y");
         Coordinate origin_coord = new Coordinate(longitude, latitude);
 
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);

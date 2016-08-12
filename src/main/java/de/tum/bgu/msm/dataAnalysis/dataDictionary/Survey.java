@@ -72,7 +72,7 @@ public class Survey {
                     String[] parts = s.split(":");
                     answers.put(Integer.parseInt(parts[0]), parts[1]);
                 } catch (NumberFormatException ex) {
-                    logger.warn(name + " variable answers skipped: " + answersString);
+                    //logger.warn(name + " variable answers skipped: " + answersString);
                 }
             });
             variables.put(name, new DictionaryVariable(name, type, start, end, answers));
