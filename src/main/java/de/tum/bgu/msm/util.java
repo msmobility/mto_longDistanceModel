@@ -221,7 +221,7 @@ public class util {
                 ret += ',';
                 ret += line.getNumPoints()-1; //hack to get the number of stops in the trip again
                 ret += ',';
-                ret += (int) getTourDistance(line) / 1000;
+                ret += (int) line.getLength() / 1000;
                 ret += ',';
                 ret += (tours.get(0).calculateFurthestDistance(data)) * 2;
                 ret += ',';
@@ -233,25 +233,6 @@ public class util {
         });
     }
 
-    public static double getTourDistance(LineString ls) {
-        //this could also be done using a distance matrix, or even the skim matrix
-        double totalDistance = 0;
-        try {
-            Coordinate c0 = ls.getCoordinateN(0);
-            for (int i=1; i<ls.getNumPoints(); i++) {
-                Coordinate c1 = ls.getCoordinateN(i);
-                //flip lat and long
-                Coordinate c0flipped = new Coordinate(c0.y, c0.x);
-                Coordinate c1flipped = new Coordinate(c1.y, c1.x);
 
-                totalDistance += JTS.orthodromicDistance(c0flipped, c1flipped, CRS.decode("EPSG:4269"));
-                c0 = c1;
-            }
-        } catch (TransformException | FactoryException | IllegalArgumentException e) {
-            logger.error(ls, e);
-            exit(1);
-        }
-        return totalDistance;
-    }
 
 }

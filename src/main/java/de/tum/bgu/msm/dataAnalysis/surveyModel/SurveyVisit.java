@@ -96,7 +96,7 @@ public class SurveyVisit {
 
         LineString ls = geometryFactory.createLineString(new Coordinate[]{origin_coord, cdToCoords(data)});
 
-        return (int) util.getTourDistance(ls) / 1000;
+        return (int) ls.getLength() / 1000;
     }
 
     @Override

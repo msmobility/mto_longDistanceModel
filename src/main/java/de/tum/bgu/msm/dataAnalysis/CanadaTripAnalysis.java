@@ -1,10 +1,11 @@
-package de.tum.bgu.msm.dataAnalysis.surveyModel;
+package de.tum.bgu.msm.dataAnalysis;
 
 import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModel;
-import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModelSingleConstrained;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import de.tum.bgu.msm.longDistance.mtoLongDistData;
 import de.tum.bgu.msm.util;
-import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 
 import java.io.File;

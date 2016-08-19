@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static java.lang.System.exit;
+
 /**
  * Class to hold tour object of the TSRC survey
  *
@@ -33,20 +35,27 @@ public class surveyTour implements Serializable {
     private int refYear;
     private long pumfId;
     private int origProvince;
+    private int origCD;
+    private int origCma;
     private int destProvince;
-    private int mainMode;
-    private int originCma;
+    private int destCD;
     private int destCma;
+    private int mainMode;
     private int tripPurp;
     private int numberNights;
     private double weight;
     private ArrayList<SurveyVisit> tourStops;
     private int tripId;
     private surveyPerson person;
-    private int origCD;
-    private int destCD;
     private LineString tourGeometry = null;
-    private int destCMA;
+
+    private int tripType;
+    private final int partySize;
+    private final int numHhMembersOnTrip;
+    private final int numHhAdultsOnTrip;
+    private final int numHhKidsOnTrip;
+    private final int numIdenticalTrips;
+    private final int quarter;
 
 
     public surveyTour(Survey survey, surveyPerson person, String recString) {
@@ -55,17 +64,24 @@ public class surveyTour implements Serializable {
         long origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
         this.pumfId = origPumfId * 100 + refYear % 100;
         this.tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
+        this.quarter = survey.readInt(recString, "QUARTER");  // ascii position in file: 014-015
         this.origProvince = survey.readInt(recString, "ORCPROVT");  // ascii position in file: 017-018
         this.origCD = survey.readInt(recString, "ORCCDT2");  // ascii position in file: 017-018
+        this.origCma = survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 017-018
         this.destProvince = survey.readInt(recString, "MDDPLFL");  // ascii position in file: 026-027
         this.destCD = survey.readInt(recString, "MDCCD");  // ascii position in file: 026-027
-        this.mainMode = survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
-        this.originCma = survey.readInt(recString, "ORCCMAT2");  // ascii position in file: 022-025
         this.destCma = survey.readInt(recString, "MDCCMA2");  // ascii position in file: 022-025
+        this.mainMode = survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
         this.tripPurp = survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
         this.numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
         this.weight = survey.readDouble(recString, "WTTP");
         this.distance = survey.readInt(recString, "DIST2");
+        this.tripType = survey.readInt(recString, "TRIPTYPE");
+        this.partySize = survey.readInt(recString, "TP_D01");
+        this.numHhMembersOnTrip = survey.readInt(recString, "T_G0802");
+        this.numHhAdultsOnTrip = survey.readInt(recString, "TR_G08");
+        this.numHhKidsOnTrip = survey.readInt(recString, "TP_G02");
+        this.numIdenticalTrips = survey.readInt(recString, "TR_D11");
 
 
         tourStops = new ArrayList<>();
@@ -90,7 +106,7 @@ public class surveyTour implements Serializable {
     }
 
     public int getHomeCma() {
-        return originCma;
+        return origCma;
     }
 
     public int getTripPurp() {
@@ -113,21 +129,10 @@ public class surveyTour implements Serializable {
         return tourStops;
     }
 
-    public long getDistinctNumRegions() {
-        return getStops().stream().filter(v -> v.cma != originCma).map(v -> v.cma).distinct().count();
-    }
-
-    public boolean isReturnTrip() {
-        return originCma == tourStops.get(tourStops.size() - 1).cma;
-    }
-
     public void sortVisits() {
         tourStops.sort((o1, o2) -> Integer.compare(o2.visitId, o1.visitId)); //reverse order
     }
 
-    public String getUniqueId() {
-        return Long.toString(getPerson().getPumfId()) + Integer.toString(getTripId());
-    }
 
     public surveyPerson getPerson() {
         return person;
@@ -155,19 +160,6 @@ public class surveyTour implements Serializable {
     public int calculateFurthestDistance(mtoSurveyData data) {
         return tourStops.stream().mapToInt(sv -> sv.distanceFromCd(data, getUniqueOrigCD())).max().getAsInt();
     }
-
-    public LineString generateTourLineString(mtoSurveyData data) {
-        //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData
-        if (tourGeometry == null) {
-            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
-            Coordinate[] coordinates = tourStops.stream()
-                    .map(sv -> sv.cdToCoords(data))
-                    .toArray(Coordinate[]::new);
-            tourGeometry = geometryFactory.createLineString(coordinates);
-        }
-        return tourGeometry;
-    }
-
 
     public String getMainModeStr() {
         switch (mainMode) {
@@ -217,6 +209,78 @@ public class surveyTour implements Serializable {
     }
 
     public int getDestCma() {
-        return destCMA;
+        return destCma;
+    }
+
+    public int getTripType() {
+        return tripType;
+    }
+
+    public LineString generateTourLineString(mtoSurveyData data) {
+        //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData
+        if (tourGeometry == null) {
+            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
+            Coordinate[] coordinates = tourStops.stream()
+                    .filter( sv -> !sv.visitAirport) //exclude airport visits for the moment, as they are not in order
+                    .map(sv -> sv.cdToCoords(data))
+                    .toArray(Coordinate[]::new);
+            tourGeometry = geometryFactory.createLineString(coordinates);
+        }
+        return tourGeometry;
+    }
+
+
+    public int getTourDistance() {
+        //this could also be done using a distance matrix, or even the skim matrix
+        double totalDistance = 0;
+        try {
+            Coordinate c0 = tourGeometry.getCoordinateN(0);
+             for (int i=1; i<tourGeometry.getNumPoints(); i++) {
+                 Coordinate c1 = tourGeometry.getCoordinateN(i);
+                 //flip lat and long
+                 Coordinate c0flipped = new Coordinate(c0.y, c0.x);
+                 Coordinate c1flipped = new Coordinate(c1.y, c1.x);
+
+                 totalDistance += JTS.orthodromicDistance(c0flipped, c1flipped, CRS.decode("EPSG:4269"));
+                     c0 = c1;
+             }
+        } catch (TransformException | FactoryException | IllegalArgumentException e) {
+            logger.error(tourGeometry, e);
+            exit(1);
+        }
+        return (int) (totalDistance / 1000);
+
+    }
+
+    public int getOrigCma() {
+        return origCma;
+    }
+
+    public int getPartySize() {
+        return partySize;
+    }
+
+    public int getNumHhMembersOnTrip() {
+        return numHhMembersOnTrip;
+    }
+
+    public int getNumHhAdultsOnTrip() {
+        return numHhAdultsOnTrip;
+    }
+
+    public int getNumHhKidsOnTrip() {
+        return numHhKidsOnTrip;
+    }
+
+    public int getNumIdenticalTrips() {
+        return numIdenticalTrips;
+    }
+
+    public LineString getLineString() {
+        return tourGeometry;
+    }
+
+    public int getQuarter() {
+        return quarter;
     }
 }

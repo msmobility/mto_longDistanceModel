@@ -28,13 +28,17 @@ public class surveyPerson implements Serializable {
     int prov;
     int cd;
     int cma;
-    String ageGroup;
-    Gender gender;
-    String education;
-    LaborStatus laborStat;
+    int ageGroup;
+    int gender;
+    int education;
+    int laborStat;
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
+    private int tripfile_count;
+    private int overnight_count;
+    private int sameday_count;
+    private int total_count;
     HashMap<Integer, surveyTour> tours;
 
     //addded by Carlos Llorca on 6/7/16 to evaluate the tripGeneration of the surveyPerson individuals instead of Synthetic pop
@@ -43,8 +47,8 @@ public class surveyPerson implements Serializable {
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
 
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, String ageGroup,
-                        Gender gender, String education, LaborStatus laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
+    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, int ageGroup,
+                        int gender, int education, int laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
         this.refYear = refYear;
@@ -77,15 +81,20 @@ public class surveyPerson implements Serializable {
         this.cd = survey.readInt(recString, "RESCD2");  // ascii position in file: 43-46
         this.cma = survey.readInt(recString, "RESCMA2");  // ascii position in file: 43-46
 
-        Gender gender2 = Gender.getGender(survey.readInt(recString, "SEX"));
-        LaborStatus laborStat2 = LaborStatus.getStatus(survey.readInt(recString, "LFSSTATG"));
+        this.gender = survey.readInt(recString, "SEX");
+        this.laborStat = survey.readInt(recString, "LFSSTATG");
 
-        String ageGroup2 = survey.decodeValue("AGE_GR2", survey.readInt(recString, "AGE_GR2"));
-        String education2 = survey.decodeValue("EDLEVGR", survey.readInt(recString, "EDLEVGR"));
+        this.ageGroup = survey.readInt(recString, "AGE_GR2");
+        this.education = survey.readInt(recString, "EDLEVGR");
 
         this.hhIncome = survey.readInt(recString, "INCOMGR2");  // ascii position in file: 51-51
         this.adultsInHh = survey.readInt(recString, "G_ADULTS");  // ascii position in file: 52-53
         this.kidsInHh = survey.readInt(recString, "G_KIDS");  // ascii position in file: 54-55
+
+        this.tripfile_count = survey.readInt(recString, "TRIP_CNT");
+        this.overnight_count = survey.readInt(recString, "ON_CNT");
+        this.sameday_count = survey.readInt(recString, "ON_CNT");
+        this.total_count = survey.readInt(recString, "TRIPCTOT");
 
         this.tours = new HashMap<>();
 
@@ -107,11 +116,11 @@ public class surveyPerson implements Serializable {
         return hhIncome;
     }
 
-    public String getAgeGroup() {
+    public int getAgeGroup() {
         return ageGroup;
     }
 
-    public Gender getGender() {
+    public int getGender() {
         return gender;
     }
 
@@ -119,11 +128,11 @@ public class surveyPerson implements Serializable {
         return pumfId;
     }
 
-    public String getEducation() {
+    public int getEducation() {
         return education;
     }
 
-    public LaborStatus getLaborStat() {
+    public int getLaborStat() {
         return laborStat;
     }
 
@@ -159,7 +168,27 @@ public class surveyPerson implements Serializable {
         return refMonth;
     }
 
+    public int getTripfile_count() {
+        return tripfile_count;
+    }
+
+    public int getOvernight_count() {
+        return overnight_count;
+    }
+
+    public int getSameday_count() {
+        return sameday_count;
+    }
+
+    public int getTotal_count() {
+        return total_count;
+    }
+
     public surveyTour getTourFromId(int tripId) {
         return tours.get(tripId);
+    }
+
+    public float getWeight2() {
+        return weight2;
     }
 }

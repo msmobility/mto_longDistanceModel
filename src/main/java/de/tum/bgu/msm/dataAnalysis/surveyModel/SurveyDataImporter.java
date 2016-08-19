@@ -222,8 +222,8 @@ public class SurveyDataImporter {
                     logger.error(Integer.toString(year) + " - " + Integer.toString(origPumfId) + " - " + tripId + " - ?");
                 } else {
                     tour.addTripDestinations(new SurveyVisit(survey, tour, recString));
+                    recCount++;
                 }
-                recCount++;
             }
             //sort all the visits in order
             personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(surveyTour::sortVisits));
