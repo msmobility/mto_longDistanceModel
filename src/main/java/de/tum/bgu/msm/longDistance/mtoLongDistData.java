@@ -32,9 +32,11 @@ public class mtoLongDistData {
     private Matrix autoTravelTime;
     private double autoAccessibility;
 
+    private TableDataSet internalZonesTable;
     private TableDataSet externalCanadaTable;
     private TableDataSet externalUsTable;
     private TableDataSet externalOverseasTable;
+    private int[] internalZones;
     private int[] externalZonesCanada;
     private int[] externalZonesUs;
     private int[] externalZonesOverseas;
@@ -80,7 +82,23 @@ public class mtoLongDistData {
 
         ArrayList<Zone> zonesArray = new ArrayList<>();
 
-        //first read the internal zones already created
+        //first read the internal zones already created and add them the employmeny from an external file
+
+        internalZonesTable = util.importTable(rb.getString("int.employment.file"));
+        internalZones = internalZonesTable.getColumnAsInt("ID");
+        internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
+        int emptyZoneCount = 0;
+        for (Zone zone : internalZoneList){
+            try {
+                zone.setEmployment((int)internalZonesTable.getIndexedValueAt(zone.getId(), "Employment"));
+            } catch (Exception e){
+                emptyZoneCount++;
+              logger.info(zone.getId() + " has 0 employments / is not located in internalZones.csv, total of empty zones = " + emptyZoneCount);
+
+            }
+
+        }
+
         zonesArray.addAll(internalZoneList);
 
        /* //first read the internal zones from RSP //this part won't be required
@@ -99,23 +117,28 @@ public class mtoLongDistData {
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
-                Zone zone = new Zone (externalZone, (int)externalCanadaTable.getIndexedValueAt(externalZone, "Population"), ZoneType.EXTCANADA);
+                Zone zone = new Zone (externalZone, (int)externalCanadaTable.getIndexedValueAt(externalZone, "Population"),
+                        (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA);
                 zonesArray.add(zone);
             }
-        }else if (externalUs) {
+        }
+        if (externalUs) {
             externalUsTable = util.importTable(rb.getString("ext.us.file"));
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
-                Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"), ZoneType.EXTUS);
+                Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"),
+                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS);
                 zonesArray.add(zone);
             }
-        }else if (externalOverseas){
+        }
+        if (externalOverseas){
             externalOverseasTable = util.importTable(rb.getString("ext.ov.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
-                Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"), ZoneType.EXTOVERSEAS);
+                Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
+                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS);
                 zonesArray.add(zone);
             }
         }
@@ -137,56 +160,70 @@ public class mtoLongDistData {
             autoAccessibility = 0;
             for (Zone destZone : zoneList){
                 double autoImpedance;
+//                limit the minimum travel time for accessibility calculations
+//                if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
                 if (getAutoTravelTime(origZone.getId(), destZone.getId()) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
                     //todo this value should be 0 or 1??
                 } else {
                     autoImpedance = Math.exp(betaAuto * getAutoTravelTime(origZone.getId(), destZone.getId()));
                 }
-                autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
+                //comment the variable that it is not desired (population or employment)
+                //autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
+                autoAccessibility += Math.pow(destZone.getEmployment(), alphaAuto) * autoImpedance;
             }
             origZone.setAccessibility(autoAccessibility);
 
         }
 
-        //scaling accessibilities
+        //scaling accessibilities (only for Ontario zones --> 100 is assigned to the highest value in Ontario)
         double[] autoAccessibilityArray = new double[zoneList.size()];
 
         int i = 0;
+        double highestVal = 0;
         for (Zone zone : zoneList){
             autoAccessibilityArray[i] = zone.getAccessibility();
+            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneType.ONTARIO)){
+                highestVal = autoAccessibilityArray[i];
+            }
             i++;
         }
-        autoAccessibilityArray = util.scaleArray(autoAccessibilityArray, 100);
+        //autoAccessibilityArray = util.scaleArray(autoAccessibilityArray, 100);
         i = 0;
         for (Zone zone : zoneList){
-            zone.setAccessibility(autoAccessibilityArray[i]);
+            zone.setAccessibility(autoAccessibilityArray[i]/highestVal*100);
             i++;
         }
 
+    //print out accessibilities
 
-        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can",false);
-        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us",false);;
-        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os",false);
+        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can");
+        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us");
+        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os");
 
-        String destArea = new String();
+        String destArea = "ON";
         if (externalCanada){
-            destArea = "ONandCAN";
-        }else if (externalUs){
-            destArea = "ONandCANandUS";
-        } else if (externalOverseas){
-            destArea = "ONandCANandUSandOS";
-        } else {
-            destArea = "ON";
+            destArea = "Canada";
+        }
+        if (externalUs){
+            destArea = "NorthAmerica";
+        }
+        if (externalOverseas){
+            destArea = "World";
         }
 
-        String fileName = rb.getString("access.out.file") + "OnTo" + destArea + alphaAuto + betaAuto + ".csv";
+
+        String fileName = rb.getString("access.out.file") + destArea + alphaAuto + betaAuto + ".csv";
         PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
-        pw.println("Zone,Accessibility");
+        pw.println("Zone,Accessibility,Population,Employments");
 
         logger.info("Accessibility parameters: alpha = " + alphaAuto + " and beta = "+ betaAuto);
 
-        for (Zone zone: zoneList) pw.println(zone.getId() + "," + zone.getAccessibility());
+        for (Zone zone: zoneList){
+            if (zone.getZoneType().equals(ZoneType.ONTARIO)){
+                pw.println(zone.getId() + "," + zone.getAccessibility()+ "," + zone.getPopulation() + "," + zone.getEmployment());
+            }
+        }
         pw.close();
 
         //original Rolf version below

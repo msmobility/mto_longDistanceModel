@@ -62,7 +62,7 @@ public class readSP {
         zoneTable = util.importTable(rb.getString("zone.system"));
         zones = zoneTable.getColumnAsInt("ID");
         for (int zone : zones) {
-            Zone internalZone = new Zone (zone, 0, ZoneType.ONTARIO);
+            Zone internalZone = new Zone (zone, 0, 0, ZoneType.ONTARIO);
             internalZoneList.add(internalZone);
             internalZoneMap.put(zone, internalZone);
         }

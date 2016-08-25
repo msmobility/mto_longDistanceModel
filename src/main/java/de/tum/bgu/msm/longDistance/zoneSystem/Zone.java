@@ -6,14 +6,16 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 public class Zone {
     private int id;
     private int population = 0;
+    private int employment = 0;
     private int households = 0;
     private ZoneType zoneType;
     private double accessibility;
 
 
-    public Zone(int id, int population, ZoneType zoneType) {
+    public Zone(int id, int population, int employment, ZoneType zoneType) {
         this.id = id;
         this.population = population;
+        this.employment = employment;
         this.zoneType = zoneType;
     }
 
@@ -23,6 +25,10 @@ public class Zone {
 
     public int getPopulation() {
         return population;
+    }
+
+    public int getEmployment() {
+        return employment;
     }
 
     public int getHouseholds() {
@@ -43,6 +49,10 @@ public class Zone {
 
     public void addHouseholds (int households){
         this.households += households;
+    }
+
+    public void setEmployment(int employment) {
+        this.employment = employment;
     }
 
     public void setAccessibility(double accessibility) {

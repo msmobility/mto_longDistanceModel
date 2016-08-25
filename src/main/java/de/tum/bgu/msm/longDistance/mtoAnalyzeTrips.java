@@ -76,27 +76,49 @@ public class mtoAnalyzeTrips {
         String OutputZonesFilename = rb.getString("zone.out.file");
         PrintWriter pw3 = util.openFileForSequentialWriting(OutputZonesFilename , false);
 
-        pw3.print("zone, population, visit, business, leisure");
+        pw3.print("zone, population, domesticVisit, domesticBusiness, domesticLeisure, internationalVisit, internationalBusiness, internationalLeisure");
         pw3.println();
         for (Zone zone : internalZoneList){
             //todo is valuable to add the list or the number of trips to the objects of class zone?
             int visitTrips = 0;
             int businessTrips = 0;
             int leisureTrips = 0;
+            int internationalVisitTrips = 0;
+            int internationalBusinessTrips = 0;
+            int internationalLeisureTrips = 0;
 
             for (LongDistanceTrip trip : trips) {
                 if (zone.equals(trip.getLongDistanceOrigZone())){
-                    switch (trip.getLongDistanceTripPurpose()) {
-                        case 0:
-                            visitTrips++;
-                        case 1:
-                            businessTrips++;
-                        case 2:
-                            leisureTrips++;
+                    if (trip.isLongDistanceInternational()) {
+                        switch (trip.getLongDistanceTripPurpose()) {
+                            case 0:
+                                internationalVisitTrips++;
+                                break;
+                            case 1:
+                                internationalBusinessTrips++;
+                                break;
+                            case 2:
+                                internationalLeisureTrips++;
+                                break;
+                        }
+                    } else {
+                        switch (trip.getLongDistanceTripPurpose()) {
+                            case 0:
+                                visitTrips++;
+                                break;
+                            case 1:
+                                businessTrips++;
+                                break;
+                            case 2:
+                                leisureTrips++;
+                                break;
+                        }
                     }
                 }
+
             }
-            pw3.print(zone.getId() + "," + zone.getPopulation() + "," +   visitTrips + "," + businessTrips + "," + leisureTrips );
+            pw3.print(zone.getId() + "," + zone.getPopulation() + "," +   visitTrips + "," + businessTrips + "," + leisureTrips + "," +
+                    internationalVisitTrips + "," + internationalBusinessTrips + "," + internationalLeisureTrips);
             pw3.println();
         }
         pw3.close();
