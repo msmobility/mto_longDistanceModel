@@ -133,7 +133,7 @@ public class mtoLongDistData {
             }
         }
         if (externalOverseas){
-            externalOverseasTable = util.importTable(rb.getString("ext.ov.file"));
+            externalOverseasTable = util.importTable(rb.getString("ext.os.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
@@ -241,13 +241,13 @@ public class mtoLongDistData {
         PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility,Population,Employments");
 
-        logger.info("Accessibility parameters: alpha = " + alphaAuto + " and beta = " + betaAuto);
+        logger.info("Print out data of accessibility: alpha = " + alphaAuto + " and beta = " + betaAuto);
 
         for (Zone zone : zoneList) {
-            //to print only ontario zones
-            if (zone.getZoneType().equals(ZoneType.ONTARIO)){
+            //to print only ontario zones activate commented lines below
+            //if (zone.getZoneType().equals(ZoneType.ONTARIO)){
             pw.println(zone.getId() + "," + zone.getAccessibility() + "," + zone.getPopulation() + "," + zone.getEmployment());
-            }
+            //}
         }
         pw.close();
     }

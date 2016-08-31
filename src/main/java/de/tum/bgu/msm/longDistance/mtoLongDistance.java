@@ -29,75 +29,78 @@ public class mtoLongDistance {
         this.rb = rb;
     }
 
-    public static ArrayList<String> tripPurposes = new ArrayList<>();
-    public static ArrayList<String> tripStates = new ArrayList<>();
+    //public static ArrayList<String> tripPurposes = new ArrayList<>();
+    public static List<String> tripPurposes = Arrays.asList("visit","business","leisure");
+
+    //public static ArrayList<String> tripStates = new ArrayList<>();
+
+    public static List<String> tripStates = Arrays.asList("away","daytrip","inout");
 
     public void runLongDistanceModel () {
         // main method to run long-distance model
 
+        //read synthetic population
         readSP rsp = new readSP(rb);
         ArrayList<Zone> internalZoneList= rsp.readInternalZones();
         rsp.readSyntheticPopulation(internalZoneList);
 
+        //read internal zone employment and external zones
         //added omx.jar; if not this doesn't work
         mtoLongDistData md = new mtoLongDistData(rb);
         md.readInternalZonesEmployment(internalZoneList);
         ArrayList<Zone> externalZoneList = md.readExternalZones();
+
+        //join all zones
         ArrayList<Zone> zoneList = new ArrayList<>();
         zoneList.addAll(internalZoneList);
         zoneList.addAll(externalZoneList);
 
+        //read skims
         md.readSkim();
-        //input parameters for accessibility calculations
+
+        //calculate accessibility
+        //TODO in the future may be required to calculated different types of accessibility
+        //input parameters for accessibility calculations: from "fromZones" to "toZones"
         List<String> fromZones = ResourceUtil.getListWithUserDefinedSeparator(rb,"orig.zone.type",",");
-        //manually would be
-        //List<String> fromZones = Arrays.asList("ONTARIO","EXTCANADA");
         List<String> toZones = ResourceUtil.getListWithUserDefinedSeparator(rb,"dest.zone.type",",");
+        //manually would be List<String> fromZones = Arrays.asList("ONTARIO","EXTCANADA");
 
         md.calculateAccessibility(zoneList, fromZones, toZones);
         md.writeOutAccessibilities(zoneList);
 
         logger.info("Accessibility calculated");
 
-
-        //add the purposes and states to be used in the trip generation
-        tripPurposes.add("visit");
-        tripPurposes.add("business");
-        tripPurposes.add("leisure");
-
-        tripStates.add("away");
-        tripStates.add("daytrip");
-        tripStates.add("inout");
-
+        //generate domestic trips
         tripGeneration tgdomestic = new tripGeneration(rb);
         ArrayList<LongDistanceTrip> trips_domestic = tgdomestic.runTripGeneration();
+        logger.info("Domestic Trips from Ontario generated");
 
-        logger.info("Domestic Trips generated");
-
-        //this must be done after domestic
+        //generate international trips (must be done after domestic)
         internationalTripGeneration tginternational = new internationalTripGeneration(rb);
         ArrayList<LongDistanceTrip> trips_international = tginternational.runInternationalTripGeneration();
+        logger.info("International trips from Ontario generated");
 
-        logger.info("International trips generated");
+        //generate visitors
+        VisitorsTripGeneration vgen = new VisitorsTripGeneration(rb);
+        ArrayList<LongDistanceTrip> trips_visitors  = vgen.runVisitorsTripGeneration(externalZoneList);
+        logger.info("Visitor trips to Ontario generated");
 
-        //next method is used to analyze the outputs of the tripGeneration
+        //analyze and write out generated trips
+        //first, join the different list of trips
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
         trips.addAll(trips_international);
         trips.addAll(trips_domestic);
-
-
+        trips.addAll(trips_visitors);
 
         mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
-        if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(trips, internalZoneList);
-
-
+        if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(trips, zoneList);
     }
 
-    public static ArrayList<String> getTripPurposes() {
+    public static List<String> getTripPurposes() {
         return tripPurposes;
     }
 
-    public static ArrayList<String> getTripStates() {
+    public static List<String> getTripStates() {
         return tripStates;
     }
 
@@ -176,6 +179,8 @@ public class mtoLongDistance {
         return personDescription;
     }
 
+    //methods to add persons to the travel party (valid for ONTARIO residents)
+
     public static ArrayList<Person> addAdultsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
 
         ArrayList<Person> hhTravelParty = new ArrayList<>();
@@ -229,6 +234,8 @@ public class mtoLongDistance {
             k++;
         return k;
     }
+
+    //method to estimate trip duration (used only for ONTARIO residents
 
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;

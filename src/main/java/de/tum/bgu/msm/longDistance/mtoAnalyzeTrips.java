@@ -3,11 +3,12 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.util;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.ResourceBundle;
+import java.util.*;
+
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import static de.tum.bgu.msm.syntheticPopulation.Person.*;
@@ -27,31 +28,45 @@ public class mtoAnalyzeTrips {
     private ResourceBundle rb;
     static Logger logger = Logger.getLogger(mtoAnalyzeTrips.class);
 
+    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
+    private List<String> tripStates = mtoLongDistance.getTripStates();
 
     public mtoAnalyzeTrips(ResourceBundle rb) {
         this.rb = rb;
     }
 
-    public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips, ArrayList<Zone> internalZoneList) {
+    public void runMtoAnalyzeTrips(ArrayList<LongDistanceTrip> trips, ArrayList<Zone> zoneList) {
         logger.info("Writing out data for trip generation (trips)");
 
         String OutputTripsFileName = rb.getString("trip.out.file");
                 PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName, false);
 
 
-        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, numberOfNights, hhAdultsTravelParty, hhKidsTravelParty, nonHhTravelParty, personAge, personGender, " +
+        pw.print("tripId, personId, international, tripPurpose, tripState, tripOriginZone, tripOriginType, numberOfNights, hhAdultsTravelParty, hhKidsTravelParty, nonHhTravelParty, personAge, personGender, " +
                 "personEducation, personWorkStatus, personIncome, adultsInHh, kidsInHh");
         pw.println();
         for (LongDistanceTrip tr : trips) {
 
-            Person traveller = getPersonFromId(tr.getPersonId());
+            if (tr.getLongDistanceOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+                Person traveller = getPersonFromId(tr.getPersonId());
 
-            pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tr.getLongDistanceTripPurpose() + "," + tr.getLongDistanceTripState() + "," + tr.getLongDistanceOrigZone().getId()+ "," + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
-                     + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize() +"," + traveller.getAge() + "," + traveller.getGender() +"," + traveller.getEducation() + "," + traveller.getWorkStatus() +
-                    "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh()) ;
-            pw.println();
-        }
+                pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
+                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + "," + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                        + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                        + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize() + "," + traveller.getAge() + "," + traveller.getGender() + "," + traveller.getEducation() + "," + traveller.getWorkStatus() +
+                        "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh());
+                pw.println();
+            } else {
+                pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
+                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState())+ "," + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                        + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                        + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize());
+                pw.println();
+
+            }
+
+
+            }
         pw.close();
 
         logger.info("Writing out data for trip generation (travellers)");
@@ -78,7 +93,8 @@ public class mtoAnalyzeTrips {
 
         pw3.print("zone, population, domesticVisit, domesticBusiness, domesticLeisure, internationalVisit, internationalBusiness, internationalLeisure");
         pw3.println();
-        for (Zone zone : internalZoneList){
+
+        for (Zone zone : zoneList){
             //todo is valuable to add the list or the number of trips to the objects of class zone?
             int visitTrips = 0;
             int businessTrips = 0;

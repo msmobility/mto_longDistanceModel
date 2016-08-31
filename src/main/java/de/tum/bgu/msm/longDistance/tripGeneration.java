@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
 
@@ -22,8 +23,8 @@ import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
 
 public class tripGeneration {
 
-    private ArrayList<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private ArrayList<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
+    private List<String> tripStates = mtoLongDistance.getTripStates();
 
 
 
@@ -58,6 +59,7 @@ public class tripGeneration {
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
             Collections.shuffle(membersList);
+
 
             for (Person pers : membersList) {
 

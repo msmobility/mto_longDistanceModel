@@ -6,10 +6,7 @@ import de.tum.bgu.msm.syntheticPopulation.Person;
 import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import de.tum.bgu.msm.longDistance.tripGeneration.*;
 
@@ -22,8 +19,8 @@ public class internationalTripGeneration {
 
 
 
-    private ArrayList<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private ArrayList<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
+    private List<String> tripStates = mtoLongDistance.getTripStates();
 
     static Logger logger = Logger.getLogger(tripGeneration.class);
     private ResourceBundle rb;
@@ -99,10 +96,9 @@ public class internationalTripGeneration {
                         tripCount++;
                     }
                 }
-                logger.info(tripCount + " trips generated for purpose " + tripPurpose + " and state " + tripState);
+                logger.info(tripCount + " international trips generated in Ontario, with purpose " + tripPurpose + " and state " + tripState);
             }
         }
-        logger.info("Int Trip: all trips generated");
         return trips;
     }
 
