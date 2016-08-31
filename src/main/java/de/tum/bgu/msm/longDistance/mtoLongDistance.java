@@ -9,9 +9,7 @@ import de.tum.bgu.msm.syntheticPopulation.readSP;
 import javafx.collections.FXCollections;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  *
@@ -43,9 +41,21 @@ public class mtoLongDistance {
 
         //added omx.jar; if not this doesn't work
         mtoLongDistData md = new mtoLongDistData(rb);
-        ArrayList<Zone> zoneList = md.readInternalAndExternalZones(internalZoneList);
+        md.readInternalZonesEmployment(internalZoneList);
+        ArrayList<Zone> externalZoneList = md.readExternalZones();
+        ArrayList<Zone> zoneList = new ArrayList<>();
+        zoneList.addAll(internalZoneList);
+        zoneList.addAll(externalZoneList);
+
         md.readSkim();
-        md.calculateAccessibility(zoneList);
+        //input parameters for accessibility calculations
+        List<String> fromZones = ResourceUtil.getListWithUserDefinedSeparator(rb,"orig.zone.type",",");
+        //manually would be
+        //List<String> fromZones = Arrays.asList("ONTARIO","EXTCANADA");
+        List<String> toZones = ResourceUtil.getListWithUserDefinedSeparator(rb,"dest.zone.type",",");
+
+        md.calculateAccessibility(zoneList, fromZones, toZones);
+        md.writeOutAccessibilities(zoneList);
 
         logger.info("Accessibility calculated");
 

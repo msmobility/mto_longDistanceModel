@@ -36,10 +36,10 @@ public class internationalTripGeneration {
     public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-//todo add properties
-        String numberOfInternationalTripsFilename = rb.getString("int.trips");
-        TableDataSet numberOfInternationalTrips = util.readCSVfile(numberOfInternationalTripsFilename);
-        numberOfInternationalTrips.buildIndex(numberOfInternationalTrips.getColumnPosition("tripState"));
+
+        String internationalTriprates = rb.getString("int.trips");
+        TableDataSet internationalTripRates = util.readCSVfile(internationalTriprates);
+        internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
 
         String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
         TableDataSet travelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
@@ -66,10 +66,11 @@ public class internationalTripGeneration {
         logger.info("Int Trip: sum of probabilities done");
         for (String tripPurpose : tripPurposes) {
             for (String tripState : tripStates) {
-                logger.info("starting trip generation for purpose " + tripPurpose + " and state " + tripState);
                 int tripCount = 0;
                 // multiplied by 2 to get more chances of assigning all trips, if not, there are some individuals that are travelling already
-                double[] randomChoice = new double[(int) numberOfInternationalTrips.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*2 ];
+
+                int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*personIdMatrix.length);
+                double[] randomChoice = new double[numberOfTrips*2 ];
                 for (int k = 0; k < randomChoice.length; k++) {
                     randomChoice[k] = Math.random();
                 }
@@ -84,7 +85,7 @@ public class internationalTripGeneration {
                         cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
                     Person pers = Person.getPersonFromId(personIdMatrix[p]);
-                    if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfInternationalTrips.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)) {
+                    if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfTrips) {
                         switch (tripState) {
                             case "away" :
                                 pers.isAway = true;
@@ -113,7 +114,7 @@ public class internationalTripGeneration {
         hhTravelParty.addAll(adultsHhTravelParty);
         int nonHhTravelPartySize = mtoLongDistance.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
         return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
-                0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
+                0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }
 

@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import com.sun.org.apache.regexp.internal.RESyntaxException;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.mto;
@@ -41,12 +42,9 @@ public class mtoLongDistData {
     private int[] externalZonesUs;
     private int[] externalZonesOverseas;
 
-
-
     public mtoLongDistData(ResourceBundle rb) {
         this.rb = rb;
     }
-
 
     public void readSkim() {
         // read skim file
@@ -63,7 +61,6 @@ public class mtoLongDistData {
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
 
-
     public float getAutoTravelTime(int orig, int dest) {
         try {
             return autoTravelTime.getValueAt(orig, dest);
@@ -73,35 +70,26 @@ public class mtoLongDistData {
         }
     }
 
-    ArrayList<Zone> readInternalAndExternalZones(ArrayList<Zone> internalZoneList){
+    public void readInternalZonesEmployment(ArrayList<Zone> internalZoneList) {
 
-
-        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can",false);
-        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us",false);;
-        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os",false);
-
-        ArrayList<Zone> zonesArray = new ArrayList<>();
-
-        //first read the internal zones already created and add them the employmeny from an external file
+        //read the internal zones already created and add them the employment from an external file
 
         internalZonesTable = util.importTable(rb.getString("int.employment.file"));
         internalZones = internalZonesTable.getColumnAsInt("ID");
         internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
         int emptyZoneCount = 0;
-        for (Zone zone : internalZoneList){
-            try {
-                zone.setEmployment((int)internalZonesTable.getIndexedValueAt(zone.getId(), "Employment"));
-            } catch (Exception e){
-                emptyZoneCount++;
-              logger.info(zone.getId() + " has 0 employments / is not located in internalZones.csv, total of empty zones = " + emptyZoneCount);
 
+        for (Zone zone : internalZoneList) {
+            try {
+                zone.setEmployment((int) internalZonesTable.getIndexedValueAt(zone.getId(), "Employment"));
+            } catch (Exception e) {
+                emptyZoneCount++ ;
             }
 
         }
+    logger.info(emptyZoneCount+ " zones were found with employment equal to 0");
 
-        zonesArray.addAll(internalZoneList);
-
-       /* //first read the internal zones from RSP //this part won't be required
+               /* //first read the internal zones from RSP //this part won't be required
         int[] zones = rsp.getZones();
         int[] pop = rsp.getPpByZone();
 
@@ -109,6 +97,18 @@ public class mtoLongDistData {
             Zone zone = new Zone (zones[i], pop[i], ZoneType.ONTARIO);
             zonesArray.add(zone);
         }*/
+
+    }
+
+    ArrayList<Zone> readExternalZones(){
+
+        ArrayList<Zone> externalZonesArray = new ArrayList<>();
+
+        boolean externalCanada = ResourceUtil.getBooleanProperty(rb, "ext.can", false);
+        boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us", false);
+        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os", false);
+
+
 
         //second, read the external zones from files
 
@@ -119,7 +119,7 @@ public class mtoLongDistData {
             for (int externalZone : externalZonesCanada){
                 Zone zone = new Zone (externalZone, (int)externalCanadaTable.getIndexedValueAt(externalZone, "Population"),
                         (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA);
-                zonesArray.add(zone);
+                externalZonesArray.add(zone);
             }
         }
         if (externalUs) {
@@ -129,7 +129,7 @@ public class mtoLongDistData {
             for (int externalZone : externalZonesUs){
                 Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"),
                         (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS);
-                zonesArray.add(zone);
+                externalZonesArray.add(zone);
             }
         }
         if (externalOverseas){
@@ -139,28 +139,43 @@ public class mtoLongDistData {
             for (int externalZone : externalZonesOverseas){
                 Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
                         (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS);
-                zonesArray.add(zone);
+                externalZonesArray.add(zone);
             }
         }
 
-        return zonesArray;
+        return externalZonesArray;
     }
 
-    public void calculateAccessibility(ArrayList<Zone> zoneList) {
-        // calculate accessibility
+    public void calculateAccessibility(ArrayList<Zone> zoneList, List<String> fromZones, List<String> toZones) {
 
+        //read alpha and beta parameters
         logger.info("Calculating accessibilities");
         float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
         float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
 
+        //create lists of origin and destination zones
+
+        ArrayList<Zone> origZoneList = new ArrayList<>();
+        for (String stringZoneType:fromZones) {
+            for (Zone zone : zoneList) {
+                if(zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) origZoneList.add(zone);
+            }
+        }
+
+        ArrayList<Zone> destZoneList = new ArrayList<>();
+        for (String stringZoneType:toZones) {
+            for (Zone zone : zoneList) {
+                if(zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) destZoneList.add(zone);
+            }
+        }
 
         //calculate accessibilities
 
-        for (Zone origZone : zoneList) {
+        for (Zone origZone : origZoneList) {
             autoAccessibility = 0;
-            for (Zone destZone : zoneList){
+            for (Zone destZone : destZoneList) {
                 double autoImpedance;
-//                limit the minimum travel time for accessibility calculations
+//                limit the minimum travel time for accessibility calculations (namely long distance accessibility)
 //                if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
                 if (getAutoTravelTime(origZone.getId(), destZone.getId()) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
@@ -169,46 +184,55 @@ public class mtoLongDistData {
                     autoImpedance = Math.exp(betaAuto * getAutoTravelTime(origZone.getId(), destZone.getId()));
                 }
                 //comment the variable that it is not desired (population or employment)
-                //autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
-                autoAccessibility += Math.pow(destZone.getEmployment(), alphaAuto) * autoImpedance;
+                autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
+//                autoAccessibility += Math.pow(destZone.getEmployment(), alphaAuto) * autoImpedance;
             }
+
+            //set accessibilities in the Zone objects
+
             origZone.setAccessibility(autoAccessibility);
 
         }
 
-        //scaling accessibilities (only for Ontario zones --> 100 is assigned to the highest value in Ontario)
+        //scaling accessibility (only for Ontario zones --> 100 is assigned to the highest value in Ontario)
         double[] autoAccessibilityArray = new double[zoneList.size()];
 
         int i = 0;
         double highestVal = 0;
-        for (Zone zone : zoneList){
+        for (Zone zone : zoneList) {
             autoAccessibilityArray[i] = zone.getAccessibility();
-            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneType.ONTARIO)){
+            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneType.ONTARIO)) {
                 highestVal = autoAccessibilityArray[i];
             }
             i++;
         }
-        //autoAccessibilityArray = util.scaleArray(autoAccessibilityArray, 100);
         i = 0;
-        for (Zone zone : zoneList){
-            zone.setAccessibility(autoAccessibilityArray[i]/highestVal*100);
+        for (Zone zone : zoneList) {
+            zone.setAccessibility(autoAccessibilityArray[i] / highestVal * 100);
             i++;
         }
 
-    //print out accessibilities
+    }
 
-        boolean externalCanada = ResourceUtil.getBooleanProperty(rb,"ext.can");
-        boolean externalUs = ResourceUtil.getBooleanProperty(rb,"ext.us");
-        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb,"ext.os");
+    public void writeOutAccessibilities(ArrayList<Zone> zoneList) {
+        //print out accessibilities
 
+        boolean externalCanada = ResourceUtil.getBooleanProperty(rb, "ext.can");
+        boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us");
+        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os");
+
+        float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
+        float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
+
+        //name of the file of accessibilities/output
         String destArea = "ON";
-        if (externalCanada){
+        if (externalCanada) {
             destArea = "Canada";
         }
-        if (externalUs){
+        if (externalUs) {
             destArea = "NorthAmerica";
         }
-        if (externalOverseas){
+        if (externalOverseas) {
             destArea = "World";
         }
 
@@ -217,14 +241,16 @@ public class mtoLongDistData {
         PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility,Population,Employments");
 
-        logger.info("Accessibility parameters: alpha = " + alphaAuto + " and beta = "+ betaAuto);
+        logger.info("Accessibility parameters: alpha = " + alphaAuto + " and beta = " + betaAuto);
 
-        for (Zone zone: zoneList){
+        for (Zone zone : zoneList) {
+            //to print only ontario zones
             if (zone.getZoneType().equals(ZoneType.ONTARIO)){
-                pw.println(zone.getId() + "," + zone.getAccessibility()+ "," + zone.getPopulation() + "," + zone.getEmployment());
+            pw.println(zone.getId() + "," + zone.getAccessibility() + "," + zone.getPopulation() + "," + zone.getEmployment());
             }
         }
         pw.close();
+    }
 
         //original Rolf version below
         /*autoAccessibility = new double[zones.length];
@@ -253,4 +279,4 @@ public class mtoLongDistData {
 //        for (int zone: zones) pw.println(zone+","+autoAccessibility[rsp.getIndexOfZone(zone)]);
 //        pw.close();
     }
-}
+

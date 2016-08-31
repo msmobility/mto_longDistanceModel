@@ -254,6 +254,13 @@ public class readSP {
             Zone zone = hh.getZone();
             zone.addHouseholds(1);
             zone.addPopulation(hh.getHhSize());
+            //add employees in their zone, discarded because employments are needed, instead employees:
+            /*Person[] personsInHousehold = hh.getPersonsOfThisHousehold();
+            for (Person pers:personsInHousehold){
+                if (pers.getWorkStatus()==1|pers.getWorkStatus()==2){
+                    zone.addEmployment(1);
+                }
+            }*/
         }
 
         PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
@@ -263,9 +270,6 @@ public class readSP {
         }
         pw.close();
     }
-
-
-
 
     public int[] getZones() {
         return zones;

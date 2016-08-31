@@ -55,6 +55,10 @@ public class Zone {
         this.employment = employment;
     }
 
+    public void addEmployment(int employment) {
+        this.employment += employment;
+    }
+
     public void setAccessibility(double accessibility) {
         this.accessibility = accessibility;
     }

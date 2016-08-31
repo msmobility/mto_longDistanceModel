@@ -43,7 +43,6 @@ public class tripGeneration {
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
 
-        //todo add properties
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
         TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
@@ -138,7 +137,8 @@ public class tripGeneration {
             tripDuration = mtoLongDistance.estimateTripDuration(probability);
         }
 
-        return new LongDistanceTrip(tripCount, pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), hhTravelParty, nonHhTravelPartySize);
+        return new LongDistanceTrip(tripCount, pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
+                pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }
 
