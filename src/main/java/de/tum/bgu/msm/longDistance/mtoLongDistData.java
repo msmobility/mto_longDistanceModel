@@ -87,7 +87,7 @@ public class mtoLongDistData {
             }
 
         }
-    logger.info(emptyZoneCount+ " zones were found with employment equal to 0");
+    logger.warn(emptyZoneCount+ " zones were found with employment equal to 0");
 
                /* //first read the internal zones from RSP //this part won't be required
         int[] zones = rsp.getZones();
@@ -146,12 +146,10 @@ public class mtoLongDistData {
         return externalZonesArray;
     }
 
-    public void calculateAccessibility(ArrayList<Zone> zoneList, List<String> fromZones, List<String> toZones) {
+    public void calculateAccessibility(ArrayList<Zone> zoneList, List<String> fromZones, List<String> toZones, float alphaAuto, float betaAuto) {
 
         //read alpha and beta parameters
         logger.info("Calculating accessibilities");
-        float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
-        float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
 
         //create lists of origin and destination zones
 
@@ -168,15 +166,13 @@ public class mtoLongDistData {
                 if(zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) destZoneList.add(zone);
             }
         }
-
         //calculate accessibilities
-
         for (Zone origZone : origZoneList) {
             autoAccessibility = 0;
             for (Zone destZone : destZoneList) {
                 double autoImpedance;
-//                limit the minimum travel time for accessibility calculations (namely long distance accessibility)
-//                if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
+                //limit the minimum travel time for accessibility calculations (namely long distance accessibility)
+                //if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
                 if (getAutoTravelTime(origZone.getId(), destZone.getId()) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
                     //todo this value should be 0 or 1??
@@ -185,15 +181,15 @@ public class mtoLongDistData {
                 }
                 //comment the variable that it is not desired (population or employment)
                 autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
-//                autoAccessibility += Math.pow(destZone.getEmployment(), alphaAuto) * autoImpedance;
+               //autoAccessibility += Math.pow(destZone.getEmployment(), alphaAuto) * autoImpedance;
             }
 
             //set accessibilities in the Zone objects
-
             origZone.setAccessibility(autoAccessibility);
 
-        }
 
+        }
+        logger.info("Accessibility calculated using alpha= " + alphaAuto + " and beta= " + betaAuto);
         //scaling accessibility (only for Ontario zones --> 100 is assigned to the highest value in Ontario)
         double[] autoAccessibilityArray = new double[zoneList.size()];
 
@@ -217,31 +213,11 @@ public class mtoLongDistData {
     public void writeOutAccessibilities(ArrayList<Zone> zoneList) {
         //print out accessibilities
 
-        boolean externalCanada = ResourceUtil.getBooleanProperty(rb, "ext.can");
-        boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us");
-        boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os");
-
-        float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
-        float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
-
-        //name of the file of accessibilities/output
-        String destArea = "ON";
-        if (externalCanada) {
-            destArea = "Canada";
-        }
-        if (externalUs) {
-            destArea = "NorthAmerica";
-        }
-        if (externalOverseas) {
-            destArea = "World";
-        }
-
-
-        String fileName = rb.getString("access.out.file") + destArea + alphaAuto + betaAuto + ".csv";
+        String fileName = rb.getString("access.out.file") + ".csv";
         PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility,Population,Employments");
 
-        logger.info("Print out data of accessibility: alpha = " + alphaAuto + " and beta = " + betaAuto);
+        logger.info("Print out data of accessibility");
 
         for (Zone zone : zoneList) {
             //to print only ontario zones activate commented lines below

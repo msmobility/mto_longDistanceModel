@@ -52,10 +52,11 @@ public class VisitorsTripGeneration {
                     int osDummy;
                     if (zone.getZoneType().equals(ZoneType.EXTOVERSEAS)) osDummy = 1;
                     else osDummy = 0;
-                    //currently uses a binary choice model for each purpose and state, with Utility = a+b*US (similarly to an average trip rate)
+                    //currently uses a binary choice model for each purpose and state, with Utility = a+b*US + c*Acc (similarly to an average trip rate)
                     double expTerm = Math.exp(visitorRateCoefficients.getIndexedValueAt(1, column) +
                             visitorRateCoefficients.getIndexedValueAt(2, column)*usDummy +
-                            visitorRateCoefficients.getIndexedValueAt(3, column)*osDummy);
+                            visitorRateCoefficients.getIndexedValueAt(3, column)*osDummy +
+                            visitorRateCoefficients.getIndexedValueAt(4, column)*zone.getAccessibility());
                     double tripRate = expTerm/(1+expTerm);
                     int numberOfTrips = (int) (tripRate * zone.getPopulation());
                     for (int i = 0; i < numberOfTrips; i++) {

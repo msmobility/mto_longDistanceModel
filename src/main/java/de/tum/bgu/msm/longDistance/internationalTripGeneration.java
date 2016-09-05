@@ -42,32 +42,37 @@ public class internationalTripGeneration {
         TableDataSet travelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
+        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
+        TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
+        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
+
         double[][] sumProbabilities = new double[3][3];
         int[] personIdMatrix = new int[Person.getSyntheticPersonArray().length];
         double[][][] probabilityMatrix = new double[3][3][Person.getSyntheticPersonArray().length];
         int p = 0;
-        //get the sum
+        //recalculate the probabilities adapted to the new accessibility values
         for (Person pers : Person.getSyntheticPersonArray()) {
             personIdMatrix[p] = pers.getPersonId();
-
             for (String tripPurpose : tripPurposes) {
-                for (String tripState : tripStates) {
-                    int i = tripPurposes.indexOf(tripPurpose);
+                for (String tripState : tripStates){
                     int j = tripStates.indexOf(tripState);
-                    sumProbabilities[i][j] += pers.travelProbabilities[i][j];
-                    probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j];
+                    int i = tripPurposes.indexOf(tripPurpose);
+                    //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
+                    //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
+                    double calibrationFactor = 2;
+                    probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j]*(1+pers.getHousehold().getZone().getAccessibility()/100*calibrationFactor);
+                    sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+                    }
                 }
-            }
-            p++;
+        p++;
         }
         logger.info("Int Trip: sum of probabilities done");
         for (String tripPurpose : tripPurposes) {
             for (String tripState : tripStates) {
                 int tripCount = 0;
-                // multiplied by 2 to get more chances of assigning all trips, if not, there are some individuals that are travelling already
-
+                // added more places to get more chances of assigning all trips, if not, there are some individuals that are travelling already
                 int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*personIdMatrix.length);
-                double[] randomChoice = new double[numberOfTrips*2 ];
+                double[] randomChoice = new double[(int)(numberOfTrips*1.2) ];
                 for (int k = 0; k < randomChoice.length; k++) {
                     randomChoice[k] = Math.random();
                 }
@@ -101,17 +106,15 @@ public class internationalTripGeneration {
         }
         return trips;
     }
-
     private LongDistanceTrip createIntLongDistanceTrip(Person pers, String tripPurpose, String tripState, int tripCount, TableDataSet travelPartyProbabilities ){
-        ArrayList<Person> adultsHhTravelParty = mtoLongDistance.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> kidsHhTravelParty = mtoLongDistance.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> adultsHhTravelParty = tripGeneration.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = tripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(adultsHhTravelParty);
-        int nonHhTravelPartySize = mtoLongDistance.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        int nonHhTravelPartySize = tripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
         return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }
-
 }
