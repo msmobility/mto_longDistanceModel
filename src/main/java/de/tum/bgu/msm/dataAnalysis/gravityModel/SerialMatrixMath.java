@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Created by Joe on 27/07/2016.
  */
-public class SerialMatrixMath implements MatrixMath {
+public class SerialMatrixMath extends AbstractMatrixMath {
     @Override
     public void sumReduceRows(double[] dest_array, double[][] skim) {
         assert dest_array.length == skim.length;
@@ -116,4 +116,5 @@ public class SerialMatrixMath implements MatrixMath {
         }
         return result;
     }
+
 }

@@ -2,12 +2,11 @@ package de.tum.bgu.msm.dataAnalysis.gravityModel;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * Created by Joe on 27/07/2016.
  */
-public class ParallelMatrixMath implements MatrixMath {
+public class ParallelMatrixMath extends AbstractMatrixMath {
     @Override
     public void sumReduceRows(double[] dest_array, double[][] skim) {
         assert dest_array.length == skim.length;
@@ -100,4 +99,6 @@ public class ParallelMatrixMath implements MatrixMath {
         });
         return result;
     }
+
+
 }
