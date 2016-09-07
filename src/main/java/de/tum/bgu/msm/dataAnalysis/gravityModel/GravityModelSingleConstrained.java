@@ -9,7 +9,7 @@ import java.util.Arrays;
  */
 public class GravityModelSingleConstrained {
     private Logger logger = Logger.getLogger(this.getClass());
-    private MatrixMath matrixMath = new SerialMatrixMath();
+    private AbstractMatrixMath abstractMatrixMath = new SerialMatrixMath();
     //skim matrix
     //array zone population
     private double[] productions;
@@ -63,7 +63,7 @@ public class GravityModelSingleConstrained {
             }
         }
 
-        double k = Arrays.stream(productions).sum() / matrixMath.sum(impedances);
+        double k = Arrays.stream(productions).sum() / abstractMatrixMath.sum(impedances);
 
         for (int i=0; i<a_i.length; i++) {
             a_i[i] = 1.0;
@@ -77,8 +77,8 @@ public class GravityModelSingleConstrained {
         }
 
         double[] TT_i = new double[attractions.length];
-        matrixMath.sumReduceRows(TT_i, impedances);
-        matrixMath.divide(a_i, productions, TT_i);
+        abstractMatrixMath.sumReduceRows(TT_i, impedances);
+        abstractMatrixMath.divide(a_i, productions, TT_i);
 
         logger.info("\tCalculating impedances");
         for (int i=0; i<impedances.length; i++) {
@@ -92,13 +92,13 @@ public class GravityModelSingleConstrained {
 
         logger.info("\tsuitable solution found");
         double[][] test_result = new double[impedances.length][impedances[0].length];
-        matrixMath.multiply(test_result, impedances, skim);
+        abstractMatrixMath.multiply(test_result, impedances, skim);
         //logger.info(matrixMath.buildString(test_result));
-        double est =  matrixMath.sum(test_result) / matrixMath.sum(impedances);
+        double est =  abstractMatrixMath.sum(test_result) / abstractMatrixMath.sum(impedances);
         logger.info(String.format("\tEstimated avg. trip length: %.2f of %s", est, expectedTripLength));
 
-        matrixMath.sumReduceRows(TT_i, impedances);
-        double o_diff = matrixMath.absoluteDifference(TT_i, productions);
+        abstractMatrixMath.sumReduceRows(TT_i, impedances);
+        double o_diff = abstractMatrixMath.absoluteDifference(TT_i, productions);
         logger.info(String.format("\t\tmissing origins: %.2f, missing destinations: ???", o_diff));
 
 

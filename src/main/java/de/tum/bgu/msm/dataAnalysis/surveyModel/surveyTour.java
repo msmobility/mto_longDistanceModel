@@ -56,6 +56,7 @@ public class surveyTour implements Serializable {
     private final int numHhKidsOnTrip;
     private final int numIdenticalTrips;
     private final int quarter;
+    private double hHWeight;
 
 
     public surveyTour(Survey survey, surveyPerson person, String recString) {
@@ -74,6 +75,7 @@ public class surveyTour implements Serializable {
         this.mainMode = survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
         this.tripPurp = survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
         this.numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
+        this.hHWeight = survey.readDouble(recString, "WTEP");
         this.weight = survey.readDouble(recString, "WTTP");
         this.distance = survey.readInt(recString, "DIST2");
         this.tripType = survey.readInt(recString, "TRIPTYPE");
@@ -282,5 +284,9 @@ public class surveyTour implements Serializable {
 
     public int getQuarter() {
         return quarter;
+    }
+
+    public double getHHWeight() {
+        return hHWeight;
     }
 }

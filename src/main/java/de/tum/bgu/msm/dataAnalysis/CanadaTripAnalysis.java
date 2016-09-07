@@ -1,24 +1,21 @@
 package de.tum.bgu.msm.dataAnalysis;
 
+import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModel;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
 import de.tum.bgu.msm.longDistance.mtoLongDistData;
 import de.tum.bgu.msm.util;
+import javafx.util.Pair;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Joe on 11/08/2016.
  */
 public class CanadaTripAnalysis {
 
+    private static final int MAX_NUM_ZONES = 10000;
     private final ResourceBundle rb;
     private final Logger logger = Logger.getLogger(this.getClass());
 
@@ -26,7 +23,7 @@ public class CanadaTripAnalysis {
         this.rb = rb;
     }
 
-    public static void main (String[] args) {
+    public static void main (String[] args) throws ClassNotFoundException {
 
         ResourceBundle rb = util.mtoInitialization(args[0]);
 
@@ -35,129 +32,192 @@ public class CanadaTripAnalysis {
 
     }
 
+    private TableDataSet readTableFromDB(Connection conn, String sql) throws SQLException {
+        TableDataSet tableDataSet = new TableDataSet();
+        //need to run the query twice to get number of rows. bit hacky
+        Statement stmt = conn.createStatement();
+
+        stmt.execute(sql);
+        ResultSet rs = stmt.getResultSet();
+        int num_cols = rs.getMetaData().getColumnCount();
+        int num_rows = 0;
+
+        String[] headings = new String[num_cols];
+        for (int i=0; i < num_cols; i++) {
+            headings[i] = rs.getMetaData().getColumnLabel(i + 1);
+        }
+
+        int[][] data = new int[num_cols][MAX_NUM_ZONES];
+        while (rs.next()) {
+            for (int i=0; i < num_cols; i++) {
+                data[i][rs.getRow()-1] = rs.getInt(i+1);
+            }
+            num_rows++;
+        }
+        for (int i=0; i < num_cols; i++) {
+            tableDataSet.appendColumn(Arrays.copyOf(data[i], num_rows), headings[i]);
+        }
+        tableDataSet.buildIndex(1);
+        return tableDataSet;
+
+    }
+
     private void run() {
+        TableDataSet zoneAttributes = null;
+        //mtoSurveyData data = SurveyDataImporter.importData(rb);
+        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
 
-        mtoSurveyData data = SurveyDataImporter.importData(rb);
+            String sql = "select * from zones_pop_emp_type where zone_type < 4;";
+            logger.info(sql);
 
-        //Stream<surveyTour> allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
-        //Map<Long, List<surveyTour>> cmaHistogram = allTours.filter(t -> t.getHomeCma() > 0).collect(Collectors.groupingBy(surveyTour::getDistinctNumRegions));
+            zoneAttributes = readTableFromDB(conn, sql);
 
-        List<surveyTour> allTours = data.getPersons().stream().flatMap(p -> p.getTours().stream())
-                .filter(t -> t.getMainModeStr().equals("Auto")) //only want car trips for the moment
-                .collect(Collectors.toList());
+        } catch (SQLException ex) {
+            logger.error("error connecting to db", ex);
+        }
+
+        //testZoneMapping();
+
 
         int max_zone_num = 10000;
         double[] productions = new double[max_zone_num];
         double[] attractions = new double[max_zone_num];
-        int[] zone_index = new int[max_zone_num];
-        int[] zone_index_reverse = new int[max_zone_num];
-        int next_zone_index = 0;
         Arrays.fill(productions, 0);
         Arrays.fill(attractions, 0);
-        Arrays.fill(zone_index, -1);
-        Arrays.fill(zone_index, -1);
 
-        for (surveyTour t : allTours) {
-            //filter here to only add certain trips?
-            ArrayList<Integer> affectedZones = new ArrayList<Integer>();
+        //TODO: build production and attractions arrays from TableDataSet (or just database)
+        productions = zoneAttributes.getColumnAsDouble("production");
+        attractions = zoneAttributes.getColumnAsDouble("attraction");
 
-            //only for internal-external trips
-            if (t.getDestProvince() == 35) {
-                int dest_zone = data.getZoneForCd(t.getUniqueDestCD());
-                if (dest_zone != -1)  affectedZones.add(dest_zone);
 
-                affectedZones.add(data.getZoneIdForProvince(t.getOrigProvince()));
-                affectedZones.add(data.getZoneIdForCMA(t.getHomeCma()));
-            }
-            if (t.getOrigProvince() == 35) {
-                int orig_zone = data.getZoneForCd(t.getUniqueOrigCD());
-                if (orig_zone != -1) affectedZones.add(orig_zone);
-
-                affectedZones.add(data.getZoneIdForProvince(t.getDestProvince()));
-                affectedZones.add(data.getZoneIdForCMA(t.getDestCma()));
-            }
-            //zone 0 is null
-            for (int z : affectedZones) {
-                if (z > 0) {
-                    if (zone_index[z] == -1) {
-                        zone_index[z] = next_zone_index;
-                        zone_index_reverse[next_zone_index] = z;
-                        next_zone_index++;
-                    }
-                    productions[zone_index[z]] += t.getWeight();
-                    attractions[zone_index[z]] += t.getWeight();
-                }
-            };
-        };
-        int numZones = next_zone_index;
+        int numZones = productions.length;
         productions = Arrays.copyOf(productions, numZones);
         attractions = Arrays.copyOf(attractions, numZones);
 
-
-        String output_filename = rb.getString("output.folder") + File.separator + "zone_pa.csv";
-        try (FileWriter writer = new FileWriter(output_filename)) {
-            //write headers
-            writer.write("zone,in_trips,out_trips\n");
-            for (int i=0; i<productions.length; i++) {
-                if (productions[i] > 0 || attractions[i] > 0) {
-                    writer.write(Integer.toString(i) + "," + productions[i] + "," + attractions[i]);
-                    writer.write("\n");
-                }
-            }
-
-        } catch (IOException e) {
-
-        }
-
         //build gravity model
         mtoLongDistData mtoLongDistData = new mtoLongDistData(rb);
-        int[] cd_zones = data.getCensusDivisionList().getColumnAsInt("ID").clone();
-        Arrays.sort(cd_zones);
-        int validZoneCount = 0;
 
         //get all travel times between II and IE zones, but exlcude EE;
         double[][] skim = new double[numZones][numZones];
         //for every
-        for (int i=1001; i<max_zone_num; i++) {
-            for (int j=1001; j < max_zone_num; j++) {
-                if (zone_index[i] > -1 && zone_index[j] > -1) {
-                    boolean i_in_cd = Arrays.binarySearch(cd_zones, i) >= 0;
-                    boolean j_in_cd = Arrays.binarySearch(cd_zones, j) >= 0;
-                    boolean isConnection = false;
-                    if (i_in_cd && j >= 9750 && j <= 9797) {
-                        isConnection = true;
-                    } else if (i >= 9750 && i <= 9797 && j_in_cd) {
-                        isConnection = true;
-                    } else if (i != j && i_in_cd && j_in_cd) {
-                        isConnection = true;
-                    } else {
-                        isConnection = false;
-                    }
-                    if (isConnection) {
-                        skim[zone_index[i]][zone_index[j]] = mtoLongDistData.getAutoTravelTime(i, j);
-                        validZoneCount++;
-                    } else {
-                        skim[zone_index[i]][zone_index[j]] = Double.POSITIVE_INFINITY;
-                    }
+        int[] zones = zoneAttributes.getColumnAsInt("zone_id");
+        int[] zone_types = zoneAttributes.getColumnAsInt("zone_type");
+        logger.info("highest zone:" + zones[numZones-1] + " at " + (numZones-1));
+        for (int i = 0; i<numZones; i++) {
+            for (int j=0; j<numZones; j++) {
+                if (zone_types[i] == 1) { //only take travel times for trips originating in ontario (type 1)
+                    skim[i][j] = mtoLongDistData.getAutoTravelTime(zones[i], zones[j]);
+                } else {
+                    skim[i][j] = 0.0;
                 }
+                //if (skim[i][j] < 80) skim [i][j] =0.0;
             }
         }
-        logger.info("number of valid zones: " + validZoneCount);
 
-        //mask travel times for non connections
+        //set skim to 0/infinity when distance is less than 80km
 
+        logger.info("number of valid zones: " + numZones);
 
-        GravityModel gm = new GravityModel(productions, attractions, skim, 1);
+        GravityModel gm = new GravityModel(zones, productions, attractions, skim, 1);
         gm.run();
+        //output gravity model as a omx matrix
+        //gm.save("output/tripDist.omx");
 
 
+        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
+            TableDataSet zone_to_cds = readTableFromDB(conn, "select * from internal_external_zone_aggregation");
+            Map<Pair<Integer, Integer>, Double> agg_zones = gm.aggregate_zones(zone_to_cds);
 
+            conn.prepareStatement("DROP TABLE IF EXISTS gravity_model_results; ").execute();
+            conn.prepareStatement("CREATE TABLE gravity_model_results(orig integer, dest integer, trips numeric);").execute();
+            conn.setAutoCommit(false);
+            PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO gravity_model_results VALUES (?,?,?)");
 
+            for (Pair<Integer, Integer> k : agg_zones.keySet()) {
+                preparedStatement.setInt(1, k.getKey());
+                preparedStatement.setInt(2, k.getValue());
+                preparedStatement.setDouble(3, agg_zones.get(k));
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+            conn.commit();
 
-
-
+            //gm.outputToDb(conn);
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex.getNextException());
+        }
 
     }
+
+    //get zone for location
+    private int getZone (TableDataSet zoneMapping, int prov, int cd, int cma) {
+
+        int zone = 0;
+        if (cd % 100 == 99) {
+            zone = 0;
+        }
+        else if (prov == 35) {
+            //get cd zone
+            //logger.info("" + prov + " - " + cd);
+            zone = (int) zoneMapping.getIndexedValueAt(cd, "zone");
+        } else {
+            try {
+                zone = (int) zoneMapping.getIndexedValueAt(cma, "zone");
+            } catch (ArrayIndexOutOfBoundsException e) {
+                zone = (int) zoneMapping.getIndexedValueAt(prov, "zone");
+            };
+        }
+        return zone;
+    }
+
+    private void testZoneMapping() {
+        TableDataSet zoneMapping = null;
+        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
+
+            String sql = "select zone, " +
+                    "domesticVisit + domesticBusiness + domesticLeisure as production, " +
+                    "population + employment as attraction " +
+                    "from \"zone_counts\";";
+            logger.info(sql);
+
+            zoneMapping = readTableFromDB(conn, "select key, zone from pr_cd_cma_zone_mapping");
+
+            Statement stmt = conn.createStatement();
+            stmt.execute("select * from tsrc_trip where orcprovt = 35 or mddplfl = 35");
+            ResultSet rs = stmt.getResultSet();
+
+            PreparedStatement stmtUpdate = conn.prepareStatement("INSERT INTO trip_zones VALUES (?,?,?)");
+            conn.setAutoCommit(false);
+
+            while (rs.next()) {
+                int origin_prov = rs.getInt("orcprovt");
+                int origin_cd = rs.getInt("orccdt2");
+                int origin_cma = rs.getInt("orccmat2");
+
+                int dest_prov = rs.getInt("mddplfl");
+                int dest_cd = rs.getInt("mdccd");
+                int dest_cma = rs.getInt("mdccma2");
+
+                int o_zone = getZone(zoneMapping, origin_prov, origin_cd, origin_cma);
+                int d_zone = getZone(zoneMapping, dest_prov, dest_cd, dest_cma);
+                logger.info(String.format("%d :  %d -> %d (%d %d %d) -> (%d, %d, %d)"
+                        , rs.getInt("id"), o_zone,  d_zone, origin_prov, origin_cd, origin_cma, dest_prov, dest_cd, dest_cma));
+
+                stmtUpdate.setInt(1, rs.getInt("id"));
+                stmtUpdate.setInt(2, o_zone);
+                stmtUpdate.setInt(3, d_zone);
+                stmtUpdate.addBatch();
+
+            }
+            stmtUpdate.executeBatch();
+            conn.commit();
+
+        } catch (SQLException ex) {
+            logger.error("error connecting to db", ex);
+        }
+
+    }
+
 
 
 }

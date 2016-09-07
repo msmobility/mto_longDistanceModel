@@ -40,7 +40,9 @@ public class TripChainingAnalysis {
 
         TripChainingAnalysis tca = new TripChainingAnalysis(rb);
         //tca.run();
+        //DatabaseInteractions.loadPersonsToDb(tca.data);
         DatabaseInteractions.loadTripsToDb(tca.data);
+        //DatabaseInteractions.loadVisitsToDb(tca.data);
         //tca.outputTourList();
 
     }
@@ -56,27 +58,17 @@ public class TripChainingAnalysis {
                 .flatMap(p -> p.getTours().stream())
                 //.filter(t -> t.getMainMode() == 1 || t.getMainMode() == 3 || t.getMainMode() == 4) //1: Car, 3: RV, 4: Bus
                 //.filter(t -> t.getMainModeStr().equals("Auto") || t.getMainModeStr().equals("Air")) //2: Air, 5: Train
-                .filter(t -> t.getMainModeStr().equals("Auto")) //2: Air, 5: Train
+                //.filter(t -> t.getMainModeStr().equals("Auto")) //2: Air, 5: Train
                 .filter(t -> t.getOrigProvince() == 35)
                 .filter(t -> t.getUniqueOrigCD() != 5925)
                 .filter(t -> t.getStops().stream().allMatch(SurveyVisit::cdStated))
                 //.filter(t -> t.getStops().size() == 4 && t.getMainModeStr().equals("Air"))
-                //.filter(t -> t.getStops().stream().filter(v -> !v.airport.equals("000")).count() > 2) //odd airport
+                .filter(t -> t.getStops().stream().filter(v -> !v.airport.equals("000")).count() > 2) //odd airport
                 .filter(t -> t.getStops().size() > 2)
                 .filter(t -> t.getStops().stream().filter(v -> v.nights > 0).count() > 2)
                 .collect(Collectors.toList());
 
         logger.info("Number of trips passing through ontario: " + ontarioTrips.size());
-
-
-        //only ontario:
-        List<surveyTour> internalOntarioTrips = data.getPersons().stream()
-                .flatMap(p -> p.getTours().stream())
-                .filter(t -> t.getOrigProvince() == 35)
-                .filter(t -> t.getUniqueOrigCD() != 5925)
-                .filter(t -> t.getStops().stream().allMatch(v -> v.province == 35))
-                .filter(t -> t.getStops().size() > 2)
-                .collect(Collectors.toList());
 
         Map<String, List<surveyTour>> uniqueTours =
                 ontarioTrips.stream()
