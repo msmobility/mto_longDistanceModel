@@ -17,7 +17,7 @@ import java.util.Map;
  * Created by Joe on 27/07/2016.
  */
 public class GravityModel {
-    public static final double G = -0.002;
+    public static final double G = -0.003;
 
     private Logger logger = Logger.getLogger(this.getClass());
     private AbstractMatrixMath matrixMath = new SerialMatrixMath();
@@ -37,7 +37,7 @@ public class GravityModel {
     //max_iterations
     private int maxIterations = 0;
     //expected_trip_length
-    private double expectedTripLength = 162; //make sure to exlude hte 99999 value
+    private double expectedTripLength = 187.60; //make sure to exlude hte 99999 value
 
     public GravityModel(int[] zones, double[] productions, double[] attractions, double[][] skim, int maxIterations) {
         this.zones = zones;

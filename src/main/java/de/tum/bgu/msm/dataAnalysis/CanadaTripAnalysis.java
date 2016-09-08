@@ -67,7 +67,7 @@ public class CanadaTripAnalysis {
         //mtoSurveyData data = SurveyDataImporter.importData(rb);
         try (Connection conn = DatabaseInteractions.getPostgresConnection()){
 
-            String sql = "select * from zones_pop_emp_type where zone_type < 4;";
+            String sql = "select * from canada_production_attraction order by zone_id";// where zone_id < 7060;";
             logger.info(sql);
 
             zoneAttributes = readTableFromDB(conn, sql);
@@ -105,10 +105,10 @@ public class CanadaTripAnalysis {
         logger.info("highest zone:" + zones[numZones-1] + " at " + (numZones-1));
         for (int i = 0; i<numZones; i++) {
             for (int j=0; j<numZones; j++) {
-                if (zone_types[i] == 1) { //only take travel times for trips originating in ontario (type 1)
+                if (zone_types[i] == 1 || (zone_types[i] != zone_types[j])) { //only take travel times for trips originating in ontario (type 1)
                     skim[i][j] = mtoLongDistData.getAutoTravelTime(zones[i], zones[j]);
                 } else {
-                    skim[i][j] = 0.0;
+                    skim[i][j] = Double.POSITIVE_INFINITY;
                 }
                 //if (skim[i][j] < 80) skim [i][j] =0.0;
             }
@@ -121,15 +121,14 @@ public class CanadaTripAnalysis {
         GravityModel gm = new GravityModel(zones, productions, attractions, skim, 1);
         gm.run();
         //output gravity model as a omx matrix
-        //gm.save("output/tripDist.omx");
+        gm.save("output/tripDist.omx");
 
 
         try (Connection conn = DatabaseInteractions.getPostgresConnection()){
-            TableDataSet zone_to_cds = readTableFromDB(conn, "select * from internal_external_zone_aggregation");
+            TableDataSet zone_to_cds = readTableFromDB(conn, "select * from zone_to_lvl2_mapping");
             Map<Pair<Integer, Integer>, Double> agg_zones = gm.aggregate_zones(zone_to_cds);
 
-            conn.prepareStatement("DROP TABLE IF EXISTS gravity_model_results; ").execute();
-            conn.prepareStatement("CREATE TABLE gravity_model_results(orig integer, dest integer, trips numeric);").execute();
+            conn.prepareStatement("DELETE FROM gravity_model_results; ").execute();
             conn.setAutoCommit(false);
             PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO gravity_model_results VALUES (?,?,?)");
 
