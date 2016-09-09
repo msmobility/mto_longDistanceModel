@@ -46,9 +46,9 @@ public class internationalTripGeneration {
         TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
-        double[][] sumProbabilities = new double[3][3];
+        double[][] sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
         int[] personIdMatrix = new int[Person.getSyntheticPersonArray().length];
-        double[][][] probabilityMatrix = new double[3][3][Person.getSyntheticPersonArray().length];
+        double[][][] probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][Person.getSyntheticPersonArray().length];
         int p = 0;
         //recalculate the probabilities adapted to the new accessibility values
         for (Person pers : Person.getSyntheticPersonArray()) {
@@ -113,8 +113,11 @@ public class internationalTripGeneration {
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(adultsHhTravelParty);
         int nonHhTravelPartySize = tripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
-        return new LongDistanceTrip(tripCount, pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
+
+        return new LongDistanceTrip(pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+
+
 
     }
 }

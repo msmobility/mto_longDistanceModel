@@ -29,14 +29,15 @@ public class LongDistanceTrip {
     private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
     private Zone origZone;
+    private static int tripCounter = 0;
 
 
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int tripId, int personId, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
+    public LongDistanceTrip(int personId, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
                             int hhAdultsTravelPartySize, int hhKidsTravelPartySize/**,ArrayList hhTravelParty**/, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
-        this.tripId = tripId;
+        this.tripId = tripCounter;
         this.personId = personId;
         this.international = international;
         this.tripPurpose = tripPurpose;
@@ -48,6 +49,7 @@ public class LongDistanceTrip {
         //this.hhTravelParty = hhTravelParty;
         this.nonHhTravelPartySize = nonHhTravelPartySize;
         //this.destinations = new ArrayList<>();
+        tripCounter++;
     }
 
     public int getLongDistanceTripId() {

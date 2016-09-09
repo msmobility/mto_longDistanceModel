@@ -281,8 +281,7 @@ public class tripGeneration {
         else {
             tripDuration = estimateTripDuration(probability);
         }
-
-        return new LongDistanceTrip(tripCount, pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
+        return new LongDistanceTrip(pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
                 pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }

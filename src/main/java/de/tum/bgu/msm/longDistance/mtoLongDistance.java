@@ -36,6 +36,8 @@ public class mtoLongDistance {
 
     public static List<String> tripStates = Arrays.asList("away","daytrip","inout");
 
+
+
     public void runLongDistanceModel () {
         // main method to run long-distance model
 
@@ -61,9 +63,9 @@ public class mtoLongDistance {
         //initialize parameters for accessibility
         List<String> fromZones;
         List<String> toZones;
-        float alphaAuto = (float) 1.0;
-        float betaAuto = (float) -0.3;
-        //calculate accessibility (not used in the model, this is just to get outputs)
+        float alphaAuto;
+        float betaAuto;
+        //calculate accessibility (not used in the model, only for external analysis)
         if(ResourceUtil.getBooleanProperty(rb,"analyze.accessibility",false)) {
             //input parameters for accessibility calculations from mto properties
             alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
@@ -73,6 +75,8 @@ public class mtoLongDistance {
             md.calculateAccessibility(zoneList, fromZones, toZones, alphaAuto, betaAuto);
             md.writeOutAccessibilities(zoneList);
         }
+
+
 
         //generate domestic trips
         //recalculate accessibility to Canada
@@ -122,6 +126,11 @@ public class mtoLongDistance {
     public static List<String> getTripStates() {
         return tripStates;
     }
+
+
+
+
+
 
 
 }

@@ -95,7 +95,8 @@ public class VisitorsTripGeneration {
         randomChoice = Math.random();
         while (nonHh<9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh+1, 9), column)) nonHh++;
 
-        return new LongDistanceTrip(tripCount, 99999999, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone,
+
+        return new LongDistanceTrip(99999999, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone,
                 0, adultsHh, kidsHh, nonHh);
 
     }
