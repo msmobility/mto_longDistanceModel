@@ -31,6 +31,7 @@ public class mtoLongDistData {
     private static Logger logger = Logger.getLogger(mtoLongDistData.class);
     private ResourceBundle rb;
     private Matrix autoTravelTime;
+
     private double autoAccessibility;
 
     private TableDataSet internalZonesTable;
@@ -46,11 +47,12 @@ public class mtoLongDistData {
         this.rb = rb;
     }
 
-    public void readSkim() {
+    public void readSkim(String mode) {
         // read skim file
         logger.info("  Reading skims files");
 
-        String hwyFileName = rb.getString("auto.skim." + mto.getYear());
+        String matrixName = mode + ".skim." + mto.getYear();
+        String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
@@ -173,7 +175,7 @@ public class mtoLongDistData {
                 double autoImpedance;
                 //limit the minimum travel time for accessibility calculations (namely long distance accessibility)
                 //if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
-                if (getAutoTravelTime(origZone.getId(), destZone.getId()) == 0) {      // should never happen for auto, but has appeared for intrazonal trip length
+                if (getAutoTravelTime(origZone.getId(), destZone.getId()) <= 0) {      // should never happen for auto, but has appeared for intrazonal trip length
                     autoImpedance = 0;
                     //todo this value should be 0 or 1??
                 } else {

@@ -111,7 +111,8 @@ public class tripGeneration {
     }
 
     public static float[] readPersonSocioDemographics(Person pers) {
-        float personDescription[] = new float[14];
+        float personDescription[] = new float[15];
+        //change size to 15 if "winter" is added
         //intercept always = 1
         personDescription[0] = 1;
         //Young = 1 if age is under 25
@@ -181,6 +182,13 @@ public class tripGeneration {
         }
 
         personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
+
+        //variable is winter
+        if (mto.getWinter()){
+        personDescription[14] = 1;
+         } else {
+        personDescription[14] = 0;
+        }
 
         return personDescription;
     }

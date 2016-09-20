@@ -58,7 +58,8 @@ public class mtoLongDistance {
         zoneList.addAll(externalZoneList);
 
         //read skims
-        md.readSkim();
+        //md.readSkim("auto");
+        md.readSkim("transit");
 
         //initialize parameters for accessibility
         List<String> fromZones;
@@ -77,6 +78,8 @@ public class mtoLongDistance {
         }
 
 
+        //read skim for auto and run the model
+        md.readSkim("auto");
 
         //generate domestic trips
         //recalculate accessibility to Canada

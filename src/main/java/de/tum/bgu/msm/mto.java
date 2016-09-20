@@ -25,6 +25,7 @@ public class mto {
     private static Logger logger = Logger.getLogger(mto.class);
     private ResourceBundle rb;
     private static int year;
+    private static boolean winter;
 
 
     private mto(ResourceBundle rb) {
@@ -46,6 +47,7 @@ public class mto {
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = util.mtoInitialization(args[0]);
         year = Integer.parseInt(args[1]);
+        winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
 
         mto model = new mto(rb);
         if (ResourceUtil.getBooleanProperty(rb, "analyze.tsrc.data", false)) model.runDataAnalysis();
@@ -81,4 +83,6 @@ public class mto {
     public static int getYear() {
         return year;
     }
+
+    public static boolean getWinter() { return winter; }
 }
