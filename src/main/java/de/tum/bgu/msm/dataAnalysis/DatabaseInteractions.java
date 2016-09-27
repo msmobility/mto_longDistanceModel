@@ -178,26 +178,5 @@ public class DatabaseInteractions {
         }
     }
 
-    public void build_zone_lvl2_mapping() {
-        try (Connection conn = getPostgresConnection()){
-            conn.prepareStatement("DROP TABLE IF EXISTS zone_lvl2; ").execute();
-            conn.prepareStatement("CREATE TABLE zone_lvl2(pr integer, cd integer, cma integer, zone_lvl2 numeric);").execute();
-            conn.setAutoCommit(false);
-            PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO zone_lvl2 VALUES (?,?,?, ?)");
-            conn.prepareStatement("INSERT INTO zone_lvl2 SELECT distinct ;").execute();
-
-
-            conn.commit();
-            conn.setAutoCommit(true);
-            conn.prepareStatement("CREATE INDEX zone_lvl2_idx on zone_lvl2(pr, cd, cma);").execute();
-
-
-        } catch (SQLException ex) {
-            logger.error(ex.getMessage(), ex.getNextException());
-
-        }
-    }
-
-
 }
 

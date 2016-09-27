@@ -73,7 +73,7 @@ public class surveyTour implements Serializable {
         this.destCD = survey.readInt(recString, "MDCCD");  // ascii position in file: 026-027
         this.destCma = survey.readInt(recString, "MDCCMA2");  // ascii position in file: 022-025
         this.mainMode = survey.readInt(recString, "TMDTYPE2");  // ascii position in file: 080-081
-        this.tripPurp = survey.readInt(recString, "MRDTRIP3");  // ascii position in file: 073-074
+        this.tripPurp = survey.readInt(recString, "MRDTRIP2");  // ascii position in file: 073-074
         this.numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
         this.hHWeight = survey.readDouble(recString, "WTEP");
         this.weight = survey.readDouble(recString, "WTTP");
