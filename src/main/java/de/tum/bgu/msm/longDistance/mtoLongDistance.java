@@ -1,12 +1,12 @@
 package de.tum.bgu.msm.longDistance;
 
-import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.tripGeneration.VisitorsTripGeneration;
+import de.tum.bgu.msm.longDistance.tripGeneration.internationalTripGeneration;
+import de.tum.bgu.msm.longDistance.tripGeneration.tripGeneration;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.syntheticPopulation.Household;
-import de.tum.bgu.msm.syntheticPopulation.Person;
+import de.tum.bgu.msm.longDistance.zoneSystem.mtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.readSP;
-import javafx.collections.FXCollections;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -57,9 +57,7 @@ public class mtoLongDistance {
         zoneList.addAll(internalZoneList);
         zoneList.addAll(externalZoneList);
 
-        //read skims
-        //md.readSkim("auto");
-        md.readSkim("transit");
+
 
         //initialize parameters for accessibility
         List<String> fromZones;
@@ -68,6 +66,9 @@ public class mtoLongDistance {
         float betaAuto;
         //calculate accessibility (not used in the model, only for external analysis)
         if(ResourceUtil.getBooleanProperty(rb,"analyze.accessibility",false)) {
+            //read skims
+            //md.readSkim("auto");
+            md.readSkim("transit");
             //input parameters for accessibility calculations from mto properties
             alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
             betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");

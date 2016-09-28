@@ -1,18 +1,14 @@
-package de.tum.bgu.msm.longDistance;
+package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import com.sun.org.apache.regexp.internal.RESyntaxException;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
-import sun.security.tools.keytool.Resources_sv;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -102,7 +98,7 @@ public class mtoLongDistData {
 
     }
 
-    ArrayList<Zone> readExternalZones(){
+    public ArrayList<Zone> readExternalZones(){
 
         ArrayList<Zone> externalZonesArray = new ArrayList<>();
 

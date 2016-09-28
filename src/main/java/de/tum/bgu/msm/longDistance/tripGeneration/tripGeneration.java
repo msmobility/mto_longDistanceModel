@@ -1,9 +1,10 @@
-package de.tum.bgu.msm.longDistance;
+package de.tum.bgu.msm.longDistance.tripGeneration;
 
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.mtoLongDistance;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
 
