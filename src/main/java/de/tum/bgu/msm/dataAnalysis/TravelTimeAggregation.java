@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 
@@ -20,6 +21,8 @@ import java.util.ResourceBundle;
 public class TravelTimeAggregation {
     private final Logger logger = Logger.getLogger(this.getClass());
     private final ResourceBundle rb;
+    double[][] cd_tt_small;
+    int[] lookup = null;
 
     public TravelTimeAggregation(ResourceBundle rb) {
         this.rb = rb;
@@ -31,12 +34,17 @@ public class TravelTimeAggregation {
 
         TravelTimeAggregation tca = new TravelTimeAggregation(rb);
         tca.run();
+        tca.save("output/cd_travel_times.omx");
 
     }
     public void run() {
         mtoLongDistData mtoLongDistData = new mtoLongDistData(rb);
 
         TableDataSet cd_mapping = TableDataSet.readFile("input/zone_cd_mapping.csv");
+
+        int[] cds = Arrays.stream(cd_mapping.getColumnAsInt("cd")).distinct().sorted().toArray();
+        lookup = cds;
+        cd_tt_small = new double[cds.length][cds.length];
 
 
         long[][] cd_pp = new long[10000][10000];
@@ -72,6 +80,7 @@ public class TravelTimeAggregation {
                         float result = cd_tt[i][j] / cd_pp[i][j];
                         writer.write(String.format("%d,%d,%d, %f\n", i, j, cd_pp[i][j], result));
                         //logger.info(String.format("%d %d: %d: %f", i, j, cd_pp[i][j], result));
+                        cd_tt_small[Arrays.binarySearch(cds, i)][Arrays.binarySearch(cds, j)] = result;
                     }
                 }
             }
@@ -80,4 +89,18 @@ public class TravelTimeAggregation {
         }
 
     }
+
+    public void save(String filename) {
+        logger.info("skim shape: " + cd_tt_small.length);
+        int[] shape = new int[]{cd_tt_small.length, cd_tt_small.length};
+        OmxFile omxfile = new OmxFile(filename);
+        omxfile.openNew(shape);
+        OmxMatrix omxMatrix = new OmxMatrix.OmxDoubleMatrix("cd_traveltimes", cd_tt_small, -1.0);
+        omxfile.addMatrix(omxMatrix);
+        omxfile.addLookup(new OmxLookup.OmxIntLookup("cd", lookup, null));
+        omxfile.save();
+    }
+
+
+
 }
