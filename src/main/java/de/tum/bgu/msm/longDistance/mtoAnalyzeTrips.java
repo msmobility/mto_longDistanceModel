@@ -95,7 +95,7 @@ public class mtoAnalyzeTrips {
         pw3.println();
 
         for (Zone zone : zoneList){
-            //todo is valuable to add the list or the number of trips to the objects of class zone?
+            //todo improve this method because it is too slow
             int visitTrips = 0;
             int businessTrips = 0;
             int leisureTrips = 0;

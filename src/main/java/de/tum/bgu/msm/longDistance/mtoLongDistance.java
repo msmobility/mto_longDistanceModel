@@ -102,7 +102,7 @@ public class mtoLongDistance {
         logger.info("International trips from Ontario generated");
 
         //generate visitors
-
+        //recalculate accessibility to Ontario
         fromZones = Arrays.asList("ONTARIO","EXTCANADA","EXTUS","EXTOVERSEAS");
         toZones=Arrays.asList("ONTARIO");
         md.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float)-0.01);
@@ -119,6 +119,7 @@ public class mtoLongDistance {
         trips.addAll(trips_visitors);
 
         mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
+        //currently only internal zone list
         if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(trips, zoneList);
     }
 
