@@ -42,31 +42,30 @@ public class TravelTimeAggregation {
 
         TableDataSet cd_mapping = TableDataSet.readFile("input/zone_cd_mapping.csv");
 
-        int[] cds = Arrays.stream(cd_mapping.getColumnAsInt("cd")).distinct().sorted().toArray();
+        int[] cds = Arrays.stream(cd_mapping.getColumnAsInt("zone_lvl2")).distinct().sorted().toArray();
         lookup = cds;
         cd_tt_small = new double[cds.length][cds.length];
 
 
-        long[][] cd_pp = new long[10000][10000];
-        float[][] cd_tt = new float[10000][10000];
+        long[][] cd_pp = new long[cds.length][cds.length];
+        float[][] cd_tt = new float[cds.length][cds.length];
 
         for (int i = 1; i <= cd_mapping.getRowCount(); i++) {
             for (int j = 1; j <= cd_mapping.getRowCount(); j++) {
                 int origin = (int) cd_mapping.getValueAt(i, "zone_id");
                 int dest = (int) cd_mapping.getValueAt(j, "zone_id");
 
-                int origin_cd = (int) cd_mapping.getValueAt(i, "cd");
-                int dest_cd = (int) cd_mapping.getValueAt(j, "cd");
+                int origin_cd = (int) cd_mapping.getValueAt(i, "zone_lvl2");
+                int dest_cd = (int) cd_mapping.getValueAt(j, "zone_lvl2");
 
-                int origin_pop = (int) cd_mapping.getValueAt(i, "population");
-                int dest_pop = (int) cd_mapping.getValueAt(j, "population");
-                if (origin_cd == 3501 && dest_cd == 3501) {
-                    System.out.println(mtoLongDistData.getAutoTravelTime(origin, dest));
-                }
+                long origin_pop = (long) cd_mapping.getValueAt(i, "population");
+                long dest_pop = (long) cd_mapping.getValueAt(j, "population");
+
                 //logger.info(String.format("%d %d: %f",  origin, dest, mtoLongDistData.getAutoTravelTime(origin, dest)));
                 long pop_ij = origin_pop * dest_pop;
-                cd_tt[origin_cd][dest_cd] += mtoLongDistData.getAutoTravelTime(origin, dest) * pop_ij;
-                cd_pp[origin_cd][dest_cd] += pop_ij;
+
+                cd_tt[origin_cd-1][dest_cd-1] += mtoLongDistData.getAutoTravelTime(origin, dest) * pop_ij;
+                cd_pp[origin_cd-1][dest_cd-1] += pop_ij;
 
 
             }
@@ -80,7 +79,10 @@ public class TravelTimeAggregation {
                         float result = cd_tt[i][j] / cd_pp[i][j];
                         writer.write(String.format("%d,%d,%d, %f\n", i, j, cd_pp[i][j], result));
                         //logger.info(String.format("%d %d: %d: %f", i, j, cd_pp[i][j], result));
-                        cd_tt_small[Arrays.binarySearch(cds, i)][Arrays.binarySearch(cds, j)] = result;
+                        cd_tt_small[i][j] = result;
+                    }
+                    else {
+                        logger.warn("travel time is zero between " + i + " and " + j);
                     }
                 }
             }
