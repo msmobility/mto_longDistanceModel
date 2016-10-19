@@ -48,7 +48,7 @@ public class mtoLongDistData {
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
         autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup("zone_number");
+        OmxLookup omxLookUp = hSkim.getLookup("cd");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }

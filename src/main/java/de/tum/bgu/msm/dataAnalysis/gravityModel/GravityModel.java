@@ -17,7 +17,7 @@ import java.util.Map;
  * Created by Joe on 27/07/2016.
  */
 public class GravityModel {
-    public static final double G = -0.003;
+    public static final double G = -0.0041;
 
     private Logger logger = Logger.getLogger(this.getClass());
     private AbstractMatrixMath matrixMath = new SerialMatrixMath();

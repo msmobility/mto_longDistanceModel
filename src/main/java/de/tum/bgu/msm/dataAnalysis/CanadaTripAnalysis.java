@@ -47,10 +47,10 @@ public class CanadaTripAnalysis {
             headings[i] = rs.getMetaData().getColumnLabel(i + 1);
         }
 
-        int[][] data = new int[num_cols][MAX_NUM_ZONES];
+        double[][] data = new double[num_cols][MAX_NUM_ZONES];
         while (rs.next()) {
             for (int i=0; i < num_cols; i++) {
-                data[i][rs.getRow()-1] = rs.getInt(i+1);
+                data[i][rs.getRow()-1] = rs.getDouble(i+1);
             }
             num_rows++;
         }
@@ -65,9 +65,20 @@ public class CanadaTripAnalysis {
     private void run() {
         TableDataSet zoneAttributes = null;
         //mtoSurveyData data = SurveyDataImporter.importData(rb);
-        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
+        try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
 
-            String sql = "select * from canada_production_attraction order by zone_id";// where zone_id < 7060;";
+            String sql = "select t.zone_id, sum(production) as production, sum(population + employment) as attraction\n" +
+                    "from destination_attributes, \n" +
+                    "\t(\n" +
+                    "\t\tselect lvl2_orig as zone_id, \n" +
+                    "\t\t\tcase when lvl2_orig < 70 then 1 else 0 end as zone_type,\n" +
+                    "\t\t\tpurpose, wtep as production\n" +
+                    "\t\tfrom tsrc_trip\n" +
+                    "\t\twhere purpose = 'leisure'\n and dist2<9999" +
+                    "\t\t) as t\n" +
+                    "where t.zone_id = alt\n" +
+                    "group by t.zone_id, zone_type, purpose\n" +
+                    "order by t.zone_id, purpose\n";// where zone_id < 7060;";
             logger.info(sql);
 
             zoneAttributes = readTableFromDB(conn, sql);
@@ -101,15 +112,12 @@ public class CanadaTripAnalysis {
         double[][] skim = new double[numZones][numZones];
         //for every
         int[] zones = zoneAttributes.getColumnAsInt("zone_id");
-        int[] zone_types = zoneAttributes.getColumnAsInt("zone_type");
-        logger.info("highest zone:" + zones[numZones-1] + " at " + (numZones-1));
-        for (int i = 0; i<numZones; i++) {
-            for (int j=0; j<numZones; j++) {
-                if (zone_types[i] == 1 || (zone_types[i] != zone_types[j])) { //only take travel times for trips originating in ontario (type 1)
-                    skim[i][j] = mtoLongDistData.getAutoTravelTime(zones[i], zones[j]);
-                } else {
-                    skim[i][j] = Double.POSITIVE_INFINITY;
-                }
+        //int[] zone_types = zoneAttributes.getColumnAsInt("zone_type");
+        logger.info("highest zone:" + zones[numZones - 1] + " at " + (numZones - 1));
+        for (int i = 0; i < numZones; i++) {
+            for (int j = 0; j < numZones; j++) {
+                skim[i][j] = mtoLongDistData.getAutoTravelTime(zones[i], zones[j]);
+
                 //if (skim[i][j] < 80) skim [i][j] =0.0;
             }
         }
@@ -122,8 +130,13 @@ public class CanadaTripAnalysis {
         gm.run();
         //output gravity model as a omx matrix
         gm.save("output/tripDist.omx");
-
-
+        try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
+            gm.outputToDb(conn);
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex.getNextException());
+        }
+    }
+/*
         try (Connection conn = DatabaseInteractions.getPostgresConnection()){
             TableDataSet zone_to_cds = readTableFromDB(conn, "select * from zone_to_lvl2_mapping");
             Map<Pair<Integer, Integer>, Double> agg_zones = gm.aggregate_zones(zone_to_cds);
@@ -147,7 +160,7 @@ public class CanadaTripAnalysis {
         }
 
     }
-
+*/
     //get zone for location
     private int getZone (TableDataSet zoneMapping, int prov, int cd, int cma) {
 

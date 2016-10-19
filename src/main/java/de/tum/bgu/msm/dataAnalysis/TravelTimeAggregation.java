@@ -70,19 +70,19 @@ public class TravelTimeAggregation {
 
             }
         }
-        File f = new File("input/cd_traveltimes.csv");
+        File f = new File("output/cd_traveltimes2.csv");
         try (FileWriter writer = new FileWriter(f) ) {
-            writer.write("origin_cd, destination_cd, connections, travel_time\n");
+            writer.write("origin_lvl2_zone, destination_lvl2_zone, travel_time\n");
             for (int i = 0; i < cd_pp.length; i++) {
                 for (int j = 0; j < cd_pp.length; j++) {
                     if (cd_tt[i][j] > 0) {
                         float result = cd_tt[i][j] / cd_pp[i][j];
-                        writer.write(String.format("%d,%d,%d, %f\n", i, j, cd_pp[i][j], result));
+                        writer.write(String.format("%d,%d, %f\n", i+1, j+1, result));
                         //logger.info(String.format("%d %d: %d: %f", i, j, cd_pp[i][j], result));
                         cd_tt_small[i][j] = result;
                     }
                     else {
-                        logger.warn("travel time is zero between " + i + " and " + j);
+                        logger.warn("travel time is zero between " + (i+1) + " and " + (j+1));
                     }
                 }
             }
