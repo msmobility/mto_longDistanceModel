@@ -72,26 +72,30 @@ public class SurveyDataImporter {
     private void readITSdata(int year) {
         // read ITS data
         logger.info ("  Reading ITS data for " + year);
-        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + ResourceUtil.getProperty(rb, "its.data");
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data") + year + "_PUMF.txt";
         String recString;
         int recCount = 0;
-        String its_out_location = rb.getString("output.folder") + File.separator + rb.getString("its.out.file");
-        PrintWriter out = util.openFileForSequentialWriting(its_out_location + ".csv", false);
-        out.println("province,cma,weight");
+        String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file");
+        PrintWriter out = util.openFileForSequentialWriting(its_out_location + year + ".csv",false);
+        System.out.println(fileName);
+        out.println("year,province,cma,weight,entryMode,country,purpose");
         Survey survey = dataDictionary.getSurvey("ITS", year, "Canadians");
 //        float[][] purp = new float[5][365];
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
             while ((recString = in.readLine()) != null) {
                 recCount++;
-                String origProvince = survey.read(recString, "RSPROV");  // ascii position in file: 009-010
-                String origCMA =      survey.read(recString, "RSCMA");  // ascii position in file: 011-014
-                if (origProvince.equals("35")){
+
+                int origProvince = survey.readInt(recString, "RSPROV");  // ascii position in file: 009-010
+//                if (year == 2011) logger.info("error");
+                int origCMA =      survey.readInt(recString, "RSCMA");  // ascii position in file: 011-014
+                int entryMode =    survey.readInt(recString, "MODENTP");  // ascii position in file: 026-026
+                int country =      survey.readInt(recString, "PLVS01C");  // ascii position in file: 039-043
+                int  purpose =      survey.readInt(recString, "RSNP");  // ascii position in file: 019-019
+
+                if (origProvince==35){
                     // origin == ontario
                     recCount++;
-                    int purpose =      survey.readInt(recString, "RSNP");  // ascii position in file: 019-019
-                    int entryMode =    survey.readInt(recString, "MODENTP");  // ascii position in file: 026-026
-                    int country =      survey.readInt(recString, "PLVS01C");  // ascii position in file: 039-043
                     int nightsByPlace[] = new int[11];
                     nightsByPlace[1] = survey.readInt(recString, "NTSVS01");  // ascii position in file: 049-051
                     nightsByPlace[2] = survey.readInt(recString, "NTSVS02");  // ascii position in file: 076-078
@@ -105,9 +109,10 @@ public class SurveyDataImporter {
                     nightsByPlace[10]= survey.readInt(recString, "NTSVS10");  // ascii position in file: 292-294
                     nightsByPlace[0] = survey.readInt(recString, "TOTNIGHT");  // ascii position in file: 346-348
 //                    purp[purpose][nightsByPlace[0]] += weight;
+
                 }
                 float weight =  survey.readFloat(recString, "WEIGHTP");    // ascii position in file: 476-492
-                out.println(origProvince + "," + origCMA + "," + weight);
+                out.println(year + "," + origProvince + "," + origCMA + "," + weight + "," + entryMode + "," + country +"," + purpose);
             }
             out.close();
         } catch (Exception e) {
