@@ -7,11 +7,15 @@ import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Joe on 27/07/2016.
@@ -154,16 +158,37 @@ public class GravityModel {
         omxfile.save();
     }
 
+    public void outputToCsv(String filename) {
+        String headers = "orig,dest,trips";
+        try (FileWriter writer = new FileWriter(filename)) {
+            writer.write(headers);
+            writer.write("\n");
+            for (int i = 0; i < impedances.length; i++) {
+                for (int j = 0; j < impedances[i].length; j++) {
+                    writer.write(Integer.toString(zones[i]));
+                    writer.write(",");
+                    writer.write(Integer.toString(zones[j]));
+                    writer.write(",");
+                    writer.write(String.format("%.2f", impedances[i][j]));
+                    writer.write("\n");
+                }
+            }
+
+        } catch (IOException ex) {
+            logger.error(ex);
+        }
+    }
+
     public void outputToDb(Connection conn) throws SQLException {
         conn.prepareStatement("DROP TABLE IF EXISTS gravity_model_results; ").execute();
         conn.prepareStatement("CREATE TABLE gravity_model_results(orig integer, dest integer, trips numeric);").execute();
         conn.setAutoCommit(false);
         PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO gravity_model_results VALUES (?,?,?)");
-        for (int i = 0; i < skim.length; i++) {
-            for (int j = 0; j < skim[i].length; j++) {
+        for (int i = 0; i < impedances.length; i++) {
+            for (int j = 0; j < impedances[i].length; j++) {
                 preparedStatement.setInt(1, zones[i]);
                 preparedStatement.setInt(2, zones[j]);
-                preparedStatement.setDouble(3, skim[i][j]);
+                preparedStatement.setDouble(3, impedances[i][j]);
                 preparedStatement.addBatch();
             }
             preparedStatement.executeBatch();

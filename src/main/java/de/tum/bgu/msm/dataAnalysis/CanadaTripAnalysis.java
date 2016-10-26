@@ -28,7 +28,9 @@ public class CanadaTripAnalysis {
         ResourceBundle rb = util.mtoInitialization(args[0]);
 
         CanadaTripAnalysis tca = new CanadaTripAnalysis(rb);
-        tca.run();
+        tca.run("visit");
+        tca.run("leisure");
+        tca.run("business");
 
     }
 
@@ -62,7 +64,7 @@ public class CanadaTripAnalysis {
 
     }
 
-    private void run() {
+    private void run(String purpose) {
         TableDataSet zoneAttributes = null;
         //mtoSurveyData data = SurveyDataImporter.importData(rb);
         try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
@@ -73,9 +75,9 @@ public class CanadaTripAnalysis {
                     "\t\tselect lvl2_orig as zone_id, \n" +
                     "\t\t\tcase when lvl2_orig < 70 then 1 else 0 end as zone_type,\n" +
                     "\t\t\tpurpose, wtep as production\n" +
-                    "\t\tfrom tsrc_trip\n" +
-                    "\t\twhere purpose = 'leisure'\n and dist2<9999" +
-                    "\t\t) as t\n" +
+                    "\t\tfrom tsrc_trip\n";
+            if (purpose != null) sql += "\t\twhere purpose = '" + purpose + "'\n and dist2<9999 and refyear = 2014";
+            sql +=  "\t\t) as t\n" +
                     "where t.zone_id = alt\n" +
                     "group by t.zone_id, zone_type, purpose\n" +
                     "order by t.zone_id, purpose\n";// where zone_id < 7060;";
@@ -129,38 +131,15 @@ public class CanadaTripAnalysis {
         GravityModel gm = new GravityModel(zones, productions, attractions, skim, 1);
         gm.run();
         //output gravity model as a omx matrix
-        gm.save("output/tripDist.omx");
-        try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
+        gm.save("output/tripDist_" + purpose + ".omx");
+        gm.outputToCsv("output/tripDist_" + purpose +".csv");
+        /*try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
             gm.outputToDb(conn);
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex.getNextException());
-        }
+        }*/
     }
-/*
-        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
-            TableDataSet zone_to_cds = readTableFromDB(conn, "select * from zone_to_lvl2_mapping");
-            Map<Pair<Integer, Integer>, Double> agg_zones = gm.aggregate_zones(zone_to_cds);
 
-            conn.prepareStatement("DELETE FROM gravity_model_results; ").execute();
-            conn.setAutoCommit(false);
-            PreparedStatement preparedStatement = conn.prepareStatement("INSERT INTO gravity_model_results VALUES (?,?,?)");
-
-            for (Pair<Integer, Integer> k : agg_zones.keySet()) {
-                preparedStatement.setInt(1, k.getKey());
-                preparedStatement.setInt(2, k.getValue());
-                preparedStatement.setDouble(3, agg_zones.get(k));
-                preparedStatement.addBatch();
-            }
-            preparedStatement.executeBatch();
-            conn.commit();
-
-            //gm.outputToDb(conn);
-        } catch (SQLException ex) {
-            logger.error(ex.getMessage(), ex.getNextException());
-        }
-
-    }
-*/
     //get zone for location
     private int getZone (TableDataSet zoneMapping, int prov, int cd, int cma) {
 
