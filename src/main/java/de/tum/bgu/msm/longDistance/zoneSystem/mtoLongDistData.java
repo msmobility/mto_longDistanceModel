@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.destinationChoice.Destination;
 import de.tum.bgu.msm.mto;
 import de.tum.bgu.msm.util;
 import omx.OmxFile;
@@ -50,6 +51,7 @@ public class mtoLongDistData {
         String matrixName = mode + ".skim." + mto.getYear();
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
+        logger.info("Opening omx file: " + hwyFileName);
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
@@ -72,7 +74,7 @@ public class mtoLongDistData {
 
         //read the internal zones already created and add them the employment from an external file
 
-        internalZonesTable = util.importTable(rb.getString("int.employment.file"));
+        internalZonesTable = util.importTable(rb.getString("int.can"));
         internalZones = internalZonesTable.getColumnAsInt("ID");
         internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
         int emptyZoneCount = 0;
@@ -115,8 +117,9 @@ public class mtoLongDistData {
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
+                int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalCanadaTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA);
+                        (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA, combinedZone);
                 externalZonesArray.add(zone);
             }
         }
@@ -125,8 +128,9 @@ public class mtoLongDistData {
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
+                //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS);
+                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS, -1);
                 externalZonesArray.add(zone);
             }
         }
@@ -135,8 +139,9 @@ public class mtoLongDistData {
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
+                //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS);
+                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, -1);
                 externalZonesArray.add(zone);
             }
         }
@@ -226,7 +231,7 @@ public class mtoLongDistData {
         pw.close();
     }
 
-        //original Rolf version below
+    //original Rolf version below
         /*autoAccessibility = new double[zones.length];
         for (int orig: zones) {
             autoAccessibility[rsp.getIndexOfZone(orig)] = 0;

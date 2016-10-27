@@ -87,4 +87,8 @@ public class LongDistanceTrip {
     public int getNonHhTravelPartySize() {
         return nonHhTravelPartySize;
     }
+
+    public Zone getOrigZone() { return origZone; }
+
+    public int getTripPurpose() { return tripPurpose; }
 }

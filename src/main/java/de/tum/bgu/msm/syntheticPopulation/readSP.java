@@ -59,10 +59,12 @@ public class readSP {
     public ArrayList<Zone> readInternalZones(){
         //create zones objects (empty) and a map to find them in hh zone assignment
         ArrayList<Zone> internalZoneList = new ArrayList<>();
-        zoneTable = util.importTable(rb.getString("zone.system"));
+        zoneTable = util.readCSVfile(rb.getString("int.can"));
+        zoneTable.buildIndex(1);
         zones = zoneTable.getColumnAsInt("ID");
         for (int zone : zones) {
-            Zone internalZone = new Zone (zone, 0, 0, ZoneType.ONTARIO);
+            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
+            Zone internalZone = new Zone (zone, 0, 0, ZoneType.ONTARIO, combinedZone);
             internalZoneList.add(internalZone);
             internalZoneMap.put(zone, internalZone);
         }
@@ -85,7 +87,7 @@ public class readSP {
     /*public void readZonalData () {
         // Read in zonal data
 
-        zoneTable = util.importTable(rb.getString("zone.system"));
+        zoneTable = util.importTable(rb.getString("int.can"));
         zones = zoneTable.getColumnAsInt("ID");
         zoneIndex = new int[util.getHighestVal(zones) + 1];
         for (int i = 0; i < zones.length; i++) {

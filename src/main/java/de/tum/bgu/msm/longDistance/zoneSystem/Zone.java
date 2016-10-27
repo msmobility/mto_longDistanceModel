@@ -10,13 +10,15 @@ public class Zone {
     private int households = 0;
     private ZoneType zoneType;
     private double accessibility;
+    private int combinedZoneId;
 
 
-    public Zone(int id, int population, int employment, ZoneType zoneType) {
+    public Zone(int id, int population, int employment, ZoneType zoneType, int combinedZoneId) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
+        this.combinedZoneId = combinedZoneId;
     }
 
     public int getId() {
@@ -61,6 +63,10 @@ public class Zone {
 
     public void setAccessibility(double accessibility) {
         this.accessibility = accessibility;
+    }
+
+    public int getCombinedZoneId() {
+        return combinedZoneId;
     }
 }
 
