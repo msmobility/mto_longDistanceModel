@@ -2,10 +2,12 @@ package de.tum.bgu.msm.longDistance;
 
 
 
+import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
@@ -30,7 +32,7 @@ public class LongDistanceTrip {
     private int nonHhTravelPartySize;
     private Zone origZone;
     private static int tripCounter = 0;
-
+    private Zone destination;
 
 
     //ArrayList<Long> destinations;
@@ -50,6 +52,24 @@ public class LongDistanceTrip {
         this.nonHhTravelPartySize = nonHhTravelPartySize;
         //this.destinations = new ArrayList<>();
         tripCounter++;
+    }
+
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup) {
+
+        List<String> tripPurposes = mtoLongDistance.getTripPurposes();
+        List<String> tripStates = mtoLongDistance.getTripStates();
+
+        this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
+        this.personId = (int) tripsDomesticTable.getValueAt(row, "personId");
+        this.international = tripsDomesticTable.getBooleanValueAt(row, "international");
+        this.tripPurpose = tripPurposes.indexOf(tripsDomesticTable.getStringValueAt(row, "tripPurpose"));
+        this.tripState = tripStates.indexOf(tripsDomesticTable.getStringValueAt(row, "tripState"));
+        int origZoneId = (int) tripsDomesticTable.getValueAt(row, "tripOriginZone");
+        origZone = zoneLookup.get(origZoneId);
+        this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
+        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
+        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
+        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
     }
 
     public int getLongDistanceTripId() {
@@ -90,5 +110,8 @@ public class LongDistanceTrip {
 
     public Zone getOrigZone() { return origZone; }
 
-    public int getTripPurpose() { return tripPurpose; }
+
+    public void setDestination(Zone destination) {
+        this.destination = destination;
+    }
 }

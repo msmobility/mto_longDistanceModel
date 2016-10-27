@@ -85,6 +85,7 @@ public class mtoLongDistData {
             } catch (Exception e) {
                 emptyZoneCount++ ;
             }
+            if (zone.getEmployment() == 0) emptyZoneCount++;
 
         }
     logger.warn(emptyZoneCount+ " zones were found with employment equal to 0");

@@ -62,7 +62,12 @@ public class DomesticDestinationChoice {
     }
 
     //given a trip, calculate the utility of each destination
-    int selectDestination(LongDistanceTrip trip) {
+    public int selectDestination(LongDistanceTrip trip) {
+        //need a legitimate trip purpose
+    //    if (trip.getTripPurpose() > 3) {
+     //       return 0;
+     //   }
+
         List<Pair<Integer, Double>> utilities = Arrays.stream(combinedZones.getColumnAsInt("alt"))
                 //calculate exp(Ui) for each destination
                 .mapToObj(d ->  new Pair<> ( d, Math.exp(calculateDestinationUtility(trip, d))))
@@ -77,7 +82,7 @@ public class DomesticDestinationChoice {
                 .collect(Collectors.toList());
 
         //choose one destination, weighted at random by the probabilities
-        int selectedDestination = new EnumeratedDistribution<>(utilities).sample();
+        int selectedDestination = new EnumeratedDistribution<>(probabilities).sample();
 
         return selectedDestination;
 
@@ -85,13 +90,17 @@ public class DomesticDestinationChoice {
 
     private double calculateDestinationUtility(LongDistanceTrip trip, int destination) {
         String tripPurpose = "";
-        switch (trip.getTripPurpose()) {
-            case 1:
+
+        switch (trip.getLongDistanceTripPurpose()) {
+            case 0:
                 tripPurpose = "leisure";
-            case 2:
+                break;
+            case 1:
                 tripPurpose = "visit";
-            case 3:
+                break;
+            case 2:
                 tripPurpose = "business";
+                break;
         }
 
         //TODO: check ordering or number -> string value (ie purpose 1 = "visit""?)
@@ -103,13 +112,13 @@ public class DomesticDestinationChoice {
         int mr = (int) combinedZones.getIndexedValueAt(origin,"alt_is_metro") * (1 - (int) combinedZones.getIndexedValueAt(destination,"alt_is_metro"));
 
         double b_distance = coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-        double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
+        double b_population = coefficients.getStringIndexedValueAt("pop_log", tripPurpose);
         double b_lang_barrier = coefficients.getStringIndexedValueAt("lang.barrier", tripPurpose);
         double b_mm = coefficients.getStringIndexedValueAt("mm", tripPurpose);
         double b_mr = coefficients.getStringIndexedValueAt("rm", tripPurpose);
 
-        double u = b_distance * Math.exp(distance)
-                + b_population * combinedZones.getIndexedValueAt(destination,"population")
+        double u = b_distance * Math.exp(-1.0 * distance)
+                + b_population * Math.log(combinedZones.getIndexedValueAt(destination,"population"))
                 + b_lang_barrier * lang_barrier
                 + b_mm * mm
                 + b_mr * mr;
