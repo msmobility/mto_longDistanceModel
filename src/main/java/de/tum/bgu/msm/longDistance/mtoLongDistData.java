@@ -42,13 +42,13 @@ public class mtoLongDistData {
         // read skim file
         logger.info("  Reading skims files");
 
-        String hwyFileName = rb.getString("auto.skim." + year);
+        String hwyFileName = rb.getString("auto.skim.combinedzones." + year);
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
-        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
+        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.combinedzones.time"));
         autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup("cd");
+        OmxLookup omxLookUp = hSkim.getLookup("combinedZone");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
