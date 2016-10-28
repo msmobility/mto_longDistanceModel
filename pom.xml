@@ -75,7 +75,7 @@
                                 <!-- automatically creates the classpath using all project dependencies,
                                      also adding the project build directory -->
                                 <classpath/>
-                                <argument>de.tum.bgu.msm.mto</argument>
+                                <argument>de.tum.bgu.msm.Mto</argument>
                                 <argument>javaFiles\mto.properties</argument>
                                 <argument>2015</argument>
                             </arguments>

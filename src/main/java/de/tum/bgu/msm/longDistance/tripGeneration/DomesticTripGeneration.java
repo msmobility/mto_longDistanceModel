@@ -4,7 +4,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.mtoLongDistance;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
 
@@ -22,17 +22,17 @@ import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
  * works for domestic trips
  */
 
-public class tripGeneration {
+public class DomesticTripGeneration {
 
-    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private List<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
+    private List<String> tripStates = MtoLongDistance.getTripStates();
 
 
 
-    static Logger logger = Logger.getLogger(tripGeneration.class);
+    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
-    public tripGeneration(ResourceBundle rb) {
+    public DomesticTripGeneration(ResourceBundle rb) {
         this.rb = rb;
     }
 
@@ -46,11 +46,11 @@ public class tripGeneration {
         //read the coefficients and probabilities of increasing travel parties
 
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
+        TableDataSet tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
         String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");;
-        TableDataSet travelPartyProbabilities =  util.readCSVfile(travelPartyProbabilitiesFilename);
+        TableDataSet travelPartyProbabilities =  Util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 
@@ -185,7 +185,7 @@ public class tripGeneration {
         personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
 
         //variable is winter
-        if (mto.getWinter()){
+        if (Mto.getWinter()){
         personDescription[14] = 1;
          } else {
         personDescription[14] = 0;

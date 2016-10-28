@@ -1,18 +1,14 @@
 package de.tum.bgu.msm.longDistance;
 
-import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 
 import java.io.PrintWriter;
 import java.util.*;
 
-import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import static de.tum.bgu.msm.syntheticPopulation.Person.*;
-import static de.tum.bgu.msm.syntheticPopulation.Household.*;
 
 import org.apache.log4j.Logger;
 
@@ -24,14 +20,14 @@ import org.apache.log4j.Logger;
  * class to analyze the trips from tripGeneration by writing them into CSV files
  *
  */
-public class mtoAnalyzeTrips {
+public class MtoAnalyzeTrips {
     private ResourceBundle rb;
-    static Logger logger = Logger.getLogger(mtoAnalyzeTrips.class);
+    static Logger logger = Logger.getLogger(MtoAnalyzeTrips.class);
 
-    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private List<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
+    private List<String> tripStates = MtoLongDistance.getTripStates();
 
-    public mtoAnalyzeTrips(ResourceBundle rb) {
+    public MtoAnalyzeTrips(ResourceBundle rb) {
         this.rb = rb;
     }
 
@@ -39,7 +35,7 @@ public class mtoAnalyzeTrips {
         logger.info("Writing out data for trip generation (trips)");
 
         String OutputTripsFileName = rb.getString("trip.out.file");
-        PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName, false);
+        PrintWriter pw = Util.openFileForSequentialWriting(OutputTripsFileName, false);
 
 
         pw.print("tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
@@ -76,7 +72,7 @@ public class mtoAnalyzeTrips {
         logger.info("Writing out data for trip generation (travellers)");
 
         String OutputTravellersFilename = rb.getString("trav.out.file");
-        PrintWriter pw2 = util.openFileForSequentialWriting(OutputTravellersFilename, false);
+        PrintWriter pw2 = Util.openFileForSequentialWriting(OutputTravellersFilename, false);
 
         pw2.print("personId, away, daytrip, inOutTrip");
         pw2.println();
@@ -93,7 +89,7 @@ public class mtoAnalyzeTrips {
 
 
         String OutputZonesFilename = rb.getString("zone.out.file");
-        PrintWriter pw3 = util.openFileForSequentialWriting(OutputZonesFilename , false);
+        PrintWriter pw3 = Util.openFileForSequentialWriting(OutputZonesFilename , false);
 
         pw3.print("zone, population, domesticVisit, domesticBusiness, domesticLeisure, internationalVisit, internationalBusiness, internationalLeisure");
         pw3.println();

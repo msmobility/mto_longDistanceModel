@@ -17,11 +17,11 @@ import java.util.Map;
 
 //Edited by Carlos Llorca  on 29 June 2016
 
-public class surveyIntTravel implements Serializable {
+public class SurveyIntTravel implements Serializable {
 
-    static Logger logger = Logger.getLogger(surveyIntTravel.class);
+    static Logger logger = Logger.getLogger(SurveyIntTravel.class);
 
-    private static final Map<Integer,surveyIntTravel> intTripMap = new HashMap<>();
+    private static final Map<Integer,SurveyIntTravel> intTripMap = new HashMap<>();
     int origProvince;
     int pumfId;
     int refQuarter;
@@ -38,7 +38,7 @@ public class surveyIntTravel implements Serializable {
 
     //constructor
 
-    public surveyIntTravel (int origProvince, int pumfId, int refYear, int refQuarter, int purpose, int entryMode, int country[], int[] nightsByPlace, float weight, int travelParty){
+    public SurveyIntTravel(int origProvince, int pumfId, int refYear, int refQuarter, int purpose, int entryMode, int country[], int[] nightsByPlace, float weight, int travelParty){
         this.origProvince = origProvince;
         this.pumfId = pumfId;
         this.refQuarter = refQuarter;
@@ -54,8 +54,8 @@ public class surveyIntTravel implements Serializable {
     }
 
 
-    public static surveyIntTravel[] getIntTravelArray() {
-        return intTripMap.values().toArray(new surveyIntTravel[intTripMap.size()]);
+    public static SurveyIntTravel[] getIntTravelArray() {
+        return intTripMap.values().toArray(new SurveyIntTravel[intTripMap.size()]);
     }
 
     public int getOrigProvince() {

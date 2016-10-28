@@ -1,20 +1,16 @@
 package de.tum.bgu.msm.dataAnalysis;
 
-import com.vividsolutions.jts.geom.Geometry;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
-import com.vividsolutions.jts.geom.LineString;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Created by Joe on 27/07/2016.
@@ -30,7 +26,7 @@ public class TripChainingAnalysis {
 
     public static void main (String[] args) {
 
-        ResourceBundle rb = util.mtoInitialization(args[0]);
+        ResourceBundle rb = Util.mtoInitialization(args[0]);
 
         TripChainingAnalysis tca = new TripChainingAnalysis(rb);
         tca.run();
@@ -38,15 +34,15 @@ public class TripChainingAnalysis {
     }
 
     private void run() {
-        mtoSurveyData data = SurveyDataImporter.importData(rb);
-        Stream<surveyTour> allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
+        MtoSurveyData data = SurveyDataImporter.importData(rb);
+        Stream<SurveyTour> allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
         //Map<Long, List<surveyTour>> cmaHistogram = allTours.filter(t -> t.getHomeCma() > 0).collect(Collectors.groupingBy(surveyTour::getDistinctNumRegions));
 
         allTours = data.getPersons().parallelStream().flatMap(p -> p.getTours().stream());
-        Map<surveyTour, ArrayList<SurveyVisit>> tripStops = allTours.collect(Collectors.toMap(t -> t, surveyTour::getStops));
+        Map<SurveyTour, ArrayList<SurveyVisit>> tripStops = allTours.collect(Collectors.toMap(t -> t, SurveyTour::getStops));
 
         //TODO: hat about summed weights?
-        List<surveyTour> ontarioTrips = data.getPersons().stream()
+        List<SurveyTour> ontarioTrips = data.getPersons().stream()
                 .flatMap(p -> p.getTours().stream())
                 //.filter(t -> t.getMainMode() == 1 || t.getMainMode() == 3 || t.getMainMode() == 4) //1: Car, 3: RV, 4: Bus
                 //.filter(t -> t.getMainModeStr().equals("Auto") || t.getMainModeStr().equals("Air")) //2: Air, 5: Train
@@ -64,7 +60,7 @@ public class TripChainingAnalysis {
 
 
         //only ontario:
-        List<surveyTour> internalOntarioTrips = data.getPersons().stream()
+        List<SurveyTour> internalOntarioTrips = data.getPersons().stream()
                 .flatMap(p -> p.getTours().stream())
                 .filter(t -> t.getOrigProvince() == 35)
                 .filter(t -> t.getUniqueOrigCD() != 5925)
@@ -72,12 +68,12 @@ public class TripChainingAnalysis {
                 .filter(t -> t.getStops().size() > 2)
                 .collect(Collectors.toList());
 
-        Map<String, List<surveyTour>> uniqueTours =
+        Map<String, List<SurveyTour>> uniqueTours =
                 ontarioTrips.stream()
                 .collect(Collectors.groupingBy(st -> String.valueOf(st.getMainMode())+st.generateTourLineString(data)));
 
         String output_filename = rb.getString("output.folder") + File.separator + "tripCounts.csv";
-                util.outputTourCounts(data, output_filename, uniqueTours);
+                Util.outputTourCounts(data, output_filename, uniqueTours);
 
     }
 

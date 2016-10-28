@@ -1,23 +1,15 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
-import com.pb.common.datafile.TableDataSet;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
-import de.tum.bgu.msm.util;
 import org.apache.log4j.Logger;
-import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.referencing.CRS;
-import org.geotools.referencing.GeodeticCalculator;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Class to hold tour object of the TSRC survey
@@ -26,9 +18,9 @@ import java.util.Arrays;
  *         Created on 17 Mar. 2016 in Munich
  **/
 
-public class surveyTour implements Serializable {
+public class SurveyTour implements Serializable {
 
-    static Logger logger = Logger.getLogger(surveyTour.class);
+    static Logger logger = Logger.getLogger(SurveyTour.class);
     private final int distance;
     private int refYear;
     private long pumfId;
@@ -41,7 +33,7 @@ public class surveyTour implements Serializable {
     private double weight;
     private ArrayList<SurveyVisit> tourStops;
     private int tripId;
-    private surveyPerson person;
+    private SurveyPerson person;
     private int origCD;
     private int destCD;
     private LineString tourGeometry = null;
@@ -51,7 +43,7 @@ public class surveyTour implements Serializable {
 
 
 
-    public surveyTour(Survey survey, surveyPerson person, String recString) {
+    public SurveyTour(Survey survey, SurveyPerson person, String recString) {
         this.person = person;
         this.refYear = survey.readInt(recString, "REFYEAR");  // ascii position in file: 001-004
         long origPumfId = survey.readInt(recString, "PUMFID");  // ascii position in file: 007-013
@@ -130,7 +122,7 @@ public class surveyTour implements Serializable {
         return Long.toString(getPerson().getPumfId()) + Integer.toString(getTripId());
     }
 
-    public surveyPerson getPerson() {
+    public SurveyPerson getPerson() {
         return person;
     }
 
@@ -153,11 +145,11 @@ public class surveyTour implements Serializable {
         return distance;
     }
 
-    public int calculateFurthestDistance(mtoSurveyData data) {
+    public int calculateFurthestDistance(MtoSurveyData data) {
         return tourStops.stream().mapToInt(sv -> sv.distanceFromCd(data, getUniqueOrigCD())).max().getAsInt();
     }
 
-    public LineString generateTourLineString(mtoSurveyData data) {
+    public LineString generateTourLineString(MtoSurveyData data) {
         //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData
         if (tourGeometry == null) {
             GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);

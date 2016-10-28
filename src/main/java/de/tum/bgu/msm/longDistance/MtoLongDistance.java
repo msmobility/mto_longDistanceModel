@@ -4,13 +4,13 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.VisitorsTripGeneration;
-import de.tum.bgu.msm.longDistance.tripGeneration.internationalTripGeneration;
-import de.tum.bgu.msm.longDistance.tripGeneration.tripGeneration;
+import de.tum.bgu.msm.longDistance.tripGeneration.InternationalTripGeneration;
+import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGeneration;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.mtoLongDistData;
-import de.tum.bgu.msm.syntheticPopulation.readSP;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.syntheticPopulation.ReadSP;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -26,27 +26,27 @@ import java.util.stream.Collectors;
  *
  */
 
-public class mtoLongDistance {
-    static Logger logger = Logger.getLogger(mtoLongDistance.class);
+public class MtoLongDistance {
+    static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
     private ArrayList<LongDistanceTrip> trips_domestic;
     private ArrayList<LongDistanceTrip> trips_international;
     private ArrayList<LongDistanceTrip> trips_visitors;
     private final ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
     private Map<Integer, Zone> zoneLookup;
-    private readSP syntheticPopulationReader;
+    private ReadSP syntheticPopulationReader;
     private ArrayList<Zone> internalZoneList;
     private ArrayList<Zone> externalZoneList;
     private mtoLongDistData mtoLongDistData;
     private DomesticDestinationChoice dcModel;
-    private mtoAnalyzeTrips tripAnalysis;
+    private MtoAnalyzeTrips tripAnalysis;
 
-    public mtoLongDistance(ResourceBundle rb) {
+    public MtoLongDistance(ResourceBundle rb) {
 
         this.rb = rb;
-        this.tripAnalysis = new mtoAnalyzeTrips(rb);
+        this.tripAnalysis = new MtoAnalyzeTrips(rb);
         mtoLongDistData = new mtoLongDistData(rb);
-        syntheticPopulationReader = new readSP(rb);
+        syntheticPopulationReader = new ReadSP(rb);
         dcModel = new DomesticDestinationChoice(rb);
 
     }
@@ -83,7 +83,7 @@ public class mtoLongDistance {
         } else {
             //load saved trips
             logger.info("Loading generated trips");
-            TableDataSet tripsDomesticTable = util.readCSVfile(ResourceUtil.getProperty(rb, "trip.out.file"));
+            TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.out.file"));
             trips_domestic = new ArrayList<>();
             trips_international = new ArrayList<>();
             trips_visitors = new ArrayList<>();
@@ -147,7 +147,7 @@ public class mtoLongDistance {
         toZones=Arrays.asList("ONTARIO","EXTCANADA");
         mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float)-0.1);
         logger.info("Accessibility for domestic trips from Ontario calculated");
-        tripGeneration tgdomestic = new tripGeneration(rb);
+        DomesticTripGeneration tgdomestic = new DomesticTripGeneration(rb);
         trips_domestic = tgdomestic.runTripGeneration();
         logger.info("Domestic Trips from Ontario generated");
 
@@ -157,7 +157,7 @@ public class mtoLongDistance {
         mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float)-0.01);
         logger.info("Accessibility for international trips from Ontario calculated");
         //calculate trips
-        internationalTripGeneration tginternational = new internationalTripGeneration(rb);
+        InternationalTripGeneration tginternational = new InternationalTripGeneration(rb);
         trips_international = tginternational.runInternationalTripGeneration();
         logger.info("International trips from Ontario generated");
 

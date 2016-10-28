@@ -2,10 +2,9 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.mtoLongDistance;
-import de.tum.bgu.msm.longDistance.tripGeneration.tripGeneration;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.syntheticPopulation.Person;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -15,17 +14,17 @@ import java.util.*;
  * Created by Carlos on 7/19/2016.
  * Based on number of trips and increased later with travel parties.
  */
-public class internationalTripGeneration {
+public class InternationalTripGeneration {
 
 
 
-    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private List<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
+    private List<String> tripStates = MtoLongDistance.getTripStates();
 
-    static Logger logger = Logger.getLogger(tripGeneration.class);
+    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
-    public internationalTripGeneration(ResourceBundle rb) {
+    public InternationalTripGeneration(ResourceBundle rb) {
         this.rb = rb;
     }
 
@@ -35,15 +34,15 @@ public class internationalTripGeneration {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         String internationalTriprates = rb.getString("int.trips");
-        TableDataSet internationalTripRates = util.readCSVfile(internationalTriprates);
+        TableDataSet internationalTripRates = Util.readCSVfile(internationalTriprates);
         internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
 
         String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
-        TableDataSet travelPartyProbabilities = util.readCSVfile(intTravelPartyProbabilitiesFilename);
+        TableDataSet travelPartyProbabilities = Util.readCSVfile(intTravelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
+        TableDataSet tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
         double[][] sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
@@ -107,12 +106,12 @@ public class internationalTripGeneration {
         return trips;
     }
     private LongDistanceTrip createIntLongDistanceTrip(Person pers, String tripPurpose, String tripState, int tripCount, TableDataSet travelPartyProbabilities ){
-        ArrayList<Person> adultsHhTravelParty = tripGeneration.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> kidsHhTravelParty = tripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> adultsHhTravelParty = DomesticTripGeneration.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = DomesticTripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(adultsHhTravelParty);
-        int nonHhTravelPartySize = tripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
 
         return new LongDistanceTrip(pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);

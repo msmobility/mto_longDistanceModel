@@ -3,9 +3,8 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.longDistance.destinationChoice.Destination;
-import de.tum.bgu.msm.mto;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Mto;
+import de.tum.bgu.msm.Util;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -48,14 +47,14 @@ public class mtoLongDistData {
         // read skim file
         logger.info("  Reading skims files");
 
-        String matrixName = mode + ".skim." + mto.getYear();
+        String matrixName = mode + ".skim." + Mto.getYear();
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
         logger.info("Opening omx file: " + hwyFileName);
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
-        autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
+        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
         OmxLookup omxLookUp = hSkim.getLookup("zone_number");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
@@ -74,7 +73,7 @@ public class mtoLongDistData {
 
         //read the internal zones already created and add them the employment from an external file
 
-        internalZonesTable = util.importTable(rb.getString("int.can"));
+        internalZonesTable = Util.importTable(rb.getString("int.can"));
         internalZones = internalZonesTable.getColumnAsInt("ID");
         internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
         int emptyZoneCount = 0;
@@ -114,7 +113,7 @@ public class mtoLongDistData {
         //second, read the external zones from files
 
         if (externalCanada) {
-            externalCanadaTable = util.importTable(rb.getString("ext.can.file"));
+            externalCanadaTable = Util.importTable(rb.getString("ext.can.file"));
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
@@ -125,7 +124,7 @@ public class mtoLongDistData {
             }
         }
         if (externalUs) {
-            externalUsTable = util.importTable(rb.getString("ext.us.file"));
+            externalUsTable = Util.importTable(rb.getString("ext.us.file"));
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
@@ -136,7 +135,7 @@ public class mtoLongDistData {
             }
         }
         if (externalOverseas){
-            externalOverseasTable = util.importTable(rb.getString("ext.os.file"));
+            externalOverseasTable = Util.importTable(rb.getString("ext.os.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
@@ -218,7 +217,7 @@ public class mtoLongDistData {
         //print out accessibilities
 
         String fileName = rb.getString("access.out.file") + ".csv";
-        PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
+        PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility,Population,Employments");
 
         logger.info("Print out data of accessibility");

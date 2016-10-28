@@ -2,11 +2,10 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.mtoLongDistance;
-import de.tum.bgu.msm.longDistance.tripGeneration.tripGeneration;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -18,10 +17,10 @@ import java.util.ResourceBundle;
  */
 public class VisitorsTripGeneration {
 
-    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private List<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
+    private List<String> tripStates = MtoLongDistance.getTripStates();
 
-    static Logger logger = Logger.getLogger(tripGeneration.class);
+    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
     public VisitorsTripGeneration(ResourceBundle rb) {
@@ -33,15 +32,15 @@ public class VisitorsTripGeneration {
     public ArrayList<LongDistanceTrip> runVisitorsTripGeneration(ArrayList<Zone> externalZoneList) {
 
         String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");;
-        TableDataSet visitorPartyProbabilities =  util.readCSVfile(visitorPartyProbabilitiesFilename);
+        TableDataSet visitorPartyProbabilities =  Util.readCSVfile(visitorPartyProbabilitiesFilename);
         visitorPartyProbabilities.buildIndex(visitorPartyProbabilities.getColumnPosition("travelParty"));
 
         String visitorsRateFilename = rb.getString("visitor.rates");;
-        TableDataSet visitorRateCoefficients =  util.readCSVfile(visitorsRateFilename);
+        TableDataSet visitorRateCoefficients =  Util.readCSVfile(visitorsRateFilename);
         visitorRateCoefficients.buildIndex(visitorRateCoefficients.getColumnPosition("factor"));
 
         String visitorsRatePerZoneFilename= rb.getString("visitor.zone.rates");;
-        TableDataSet visitorsRatePerZone =  util.readCSVfile(visitorsRatePerZoneFilename);
+        TableDataSet visitorsRatePerZone =  Util.readCSVfile(visitorsRatePerZoneFilename);
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
 
         ArrayList<LongDistanceTrip> visitorTrips = new ArrayList<>();

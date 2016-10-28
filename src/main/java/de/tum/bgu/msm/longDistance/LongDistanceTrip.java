@@ -56,8 +56,8 @@ public class LongDistanceTrip {
 
     public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup) {
 
-        List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-        List<String> tripStates = mtoLongDistance.getTripStates();
+        List<String> tripPurposes = MtoLongDistance.getTripPurposes();
+        List<String> tripStates = MtoLongDistance.getTripStates();
 
         this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
         this.personId = (int) tripsDomesticTable.getValueAt(row, "personId");

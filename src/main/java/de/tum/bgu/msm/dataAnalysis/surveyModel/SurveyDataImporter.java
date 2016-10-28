@@ -4,7 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -28,17 +28,17 @@ public class SurveyDataImporter {
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
-    HashMap<Long, surveyPerson> personMap;
+    HashMap<Long, SurveyPerson> personMap;
 
     private SurveyDataImporter() {
 
     }
 
-    public static mtoSurveyData importData(ResourceBundle rb) {
+    public static MtoSurveyData importData(ResourceBundle rb) {
         SurveyDataImporter sdi = new SurveyDataImporter();
         sdi.rb = rb;
         sdi.readInput();
-        mtoSurveyData mtoSurveyData2 = sdi.buildDataModel();
+        MtoSurveyData mtoSurveyData2 = sdi.buildDataModel();
 
         //generate all geometries
         mtoSurveyData2.getPersons().stream().forEach(p ->
@@ -48,8 +48,8 @@ public class SurveyDataImporter {
         return mtoSurveyData2;
     }
 
-    private mtoSurveyData buildDataModel() {
-        return  new mtoSurveyData(rb, personMap, dataDictionary);
+    private MtoSurveyData buildDataModel() {
+        return  new MtoSurveyData(rb, personMap, dataDictionary);
     }
 
     private void readInput() {
@@ -76,7 +76,7 @@ public class SurveyDataImporter {
         String recString;
         int recCount = 0;
         String its_out_location = rb.getString("output.folder") + File.separator + rb.getString("its.out.file");
-        PrintWriter out = util.openFileForSequentialWriting(its_out_location + ".csv", false);
+        PrintWriter out = Util.openFileForSequentialWriting(its_out_location + ".csv", false);
         out.println("province,cma,weight");
         Survey survey = dataDictionary.getSurvey("ITS", year, "Canadians");
 //        float[][] purp = new float[5][365];
@@ -152,7 +152,7 @@ public class SurveyDataImporter {
                 BufferedReader in = new BufferedReader(new FileReader(fullFileName));
                 while ((recString = in.readLine()) != null) {
 
-                    surveyPerson person = new surveyPerson(survey, recString);
+                    SurveyPerson person = new SurveyPerson(survey, recString);
                     personMap.put(person.getPumfId(), person);
                     recCount++;
                 }
@@ -183,8 +183,8 @@ public class SurveyDataImporter {
                 int refYear = survey.readInt(recString, "REFYEAR");  // ascii position in file: 001-004
                 long pumfId = origPumfId * 100 + refYear%100;
 
-                surveyPerson sp = personMap.get(pumfId);
-                surveyTour tour = new surveyTour(survey, sp, recString);
+                SurveyPerson sp = personMap.get(pumfId);
+                SurveyTour tour = new SurveyTour(survey, sp, recString);
 
                 if (numIdentical < 30) {
                     for (int i = 1; i <= numIdentical; i++) sp.addTour(tour);
@@ -216,8 +216,8 @@ public class SurveyDataImporter {
                 long pumfId = origPumfId * 100 + refYear%100;
                 int tripId = survey.readInt(recString, "TRIPID");  // ascii position in file: 014-015
 
-                surveyPerson person = personMap.get(pumfId);
-                surveyTour tour = person.getTourFromId(tripId);
+                SurveyPerson person = personMap.get(pumfId);
+                SurveyTour tour = person.getTourFromId(tripId);
                 if (tour == null) {
                     logger.error(Integer.toString(year) + " - " + Integer.toString(origPumfId) + " - " + tripId + " - ?");
                 } else {
@@ -226,7 +226,7 @@ public class SurveyDataImporter {
                 recCount++;
             }
             //sort all the visits in order
-            personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(surveyTour::sortVisits));
+            personMap.values().parallelStream().forEach(p -> p.getTours().stream().forEach(SurveyTour::sortVisits));
 
         } catch (Exception e) {
             logger.error("Could not read TSRC visit data: ", e);

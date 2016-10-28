@@ -7,9 +7,8 @@ import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
@@ -25,9 +24,6 @@ import java.nio.file.Paths;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
@@ -40,8 +36,8 @@ import static java.lang.System.exit;
  * Version 1
  *
  */
-public class util {
-    static Logger logger = Logger.getLogger(util.class);
+public class Util {
+    static Logger logger = Logger.getLogger(Util.class);
 
 
     public static ResourceBundle mtoInitialization(String resourceBundleName) {
@@ -206,12 +202,12 @@ public class util {
 
     }
 
-    public static void outputTourCounts(mtoSurveyData data, String filename, Map<String, List<surveyTour>> tourMap) {
+    public static void outputTourCounts(MtoSurveyData data, String filename, Map<String, List<SurveyTour>> tourMap) {
         String[] headers = new String[]{"path", "mode", "trip_length", "tour_distance", "min_distance", "num_trips", "weighted_num_trips"};
         outputCsv(filename, headers, tourMap, (key, tours) -> {
             String ret = "";
             LineString line = tours.get(0).generateTourLineString(data);
-            double weightedCount = tours.stream().mapToDouble(surveyTour::getWeight).sum();
+            double weightedCount = tours.stream().mapToDouble(SurveyTour::getWeight).sum();
             if (line.isEmpty()) {
                 return Optional.empty();
             } else {

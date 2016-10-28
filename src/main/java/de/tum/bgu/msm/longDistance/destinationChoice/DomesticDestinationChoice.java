@@ -2,13 +2,10 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.sun.java.browser.plugin2.DOM;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.mtoLongDistData;
 
-import de.tum.bgu.msm.mto;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Mto;
+import de.tum.bgu.msm.Util;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -18,7 +15,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+
 /**
  * Created by Joe on 26/10/2016.
  */
@@ -32,11 +29,11 @@ public class DomesticDestinationChoice {
     public DomesticDestinationChoice(ResourceBundle rb) {
         //coef format
         // table format: coeff | visit | leisure | business
-        coefficients = util.readCSVfile(rb.getString("dc.domestic.coefs"));
+        coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
         coefficients.buildStringIndex(1);
 
         //load alternatives - need to calculate distance, lang_barrier, and metro-regional for each OD pair
-        combinedZones = util.readCSVfile(rb.getString("dc.combined.zones"));
+        combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
 
         //load combined zones distance skim
@@ -49,13 +46,13 @@ public class DomesticDestinationChoice {
         // read skim file
         logger.info("  Reading skims files");
 
-        String matrixName = "auto.skim.combinedzones." + mto.getYear();
+        String matrixName = "auto.skim.combinedzones." + Mto.getYear();
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.combinedzones.time"));
-        autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
+        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
         OmxLookup omxLookUp = hSkim.getLookup("combinedZone");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);

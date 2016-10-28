@@ -4,7 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 
@@ -29,9 +29,9 @@ import java.util.ResourceBundle;
  *
  */
 
-public class readSP {
+public class ReadSP {
 
-    private static Logger logger = Logger.getLogger(readSP.class);
+    private static Logger logger = Logger.getLogger(ReadSP.class);
     private ResourceBundle rb;
     private TableDataSet zoneTable;
     private int[] zones;
@@ -49,7 +49,7 @@ public class readSP {
     private int[] ppByCd;
 
 
-    public readSP(ResourceBundle rb) {
+    public ReadSP(ResourceBundle rb) {
         // Constructor
         this.rb = rb;
     }
@@ -59,7 +59,7 @@ public class readSP {
     public ArrayList<Zone> readInternalZones(){
         //create zones objects (empty) and a map to find them in hh zone assignment
         ArrayList<Zone> internalZoneList = new ArrayList<>();
-        zoneTable = util.readCSVfile(rb.getString("int.can"));
+        zoneTable = Util.readCSVfile(rb.getString("int.can"));
         zoneTable.buildIndex(1);
         zones = zoneTable.getColumnAsInt("ID");
         for (int zone : zones) {
@@ -119,13 +119,13 @@ public class readSP {
             // Remove quotation marks if they are available in the header columns (after splitting by commas)
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posId     = util.findPositionInArray("hhid", header);
+            int posId     = Util.findPositionInArray("hhid", header);
 //            int posSize   = util.findPositionInArray("hhsize",header);
-            int posInc    = util.findPositionInArray("hhinc",header);
-            int posDdType = util.findPositionInArray("dtype",header);
+            int posInc    = Util.findPositionInArray("hhinc",header);
+            int posDdType = Util.findPositionInArray("dtype",header);
 //            int posWrkrs  = util.findPositionInArray("nworkers",header);
 //            int posKids   = util.findPositionInArray("kidspr",header);
-            int posTaz    = util.findPositionInArray("ID",header);
+            int posTaz    = Util.findPositionInArray("ID",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -165,14 +165,14 @@ public class readSP {
             String[] header = recString.split(",");
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posHhId             = util.findPositionInArray("hhid", header);
-            int posId               = util.findPositionInArray("uid", header);
-            int posAge              = util.findPositionInArray("age",header);
-            int posGender           = util.findPositionInArray("sex",header);
-            int posOccupation       = util.findPositionInArray("nocs",header);
-            int posAttSchool        = util.findPositionInArray("attsch",header);
-            int posHighestDegree    = util.findPositionInArray("hdgree",header);
-            int posEmploymentStatus = util.findPositionInArray("work_status",header);
+            int posHhId             = Util.findPositionInArray("hhid", header);
+            int posId               = Util.findPositionInArray("uid", header);
+            int posAge              = Util.findPositionInArray("age",header);
+            int posGender           = Util.findPositionInArray("sex",header);
+            int posOccupation       = Util.findPositionInArray("nocs",header);
+            int posAttSchool        = Util.findPositionInArray("attsch",header);
+            int posHighestDegree    = Util.findPositionInArray("hdgree",header);
+            int posEmploymentStatus = Util.findPositionInArray("work_status",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -265,7 +265,7 @@ public class readSP {
             }*/
         }
 
-        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
+        PrintWriter pw = Util.openFileForSequentialWriting("output/popByZone.csv", false);
         pw.println("zone,hh,pp");
         for (Zone zone: internalZoneList){
             pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
