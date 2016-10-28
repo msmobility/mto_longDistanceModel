@@ -7,6 +7,7 @@ import de.tum.bgu.msm.longDistance.tripGeneration.VisitorsTripGeneration;
 import de.tum.bgu.msm.longDistance.tripGeneration.internationalTripGeneration;
 import de.tum.bgu.msm.longDistance.tripGeneration.tripGeneration;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.mtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.readSP;
 import de.tum.bgu.msm.util;
@@ -31,14 +32,23 @@ public class mtoLongDistance {
     private ArrayList<LongDistanceTrip> trips_domestic;
     private ArrayList<LongDistanceTrip> trips_international;
     private ArrayList<LongDistanceTrip> trips_visitors;
+    private final ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
     private Map<Integer, Zone> zoneLookup;
     private readSP syntheticPopulationReader;
     private ArrayList<Zone> internalZoneList;
     private ArrayList<Zone> externalZoneList;
-    private de.tum.bgu.msm.longDistance.zoneSystem.mtoLongDistData mtoLongDistData;
+    private mtoLongDistData mtoLongDistData;
+    private DomesticDestinationChoice dcModel;
+    private mtoAnalyzeTrips tripAnalysis;
 
     public mtoLongDistance(ResourceBundle rb) {
+
         this.rb = rb;
+        this.tripAnalysis = new mtoAnalyzeTrips(rb);
+        mtoLongDistData = new mtoLongDistData(rb);
+        syntheticPopulationReader = new readSP(rb);
+        dcModel = new DomesticDestinationChoice(rb);
+
     }
 
     //public static ArrayList<String> tripPurposes = new ArrayList<>();
@@ -53,10 +63,8 @@ public class mtoLongDistance {
     public void runLongDistanceModel () {
 
         //read internal zone employment and external zones
-        syntheticPopulationReader = new readSP(rb);
         internalZoneList = syntheticPopulationReader.readInternalZones();
 
-        mtoLongDistData = new mtoLongDistData(rb);
         mtoLongDistData.readInternalZonesEmployment(internalZoneList);
         externalZoneList = mtoLongDistData.readExternalZones();
 
@@ -69,20 +77,32 @@ public class mtoLongDistance {
 
         if(ResourceUtil.getBooleanProperty(rb,"run.trip.gen",false)) {
             runTripGeneration();
+            //currently only internal zone list
+            if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(allTrips, zoneList);
+
         } else {
             //load saved trips
             logger.info("Loading generated trips");
             TableDataSet tripsDomesticTable = util.readCSVfile(ResourceUtil.getProperty(rb, "trip.out.file"));
             trips_domestic = new ArrayList<>();
+            trips_international = new ArrayList<>();
+            trips_visitors = new ArrayList<>();
             for (int i=0; i<tripsDomesticTable.getRowCount(); i++) {
                 LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i+1, zoneLookup);
-                if (!ldt.isLongDistanceInternational()) {
-                    trips_domestic.add(ldt);
+                if (ldt.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+                    if (ldt.isLongDistanceInternational()) trips_international.add(ldt);
+                    else  trips_domestic.add(ldt);
                 }
+                else {
+                    trips_visitors.add(ldt);
+                }
+                allTrips.add(ldt);
+
             }
         }
         if(ResourceUtil.getBooleanProperty(rb,"run.dest.choice",false)) {
-            runDestinationChoice();
+            runDestinationChoice(trips_domestic);
+
         }
 
 
@@ -153,25 +173,20 @@ public class mtoLongDistance {
 
         //analyze and write out generated trips
         //first, join the different list of trips
-        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-        trips.addAll(trips_international);
-        trips.addAll(trips_domestic);
-        trips.addAll(trips_visitors);
+        allTrips.addAll(trips_international);
+        allTrips.addAll(trips_domestic);
+        allTrips.addAll(trips_visitors);
 
-        mtoAnalyzeTrips tripAnalysis = new mtoAnalyzeTrips(rb);
-        //currently only internal zone list
-        if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(trips, zoneList);
 
     }
 
         //destination Choice
         //if run trip gen is false, then load trips from file
-    public void runDestinationChoice() {
-        DomesticDestinationChoice dcModel = new DomesticDestinationChoice(rb);
+    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model");
-        trips_domestic.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
+        trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
             int destZoneId = dcModel.selectDestination(t);
-            t.setDestination(zoneLookup.get(destZoneId));
+            t.setDestination(destZoneId);
         });
     }
 

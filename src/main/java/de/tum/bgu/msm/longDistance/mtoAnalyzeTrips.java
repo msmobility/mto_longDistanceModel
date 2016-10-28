@@ -39,10 +39,10 @@ public class mtoAnalyzeTrips {
         logger.info("Writing out data for trip generation (trips)");
 
         String OutputTripsFileName = rb.getString("trip.out.file");
-                PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName, false);
+        PrintWriter pw = util.openFileForSequentialWriting(OutputTripsFileName, false);
 
 
-        pw.print("tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginType," +
+        pw.print("tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
                 "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh");
         pw.println();
@@ -52,14 +52,16 @@ public class mtoAnalyzeTrips {
                 Person traveller = getPersonFromId(tr.getPersonId());
 
                 pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + "," + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
+                        + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
                         + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
                         + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize() + "," + traveller.getAge() + "," + traveller.getGender() + "," + traveller.getEducation() + "," + traveller.getWorkStatus() +
                         "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh());
                 pw.println();
             } else {
                 pw.print(tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState())+ "," + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                        tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
+                        + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
                         + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
                         + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize()
                         + ",-1,\"\",-1,-1,-1,-1,-1");

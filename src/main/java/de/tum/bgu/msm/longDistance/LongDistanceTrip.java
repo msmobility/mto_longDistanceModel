@@ -6,7 +6,6 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -20,6 +19,8 @@ import java.util.ArrayList;
  */
 public class LongDistanceTrip {
 
+    private static int tripCounter = 0;
+
     private int tripId;
     private int personId;
     private boolean international;
@@ -31,8 +32,7 @@ public class LongDistanceTrip {
     private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
     private Zone origZone;
-    private static int tripCounter = 0;
-    private Zone destination;
+    private int destinationCombinedZoneId = -1;
 
 
     //ArrayList<Long> destinations;
@@ -110,8 +110,10 @@ public class LongDistanceTrip {
 
     public Zone getOrigZone() { return origZone; }
 
+    public int getDestZoneId() { return destinationCombinedZoneId; }
 
-    public void setDestination(Zone destination) {
-        this.destination = destination;
+
+    public void setDestination(int destinationZoneId) {
+        this.destinationCombinedZoneId = destinationZoneId;
     }
 }
