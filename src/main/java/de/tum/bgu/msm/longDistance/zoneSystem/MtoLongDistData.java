@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -23,24 +24,28 @@ import java.util.*;
  *
  */
 
-public class mtoLongDistData {
-    private static Logger logger = Logger.getLogger(mtoLongDistData.class);
+public class MtoLongDistData {
+    private static Logger logger = Logger.getLogger(MtoLongDistData.class);
     private ResourceBundle rb;
     private Matrix autoTravelTime;
 
     private double autoAccessibility;
 
-    private TableDataSet internalZonesTable;
-    private TableDataSet externalCanadaTable;
-    private TableDataSet externalUsTable;
-    private TableDataSet externalOverseasTable;
-    private int[] internalZones;
-    private int[] externalZonesCanada;
-    private int[] externalZonesUs;
-    private int[] externalZonesOverseas;
+    private ArrayList<Zone> zoneList;
+    private ArrayList<Zone> internalZones;
+    private ArrayList<Zone> externalZones;
+    private final Map<Integer, Zone> zoneLookup;
 
-    public mtoLongDistData(ResourceBundle rb) {
+    public MtoLongDistData(ResourceBundle rb) {
+
         this.rb = rb;
+        this.internalZones = readInternalZones();
+        this.externalZones = readExternalZones();
+        this.zoneList = new ArrayList<>();
+        this.zoneList.addAll(internalZones);
+        this.zoneList.addAll(externalZones);
+        this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
+        ;
     }
 
     public void readSkim(String mode) {
@@ -69,34 +74,24 @@ public class mtoLongDistData {
         }
     }
 
-    public void readInternalZonesEmployment(ArrayList<Zone> internalZoneList) {
 
-        //read the internal zones already created and add them the employment from an external file
+    public ArrayList<Zone> readInternalZones(){
+        //create zones objects (empty) and a map to find them in hh zone assignment
 
-        internalZonesTable = Util.importTable(rb.getString("int.can"));
-        internalZones = internalZonesTable.getColumnAsInt("ID");
-        internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
-        int emptyZoneCount = 0;
+        TableDataSet zoneTable;
+        int[] zones;
 
-        for (Zone zone : internalZoneList) {
-            try {
-                zone.setEmployment((int) internalZonesTable.getIndexedValueAt(zone.getId(), "Employment"));
-            } catch (Exception e) {
-                emptyZoneCount++ ;
-            }
-            if (zone.getEmployment() == 0) emptyZoneCount++;
-
+        ArrayList<Zone> internalZoneList = new ArrayList<>();
+        zoneTable = Util.readCSVfile(rb.getString("int.can"));
+        zoneTable.buildIndex(1);
+        zones = zoneTable.getColumnAsInt("ID");
+        for (int zone : zones) {
+            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
+            int employment = (int) zoneTable.getIndexedValueAt(zone, "Employment");
+            Zone internalZone = new Zone (zone, 0, employment, ZoneType.ONTARIO, combinedZone);
+            internalZoneList.add(internalZone);
         }
-    logger.warn(emptyZoneCount+ " zones were found with employment equal to 0");
-
-               /* //first read the internal zones from RSP //this part won't be required
-        int[] zones = rsp.getZones();
-        int[] pop = rsp.getPpByZone();
-
-        for (int i=0; i< zones.length; i++){
-            Zone zone = new Zone (zones[i], pop[i], ZoneType.ONTARIO);
-            zonesArray.add(zone);
-        }*/
+        return internalZoneList;
 
     }
 
@@ -108,7 +103,12 @@ public class mtoLongDistData {
         boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us", false);
         boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os", false);
 
-
+        TableDataSet externalCanadaTable;
+        TableDataSet externalUsTable;
+        TableDataSet externalOverseasTable;
+        int[] externalZonesCanada;
+        int[] externalZonesUs;
+        int[] externalZonesOverseas;
 
         //second, read the external zones from files
 
@@ -229,6 +229,22 @@ public class mtoLongDistData {
             //}
         }
         pw.close();
+    }
+
+    public Map<Integer, Zone> getZoneLookup() {
+        return zoneLookup;
+    }
+
+    public ArrayList<Zone> getZoneList() {
+        return zoneList;
+    }
+
+    public ArrayList<Zone> getExternalZoneList() {
+        return externalZones;
+    }
+
+    public ArrayList<Zone> getInternalZoneList() {
+        return internalZones;
     }
 
     //original Rolf version below

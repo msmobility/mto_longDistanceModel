@@ -2,7 +2,9 @@ package de.tum.bgu.msm.syntheticPopulation;
  import org.apache.log4j.Logger;
 
 
-import java.util.Collection;
+ import java.lang.reflect.Array;
+ import java.util.ArrayList;
+ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ public class Person {
     static Logger logger = Logger.getLogger(Person.class);
 
     private static final Map<Integer, Person> personMap = new HashMap<>();
+    private static final ArrayList<Person> personList = new ArrayList<>();
     private int id;
     private int age;
     private String gender;
@@ -51,13 +54,8 @@ public class Person {
         this.hh = Household.getHouseholdFromId(hhId);
         hh.addPersonForInitialSetup(this);
         personMap.put(id,this);
+        personList.add(this);
     }
-
-
-    public static Person[] getSyntheticPersonArray() {
-        return personMap.values().toArray(new Person[personMap.size()]);
-    }
-
 
     public static Person getPersonFromId(int personId) {
         return personMap.get(personId);
@@ -69,8 +67,8 @@ public class Person {
     }
 
 
-    public static Collection<Person> getPersons() {
-        return personMap.values();
+    public static ArrayList<Person> getPersons() {
+        return personList;
     }
 
     //add gets for inputs for trip generation by Carlos Llorca on 7/4/16

@@ -2,6 +2,7 @@ package de.tum.bgu.msm.syntheticPopulation;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
@@ -33,14 +34,7 @@ public class ReadSP {
 
     private static Logger logger = Logger.getLogger(ReadSP.class);
     private ResourceBundle rb;
-    private TableDataSet zoneTable;
-    private int[] zones;
-    private int[] zoneIndex;
-    private int[] hhByZone;
-    private int[] ppByZone;
-
-    private Map<Integer, Zone> internalZoneMap = new HashMap<>();
-
+    private final Map<Integer, Zone> zoneLookup;
 
     private TableDataSet cdTable;
     int [] cds;
@@ -49,26 +43,11 @@ public class ReadSP {
     private int[] ppByCd;
 
 
-    public ReadSP(ResourceBundle rb) {
+    public ReadSP(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
-    }
-
-
-
-    public ArrayList<Zone> readInternalZones(){
-        //create zones objects (empty) and a map to find them in hh zone assignment
-        ArrayList<Zone> internalZoneList = new ArrayList<>();
-        zoneTable = Util.readCSVfile(rb.getString("int.can"));
-        zoneTable.buildIndex(1);
-        zones = zoneTable.getColumnAsInt("ID");
-        for (int zone : zones) {
-            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
-            Zone internalZone = new Zone (zone, 0, 0, ZoneType.ONTARIO, combinedZone);
-            internalZoneList.add(internalZone);
-            internalZoneMap.put(zone, internalZone);
-        }
-        return internalZoneList;
+        this.zoneLookup = mtoLongDistData.getZoneLookup();
+        readSyntheticPopulation(mtoLongDistData.getInternalZoneList());
 
     }
 
@@ -106,6 +85,8 @@ public class ReadSP {
 
     private void readSyntheticHouseholds() {
 
+
+
         String fileName = ResourceUtil.getProperty(rb, "syn.pop.hh");
 
         String recString = "";
@@ -139,7 +120,7 @@ public class ReadSP {
 //                int numKids = Integer.parseInt(lineElements[posKids]);
                 int taz     = Integer.parseInt(lineElements[posTaz]);
 
-                Zone zone = internalZoneMap.get(taz);
+                Zone zone = zoneLookup.get(taz);
 
                 new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
             }
@@ -273,15 +254,4 @@ public class ReadSP {
         pw.close();
     }
 
-    public int[] getZones() {
-        return zones;
-    }
-
-    public int getIndexOfZone(int taz) {
-        return zoneIndex[taz];
-    }
-
-    public int[] getPpByZone() {
-        return ppByZone;
-    }
 }

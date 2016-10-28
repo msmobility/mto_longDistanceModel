@@ -76,7 +76,7 @@ public class MtoAnalyzeTrips {
 
         pw2.print("personId, away, daytrip, inOutTrip");
         pw2.println();
-        for (Person trav : getSyntheticPersonArray()) {
+        for (Person trav : getPersons()) {
             //takes only persons travelling
             if (trav.isAway  | trav.isDaytrip  | trav.isInOutTrip ) {
                 pw2.print(trav.getPersonId() + "," + trav.isAway + "," + trav.isDaytrip + "," + trav.isInOutTrip );
