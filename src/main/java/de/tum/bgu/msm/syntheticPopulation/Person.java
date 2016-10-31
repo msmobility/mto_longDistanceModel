@@ -51,7 +51,7 @@ public class Person {
         this.education = education;
         this.workStatus = workStatus;
         this.hh = hh;
-        hh.addPersonForInitialSetup(this);
+        if (hh != null) hh.addPersonForInitialSetup(this);
     }
 
 

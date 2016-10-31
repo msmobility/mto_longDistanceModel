@@ -92,8 +92,7 @@ public class ReadSP {
 
         String recString = "";
         int recCount = 0;
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(fileName));
+        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
             recString = in.readLine();
 
             // read header
@@ -141,8 +140,7 @@ public class ReadSP {
 
         String recString = "";
         int recCount = 0;
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(fileName));
+        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
             recString = in.readLine();
 
             // read header
@@ -169,7 +167,7 @@ public class ReadSP {
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education  = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
-                Household hh = getHouseholdFromId(hhId);
+                Household hh = null;
                 Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
 
                 personMap.put(id,pp);
