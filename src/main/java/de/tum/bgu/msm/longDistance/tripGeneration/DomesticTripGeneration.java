@@ -5,13 +5,11 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-
-import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
-
 
 /**
  * Created by Carlos Llorca on 7/4/2016.
@@ -24,23 +22,22 @@ import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
 
 public class DomesticTripGeneration {
 
-    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
-    private List<String> tripStates = MtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+    private List<String> tripStates = MtoLongDistData.getTripStates();
 
-
+    private MtoLongDistData ldd;
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
     public DomesticTripGeneration(ResourceBundle rb) {
         this.rb = rb;
+        this.ldd = ldd;
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runTripGeneration() {
+    public ArrayList<LongDistanceTrip> runTripGeneration(ReadSP syntheticPopulation) {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-
-
 
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
@@ -56,7 +53,7 @@ public class DomesticTripGeneration {
 
          // initialize the trip count to zero
         int tripCount = 0;
-        for (Household hhold : getHouseholdArray()) {
+        for (Household hhold : syntheticPopulation.getHouseholds()) {
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
             Collections.shuffle(membersList);
@@ -290,7 +287,7 @@ public class DomesticTripGeneration {
         else {
             tripDuration = estimateTripDuration(probability);
         }
-        return new LongDistanceTrip(pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
+        return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
                 pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }

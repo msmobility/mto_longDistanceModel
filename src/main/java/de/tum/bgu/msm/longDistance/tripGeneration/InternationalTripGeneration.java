@@ -3,8 +3,10 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.syntheticPopulation.ReadSP;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -18,12 +20,9 @@ import java.util.stream.Stream;
  */
 public class InternationalTripGeneration {
 
-
-
-    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
-    private List<String> tripStates = MtoLongDistance.getTripStates();
-
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
+    static final List<String> tripStates = MtoLongDistData.getTripStates();
+    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
 
     public InternationalTripGeneration(ResourceBundle rb) {
@@ -31,7 +30,7 @@ public class InternationalTripGeneration {
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
+    public ArrayList<LongDistanceTrip> runInternationalTripGeneration(ReadSP syntheticPopulation) {
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
@@ -48,12 +47,12 @@ public class InternationalTripGeneration {
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
         double[][] sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
-        int[] personIds = new int[Person.getPersons().size()];
-        double[][][] probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][Person.getPersons().size()];
+        int[] personIds = new int[syntheticPopulation.getPersons().size()];
+        double[][][] probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][syntheticPopulation.getPersons().size()];
 
         //recalculate the probabilities adapted to the new accessibility values
-        IntStream.range(0, Person.getPersons().size()).parallel().forEach(p -> {
-            Person pers = Person.getPersons().get(p);
+        IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
+            Person pers = syntheticPopulation.getPersons().get(p);
             personIds[p] = pers.getPersonId();
             for (String tripPurpose : tripPurposes) {
                 for (String tripState : tripStates) {
@@ -88,7 +87,7 @@ public class InternationalTripGeneration {
                         p++;
                         cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
-                    Person pers = Person.getPersonFromId(personIds[p]);
+                    Person pers = syntheticPopulation.getPersonFromId(personIds[p]);
                     if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfTrips) {
                         switch (tripState) {
                             case "away" :
@@ -108,6 +107,7 @@ public class InternationalTripGeneration {
         }
         return trips;
     }
+
     private LongDistanceTrip createIntLongDistanceTrip(Person pers, String tripPurpose, String tripState, int tripCount, TableDataSet travelPartyProbabilities ){
         ArrayList<Person> adultsHhTravelParty = DomesticTripGeneration.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> kidsHhTravelParty = DomesticTripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
@@ -116,7 +116,7 @@ public class InternationalTripGeneration {
         hhTravelParty.addAll(adultsHhTravelParty);
         int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
 
-        return new LongDistanceTrip(pers.getPersonId(), true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
+        return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
 

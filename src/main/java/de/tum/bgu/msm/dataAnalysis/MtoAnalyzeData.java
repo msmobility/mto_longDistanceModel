@@ -99,6 +99,7 @@ public class MtoAnalyzeData {
         int[] stopFrequency = new int[100];
 
 //      iterate over all tours:
+        //TODO: replace with streams and filters
         for (SurveyPerson sp : data.getPersons()) {
             if (sp.getNumberOfTrips() == 0) continue;  //Person did not make long-distance trip
             float weight = sp.getWeight();

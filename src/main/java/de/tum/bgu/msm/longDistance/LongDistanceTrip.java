@@ -3,8 +3,10 @@ package de.tum.bgu.msm.longDistance;
 
 
 import com.pb.common.datafile.TableDataSet;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.syntheticPopulation.Person;
+import de.tum.bgu.msm.syntheticPopulation.ReadSP;
 
 import java.util.List;
 import java.util.Map;
@@ -20,9 +22,11 @@ import java.util.ArrayList;
 public class LongDistanceTrip {
 
     private static int tripCounter = 0;
+    static final List<String> tripStates = MtoLongDistData.getTripStates();
+    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
 
     private int tripId;
-    private int personId;
+    private Person traveller;
     private boolean international;
     private int tripPurpose;
     private int tripState;
@@ -37,10 +41,10 @@ public class LongDistanceTrip {
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int personId, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
+    public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
                             int hhAdultsTravelPartySize, int hhKidsTravelPartySize/**,ArrayList hhTravelParty**/, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripCounter;
-        this.personId = personId;
+        this.traveller = traveller;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
@@ -54,13 +58,12 @@ public class LongDistanceTrip {
         tripCounter++;
     }
 
-    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup) {
-
-        List<String> tripPurposes = MtoLongDistance.getTripPurposes();
-        List<String> tripStates = MtoLongDistance.getTripStates();
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, ReadSP syntheticPopulation) {
 
         this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
-        this.personId = (int) tripsDomesticTable.getValueAt(row, "personId");
+        int personId = (int) tripsDomesticTable.getValueAt(row, "personId");
+        this.traveller = syntheticPopulation.getPersonFromId(personId);
+
         this.international = tripsDomesticTable.getBooleanValueAt(row, "international");
         this.tripPurpose = tripPurposes.indexOf(tripsDomesticTable.getStringValueAt(row, "tripPurpose"));
         this.tripState = tripStates.indexOf(tripsDomesticTable.getStringValueAt(row, "tripState"));
@@ -77,7 +80,8 @@ public class LongDistanceTrip {
     }
 
     public int getPersonId() {
-        return personId;
+        if (traveller == null) return 99999999;
+        else return traveller.getPersonId();
     }
 
     public boolean isLongDistanceInternational() {
@@ -115,5 +119,9 @@ public class LongDistanceTrip {
 
     public void setDestination(int destinationZoneId) {
         this.destinationCombinedZoneId = destinationZoneId;
+    }
+
+    public Person getTraveller() {
+        return traveller;
     }
 }

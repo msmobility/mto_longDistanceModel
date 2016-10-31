@@ -33,33 +33,25 @@ public class MtoLongDistance {
 
     private TripGenerationModel tripGenModel;
     private DomesticDestinationChoice dcModel;
-    private MtoAnalyzeTrips tripAnalysis;
     private ReadSP syntheticPopulationReader;
 
     public MtoLongDistance(ResourceBundle rb) {
 
         this.rb = rb;
-        this.tripAnalysis = new MtoAnalyzeTrips(rb);
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new ReadSP(rb, mtoLongDistData);
-        tripGenModel = new TripGenerationModel(rb, syntheticPopulationReader, mtoLongDistData);
+        mtoLongDistData.populateZones(syntheticPopulationReader);
+        tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
         dcModel = new DomesticDestinationChoice(rb);
 
     }
 
-    //public static ArrayList<String> tripPurposes = new ArrayList<>();
-    public static List<String> tripPurposes = Arrays.asList("visit","business","leisure");
-
-    //public static ArrayList<String> tripStates = new ArrayList<>();
-
-    public static List<String> tripStates = Arrays.asList("away","daytrip","inout");
-
     public void runLongDistanceModel () {
 
         if(ResourceUtil.getBooleanProperty(rb,"run.trip.gen",false)) {
-            allTrips = tripGenModel.runTripGeneration();
+            allTrips = tripGenModel.runTripGeneration(syntheticPopulationReader);
             //currently only internal zone list
-            if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripAnalysis.runMtoAnalyzeTrips(allTrips, mtoLongDistData.getZoneList());
+            if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripGenModel.runMtoAnalyzeTrips(allTrips, mtoLongDistData.getZoneList(), syntheticPopulationReader);
 
         } else {
             //load saved trips
@@ -67,7 +59,7 @@ public class MtoLongDistance {
             TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.out.file"));
 
             for (int i=0; i<tripsDomesticTable.getRowCount(); i++) {
-                LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i+1, mtoLongDistData.getZoneLookup());
+                LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i+1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader);
                 allTrips.add(ldt);
 
             }
@@ -93,16 +85,6 @@ public class MtoLongDistance {
             }
         });
     }
-
-
-    public static List<String> getTripPurposes() {
-        return tripPurposes;
-    }
-
-    public static List<String> getTripStates() {
-        return tripStates;
-    }
-
 
 
 

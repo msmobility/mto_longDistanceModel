@@ -24,8 +24,7 @@ public class Person {
 
     static Logger logger = Logger.getLogger(Person.class);
 
-    private static final Map<Integer, Person> personMap = new HashMap<>();
-    private static final ArrayList<Person> personList = new ArrayList<>();
+
     private int id;
     private int age;
     private String gender;
@@ -44,32 +43,17 @@ public class Person {
     public float[][] travelProbabilities = new float[3][3];
 // rows 1 to 3: away, daytrip, inOutTrip, home
 // columns 1 to 3: visit, business, leisure
-    public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus) {
+    public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus, Household hh) {
         this.id = id;
         this.age = age;
         this.gender = gender;
         this.occupation = occupation;
         this.education = education;
         this.workStatus = workStatus;
-        this.hh = Household.getHouseholdFromId(hhId);
+        this.hh = hh;
         hh.addPersonForInitialSetup(this);
-        personMap.put(id,this);
-        personList.add(this);
     }
 
-    public static Person getPersonFromId(int personId) {
-        return personMap.get(personId);
-    }
-
-
-    public static int getPersonCount() {
-        return personMap.size();
-    }
-
-
-    public static ArrayList<Person> getPersons() {
-        return personList;
-    }
 
     //add gets for inputs for trip generation by Carlos Llorca on 7/4/16
     public int getPersonId() {return id;}

@@ -13,10 +13,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  *
@@ -35,6 +32,11 @@ public class ReadSP {
     private static Logger logger = Logger.getLogger(ReadSP.class);
     private ResourceBundle rb;
     private final Map<Integer, Zone> zoneLookup;
+
+    private static final Map<Integer, Person> personMap = new HashMap<>();
+    private static final ArrayList<Person> personList = new ArrayList<>();
+
+    private static final Map<Integer, Household> householdMap = new HashMap<>();
 
     private TableDataSet cdTable;
     int [] cds;
@@ -60,7 +62,6 @@ public class ReadSP {
         readSyntheticPersons();
         examSyntheticPopulation();
         //summarizePopulationData();
-        summarizePopulationByZone(internalZoneList);
     }
 
     /*public void readZonalData () {
@@ -122,7 +123,9 @@ public class ReadSP {
 
                 Zone zone = zoneLookup.get(taz);
 
-                new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
+                Household hh = new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
+
+                householdMap.put(id,hh);
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop household file: " + fileName);
@@ -166,7 +169,11 @@ public class ReadSP {
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education  = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
-                new Person(id, hhId, age, gender, occupation, education, workStatus);  // this automatically puts it in id->household map in Household class
+                Household hh = getHouseholdFromId(hhId);
+                Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
+
+                personMap.put(id,pp);
+                personList.add(pp);
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop person file: " + fileName);
@@ -183,7 +190,7 @@ public class ReadSP {
         // Test 1: Were all persons created? The person read method checks whether all households mentioned in the person
         // file exist. Here, check if all persons mentioned in the household file exist
 
-        for (Household hh: Household.getHouseholdArray()) {
+        for (Household hh: getHouseholds()) {
             for (Person pp: hh.getPersonsOfThisHousehold()) {
                 if (pp == null) {
                     logger.error("Inconsistent synthetic population. Household " + hh.getId() + " is supposed to have " +
@@ -195,6 +202,33 @@ public class ReadSP {
         }
     }
 
+    public Person getPersonFromId(int personId) {
+        return personMap.get(personId);
+    }
+
+
+    public int getPersonCount() {
+        return personMap.size();
+    }
+
+
+    public ArrayList<Person> getPersons() {
+        return personList;
+    }
+
+    public Collection<Household> getHouseholds() {
+        return householdMap.values();
+    }
+
+
+    public Household getHouseholdFromId(int householdId) {
+        return householdMap.get(householdId);
+    }
+
+
+    public int getHouseholdCount() {
+        return householdMap.size();
+    }
 
     /*private void summarizePopulationData () {
         // calculate households and persons by zone
@@ -232,26 +266,5 @@ public class ReadSP {
 
     }*/
 
-    private void summarizePopulationByZone(ArrayList<Zone> internalZoneList){
-        for (Household hh : Household.getHouseholdArray()){
-            Zone zone = hh.getZone();
-            zone.addHouseholds(1);
-            zone.addPopulation(hh.getHhSize());
-            //add employees in their zone, discarded because employments are needed, instead employees:
-            /*Person[] personsInHousehold = hh.getPersonsOfThisHousehold();
-            for (Person pers:personsInHousehold){
-                if (pers.getWorkStatus()==1|pers.getWorkStatus()==2){
-                    zone.addEmployment(1);
-                }
-            }*/
-        }
-
-        PrintWriter pw = Util.openFileForSequentialWriting("output/popByZone.csv", false);
-        pw.println("zone,hh,pp");
-        for (Zone zone: internalZoneList){
-            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
-        }
-        pw.close();
-    }
 
 }

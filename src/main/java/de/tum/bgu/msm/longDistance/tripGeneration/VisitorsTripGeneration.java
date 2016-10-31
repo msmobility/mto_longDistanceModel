@@ -3,9 +3,11 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.syntheticPopulation.ReadSP;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -17,10 +19,9 @@ import java.util.ResourceBundle;
  */
 public class VisitorsTripGeneration {
 
-    private List<String> tripPurposes = MtoLongDistance.getTripPurposes();
-    private List<String> tripStates = MtoLongDistance.getTripStates();
-
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
+    static final List<String> tripStates = MtoLongDistData.getTripStates();
+    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
 
     public VisitorsTripGeneration(ResourceBundle rb) {
@@ -110,7 +111,7 @@ public class VisitorsTripGeneration {
         while (nonHh<9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh+1, 9), column)) nonHh++;
 
 
-        return new LongDistanceTrip(99999999, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone,
+        return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone,
                 0, adultsHh, kidsHh, nonHh);
 
     }

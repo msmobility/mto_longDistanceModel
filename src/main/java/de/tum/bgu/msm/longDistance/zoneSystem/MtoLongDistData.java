@@ -5,6 +5,8 @@ import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.syntheticPopulation.Household;
+import de.tum.bgu.msm.syntheticPopulation.ReadSP;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -36,6 +38,10 @@ public class MtoLongDistData {
     private ArrayList<Zone> externalZones;
     private final Map<Integer, Zone> zoneLookup;
 
+    public static final List<String> tripPurposes = Arrays.asList("visit","business","leisure");
+    public static final List<String> tripStates = Arrays.asList("away","daytrip","inout");
+
+
     public MtoLongDistData(ResourceBundle rb) {
 
         this.rb = rb;
@@ -46,6 +52,14 @@ public class MtoLongDistData {
         this.zoneList.addAll(externalZones);
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
         ;
+    }
+
+    public static List<String> getTripPurposes() {
+        return tripPurposes;
+    }
+
+    public static List<String> getTripStates() {
+        return tripStates;
     }
 
     public void readSkim(String mode) {
@@ -245,6 +259,28 @@ public class MtoLongDistData {
 
     public ArrayList<Zone> getInternalZoneList() {
         return internalZones;
+    }
+
+    public void populateZones(ReadSP syntheticPopulationReader) {
+        for (Household hh : syntheticPopulationReader.getHouseholds()){
+            Zone zone = hh.getZone();
+            zone.addHouseholds(1);
+            zone.addPopulation(hh.getHhSize());
+            //add employees in their zone, discarded because employments are needed, instead employees:
+        /*Person[] personsInHousehold = hh.getPersonsOfThisHousehold();
+        for (Person pers:personsInHousehold){
+            if (pers.getWorkStatus()==1|pers.getWorkStatus()==2){
+                zone.addEmployment(1);
+            }
+        }*/
+        }
+
+        PrintWriter pw = Util.openFileForSequentialWriting("output/popByZone.csv", false);
+        pw.println("zone,hh,pp");
+        for (Zone zone: getInternalZoneList()){
+            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
+        }
+        pw.close();
     }
 
     //original Rolf version below
