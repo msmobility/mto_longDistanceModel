@@ -52,7 +52,7 @@ public class InternationalTripGeneration {
 
         //recalculate the probabilities adapted to the new accessibility values
         IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
-            Person pers = syntheticPopulation.getPersons().get(p);
+            Person pers = syntheticPopulation.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
             for (String tripPurpose : tripPurposes) {
                 for (String tripState : tripStates) {

@@ -27,23 +27,23 @@ public class Person {
 
     private int id;
     private int age;
-    private String gender;
+    private char gender;
     private int occupation;
     private int education;
     private int workStatus;
-    private int fullOrPartTime;
-    private int hoursWorked;
-    private int industrySector;
+    //private int fullOrPartTime;
+    //private int hoursWorked;
+    //private int industrySector;
     private Household hh;
     //addded by Carlos Llorca on 5/7/16
     public boolean  isAway = false;
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
     //added by Carlos Llorca on 19/7/16
-    public float[][] travelProbabilities = new float[3][3];
+    public float[][] travelProbabilities = null;
 // rows 1 to 3: away, daytrip, inOutTrip, home
 // columns 1 to 3: visit, business, leisure
-    public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus, Household hh) {
+    public Person(int id, int hhId, int age, char gender, int occupation, int education, int workStatus, Household hh) {
         this.id = id;
         this.age = age;
         this.gender = gender;
@@ -58,7 +58,7 @@ public class Person {
     //add gets for inputs for trip generation by Carlos Llorca on 7/4/16
     public int getPersonId() {return id;}
 
-    public String getGender() {
+    public char getGender() {
         return gender;}
 
     public int getAge() {return age;}

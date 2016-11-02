@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
+import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import org.apache.log4j.Logger;
 
 
@@ -33,16 +34,9 @@ public class ReadSP {
     private ResourceBundle rb;
     private final Map<Integer, Zone> zoneLookup;
 
-    private static final Map<Integer, Person> personMap = new HashMap<>();
-    private static final ArrayList<Person> personList = new ArrayList<>();
+    private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
-    private static final Map<Integer, Household> householdMap = new HashMap<>();
-
-    private TableDataSet cdTable;
-    int [] cds;
-    int [] cdsIndex;
-    private int[] hhByCd;
-    private int[] ppByCd;
+    private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
 
 
     public ReadSP(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
@@ -163,7 +157,7 @@ public class ReadSP {
                 int id         = Integer.parseInt(lineElements[posId]);
                 int hhId       = Integer.parseInt(lineElements[posHhId]);
                 int age        = Integer.parseInt(lineElements[posAge]);
-                String gender  = lineElements[posGender];
+                char gender  = lineElements[posGender].charAt(0);
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education  = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
@@ -171,7 +165,6 @@ public class ReadSP {
                 Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
 
                 personMap.put(id,pp);
-                personList.add(pp);
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop person file: " + fileName);
@@ -210,8 +203,8 @@ public class ReadSP {
     }
 
 
-    public ArrayList<Person> getPersons() {
-        return personList;
+    public Collection<Person> getPersons() {
+        return personMap.values();
     }
 
     public Collection<Household> getHouseholds() {
