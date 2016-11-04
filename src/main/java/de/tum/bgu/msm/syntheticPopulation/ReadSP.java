@@ -161,7 +161,7 @@ public class ReadSP {
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education  = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
-                Household hh = null;
+                Household hh = getHouseholdFromId(hhId);
                 Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
 
                 personMap.put(id,pp);

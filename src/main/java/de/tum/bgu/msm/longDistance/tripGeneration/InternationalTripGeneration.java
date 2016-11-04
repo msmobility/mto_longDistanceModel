@@ -54,15 +54,17 @@ public class InternationalTripGeneration {
         IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
             Person pers = syntheticPopulation.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
-            for (String tripPurpose : tripPurposes) {
-                for (String tripState : tripStates) {
-                    int j = tripStates.indexOf(tripState);
-                    int i = tripPurposes.indexOf(tripPurpose);
-                    //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
-                    //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
-                    double calibrationFactor = 2;
-                    probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
-                    sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+            if (pers.travelProbabilities != null) {
+                for (String tripPurpose : tripPurposes) {
+                    for (String tripState : tripStates) {
+                        int j = tripStates.indexOf(tripState);
+                        int i = tripPurposes.indexOf(tripPurpose);
+                        //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
+                        //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
+                        double calibrationFactor = 2;
+                        probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
+                        sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+                    }
                 }
             }
         });
