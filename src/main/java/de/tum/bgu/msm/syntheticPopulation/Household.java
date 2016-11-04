@@ -21,7 +21,6 @@ public class Household {
 
     static Logger logger = Logger.getLogger(Household.class);
 
-    private static final Map<Integer, Household> householdMap = new HashMap<>();
     private int id;
     private int hhSize;
     private int hhInc;
@@ -44,7 +43,6 @@ public class Household {
         this.taz = taz;
         this.zone = zone;
         this.persons = new Person[0];
-        householdMap.put(id,this);
     }
 
 
@@ -59,24 +57,7 @@ public class Household {
     }
 
 
-    public static Household[] getHouseholdArray() {
-        return householdMap.values().toArray(new Household[householdMap.size()]);
-    }
 
-
-    public static Household getHouseholdFromId(int householdId) {
-        return householdMap.get(householdId);
-    }
-
-
-    public static int getHouseholdCount() {
-        return householdMap.size();
-    }
-
-
-    public static Collection<Household> getHouseholds() {
-        return householdMap.values();
-    }
 
     public int getId() {
         return id;

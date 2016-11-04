@@ -1,18 +1,12 @@
 package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import com.pb.common.datafile.TableDataSet;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
-import de.tum.bgu.msm.util;
-import javafx.scene.control.Tab;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
-import org.geotools.geometry.jts.JTSFactoryFinder;
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -23,7 +17,7 @@ import java.util.stream.Collectors;
  * Version 1
  *
  */
-public class mtoSurveyData {
+public class MtoSurveyData {
     private Logger logger = Logger.getLogger(this.getClass());
     private ResourceBundle rb;
     private String workDirectory;
@@ -34,27 +28,27 @@ public class mtoSurveyData {
     private TableDataSet tripPurposes;
 
     private DataDictionary dataDictionary;
-    private HashMap<Long, surveyPerson> personMap;
+    private HashMap<Long, SurveyPerson> personMap;
     private int[] sortedCensusDivisions;
     private int[] sortedCMAList;
 
-    mtoSurveyData(ResourceBundle rb, HashMap<Long, surveyPerson> personMap, DataDictionary dd) {
+    MtoSurveyData(ResourceBundle rb, HashMap<Long, SurveyPerson> personMap, DataDictionary dd) {
         this.dataDictionary = dd;
         this.personMap = personMap;
 
-        provinceList = util.readCSVfile(rb.getString("province.list"));
+        provinceList = Util.readCSVfile(rb.getString("province.list"));
         provinceList.buildIndex(provinceList.getColumnPosition("Code"));
 
-        mainModeList = util.readCSVfile(rb.getString("main.mode.list"));
+        mainModeList = Util.readCSVfile(rb.getString("main.mode.list"));
         mainModeList.buildIndex(mainModeList.getColumnPosition("Code"));
 
-        cmaList = util.readCSVfile(rb.getString("cma.list"));
+        cmaList = Util.readCSVfile(rb.getString("cma.list"));
         cmaList.buildIndex(cmaList.getColumnPosition("CMAUID"));
 
-        censusDivisionList = util.readCSVfile(rb.getString("cd.list"));
+        censusDivisionList = Util.readCSVfile(rb.getString("cd.list"));
         censusDivisionList.buildIndex(censusDivisionList.getColumnPosition("CDUID"));
 
-        tripPurposes = util.readCSVfile(rb.getString("trip.purp"));
+        tripPurposes = Util.readCSVfile(rb.getString("trip.purp"));
         tripPurposes.buildIndex(tripPurposes.getColumnPosition("Code"));
 
         //sorted cma and cd lists for searching cds
@@ -85,7 +79,7 @@ public class mtoSurveyData {
         return tripPurposes;
     }
 
-    public surveyPerson getPersonFromId(long id) {
+    public SurveyPerson getPersonFromId(long id) {
         return personMap.get(id);
     }
 
@@ -93,7 +87,7 @@ public class mtoSurveyData {
         return personMap.size();
     }
 
-    public Collection<surveyPerson> getPersons() {
+    public Collection<SurveyPerson> getPersons() {
         return personMap.values();
     }
 

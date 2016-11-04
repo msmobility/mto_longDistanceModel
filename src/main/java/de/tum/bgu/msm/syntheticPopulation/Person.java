@@ -2,7 +2,9 @@ package de.tum.bgu.msm.syntheticPopulation;
  import org.apache.log4j.Logger;
 
 
-import java.util.Collection;
+ import java.lang.reflect.Array;
+ import java.util.ArrayList;
+ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,61 +24,41 @@ public class Person {
 
     static Logger logger = Logger.getLogger(Person.class);
 
-    private static final Map<Integer, Person> personMap = new HashMap<>();
+
     private int id;
     private int age;
-    private String gender;
+    private char gender;
     private int occupation;
     private int education;
     private int workStatus;
-    private int fullOrPartTime;
-    private int hoursWorked;
-    private int industrySector;
+    //private int fullOrPartTime;
+    //private int hoursWorked;
+    //private int industrySector;
     private Household hh;
     //addded by Carlos Llorca on 5/7/16
     public boolean  isAway = false;
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
     //added by Carlos Llorca on 19/7/16
-    public float[][] travelProbabilities = new float[3][3];
+    public float[][] travelProbabilities = null;
 // rows 1 to 3: away, daytrip, inOutTrip, home
 // columns 1 to 3: visit, business, leisure
-    public Person(int id, int hhId, int age, String gender, int occupation, int education, int workStatus) {
+    public Person(int id, int hhId, int age, char gender, int occupation, int education, int workStatus, Household hh) {
         this.id = id;
         this.age = age;
         this.gender = gender;
         this.occupation = occupation;
         this.education = education;
         this.workStatus = workStatus;
-        this.hh = Household.getHouseholdFromId(hhId);
-        hh.addPersonForInitialSetup(this);
-        personMap.put(id,this);
+        this.hh = hh;
+        if (hh != null) hh.addPersonForInitialSetup(this);
     }
 
-
-    public static Person[] getSyntheticPersonArray() {
-        return personMap.values().toArray(new Person[personMap.size()]);
-    }
-
-
-    public static Person getPersonFromId(int personId) {
-        return personMap.get(personId);
-    }
-
-
-    public static int getPersonCount() {
-        return personMap.size();
-    }
-
-
-    public static Collection<Person> getPersons() {
-        return personMap.values();
-    }
 
     //add gets for inputs for trip generation by Carlos Llorca on 7/4/16
     public int getPersonId() {return id;}
 
-    public String getGender() {
+    public char getGender() {
         return gender;}
 
     public int getAge() {return age;}

@@ -5,7 +5,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 
@@ -15,7 +15,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 public class SurveyVisit {
     public static final Logger logger = Logger.getLogger(SurveyVisit.class);
 
-    public final surveyTour tour;
+    public final SurveyTour tour;
 
     public final int visitId;
     public final int province;
@@ -26,7 +26,7 @@ public class SurveyVisit {
     public final int visitIdentification;
     public final String airport;
 
-    public SurveyVisit(Survey survey, surveyTour tour, String recString) {
+    public SurveyVisit(Survey survey, SurveyTour tour, String recString) {
 
         this.visitId = survey.readInt(recString, "VISITID");  // ascii position in file: 016-017
         this.province = survey.readInt(recString, "VPROV");
@@ -71,7 +71,7 @@ public class SurveyVisit {
     }
 
 
-    public Coordinate cdToCoords(mtoSurveyData data) {
+    public Coordinate cdToCoords(MtoSurveyData data) {
         //logger.info(cma);
         try {
             TableDataSet cdList = data.getCensusDivisionList();
@@ -83,20 +83,6 @@ public class SurveyVisit {
             return new Coordinate(-90, 60);
         }
 
-    }
-
-    public int distanceFromCd(mtoSurveyData data, int origCD) {
-        //calculate origin location
-        TableDataSet cdList = data.getCensusDivisionList();
-        float latitude = cdList.getIndexedValueAt(origCD, "LATITUDE");
-        float longitude = cdList.getIndexedValueAt(origCD, "LONGITUDE");
-        Coordinate origin_coord = new Coordinate(longitude, latitude);
-
-        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
-
-        LineString ls = geometryFactory.createLineString(new Coordinate[]{origin_coord, cdToCoords(data)});
-
-        return (int) util.getTourDistance(ls) / 1000;
     }
 
     @Override

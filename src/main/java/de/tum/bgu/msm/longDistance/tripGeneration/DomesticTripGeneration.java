@@ -4,14 +4,11 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.mtoLongDistance;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-
-import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
-
 
 /**
  * Created by Carlos Llorca on 7/4/2016.
@@ -22,53 +19,51 @@ import static de.tum.bgu.msm.syntheticPopulation.Household.getHouseholdArray;
  * works for domestic trips
  */
 
-public class tripGeneration {
+public class DomesticTripGeneration {
 
-    private List<String> tripPurposes = mtoLongDistance.getTripPurposes();
-    private List<String> tripStates = mtoLongDistance.getTripStates();
+    private List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+    private List<String> tripStates = MtoLongDistData.getTripStates();
 
+    private MtoLongDistData ldd;
 
-
-    static Logger logger = Logger.getLogger(tripGeneration.class);
+    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
-    public tripGeneration(ResourceBundle rb) {
+    public DomesticTripGeneration(ResourceBundle rb) {
         this.rb = rb;
+        this.ldd = ldd;
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runTripGeneration() {
+    public ArrayList<LongDistanceTrip> runTripGeneration(SyntheticPopulation syntheticPopulation) {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-
-
 
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
 
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        TableDataSet tripGenerationCoefficients = util.readCSVfile(tripGenCoefficientsFilename);
+        TableDataSet tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
         String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");;
-        TableDataSet travelPartyProbabilities =  util.readCSVfile(travelPartyProbabilitiesFilename);
+        TableDataSet travelPartyProbabilities =  Util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 
          // initialize the trip count to zero
         int tripCount = 0;
-        for (Household hhold : getHouseholdArray()) {
+        for (Household hhold : syntheticPopulation.getHouseholds()) {
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
             Collections.shuffle(membersList);
 
 
             for (Person pers : membersList) {
-
-                //obtain a vector of socio-demographics of person and transform to TSRC
-                float[] personDescription = readPersonSocioDemographics(pers);
-                for (String tripPurpose : tripPurposes) {
+                if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
+                    //obtain a vector of socio-demographics of person and transform to TSRC
+                    float[] personDescription = readPersonSocioDemographics(pers);
+                    for (String tripPurpose : tripPurposes) {
                     //the model would only be applied to a person who is an adult and is not in a long distance travel already
-                    if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
                         double[] utility = new double[3];
                         double[] probability = new double[3];
                         for (String tripState : tripStates){
@@ -83,6 +78,7 @@ public class tripGeneration {
 
                         //store the probabilities for later international trip generation
                         //TODO maybe this is only needed for non traveller and this way international trip generation is faster
+                        pers.travelProbabilities = new float[3][3];
                         for (String tripState : tripStates){
                             pers.travelProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probability[tripStates.indexOf(tripState)];
                         }
@@ -129,7 +125,7 @@ public class tripGeneration {
             personDescription[2] = 0;
         }
         //Gender =  1 if is female
-        if (Objects.equals(pers.getGender(), "F")) {
+        if (pers.getGender() == 'F') {
             personDescription[3] = 1;
         } else {
             personDescription[3] = 0;
@@ -185,7 +181,7 @@ public class tripGeneration {
         personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
 
         //variable is winter
-        if (mto.getWinter()){
+        if (Mto.getWinter()){
         personDescription[14] = 1;
          } else {
         personDescription[14] = 0;
@@ -290,7 +286,7 @@ public class tripGeneration {
         else {
             tripDuration = estimateTripDuration(probability);
         }
-        return new LongDistanceTrip(pers.getPersonId(), false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
+        return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
                 pers.getHousehold().getZone(), tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }

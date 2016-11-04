@@ -3,8 +3,10 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.mto;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Mto;
+import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.syntheticPopulation.Household;
+import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -12,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -23,37 +26,54 @@ import java.util.*;
  *
  */
 
-public class mtoLongDistData {
-    private static Logger logger = Logger.getLogger(mtoLongDistData.class);
+public class MtoLongDistData {
+    private static Logger logger = Logger.getLogger(MtoLongDistData.class);
     private ResourceBundle rb;
     private Matrix autoTravelTime;
 
     private double autoAccessibility;
 
-    private TableDataSet internalZonesTable;
-    private TableDataSet externalCanadaTable;
-    private TableDataSet externalUsTable;
-    private TableDataSet externalOverseasTable;
-    private int[] internalZones;
-    private int[] externalZonesCanada;
-    private int[] externalZonesUs;
-    private int[] externalZonesOverseas;
+    private ArrayList<Zone> zoneList;
+    private ArrayList<Zone> internalZones;
+    private ArrayList<Zone> externalZones;
+    private final Map<Integer, Zone> zoneLookup;
 
-    public mtoLongDistData(ResourceBundle rb) {
+    public static final List<String> tripPurposes = Arrays.asList("visit","business","leisure");
+    public static final List<String> tripStates = Arrays.asList("away","daytrip","inout");
+
+
+    public MtoLongDistData(ResourceBundle rb) {
+
         this.rb = rb;
+        this.internalZones = readInternalZones();
+        this.externalZones = readExternalZones();
+        this.zoneList = new ArrayList<>();
+        this.zoneList.addAll(internalZones);
+        this.zoneList.addAll(externalZones);
+        this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
+        ;
+    }
+
+    public static List<String> getTripPurposes() {
+        return tripPurposes;
+    }
+
+    public static List<String> getTripStates() {
+        return tripStates;
     }
 
     public void readSkim(String mode) {
         // read skim file
         logger.info("  Reading skims files");
 
-        String matrixName = mode + ".skim." + mto.getYear();
+        String matrixName = mode + ".skim." + Mto.getYear();
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
+        logger.info("Opening omx file: " + hwyFileName);
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
-        autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
+        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
         OmxLookup omxLookUp = hSkim.getLookup("zone_number");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
@@ -68,33 +88,24 @@ public class mtoLongDistData {
         }
     }
 
-    public void readInternalZonesEmployment(ArrayList<Zone> internalZoneList) {
 
-        //read the internal zones already created and add them the employment from an external file
+    public ArrayList<Zone> readInternalZones(){
+        //create zones objects (empty) and a map to find them in hh zone assignment
 
-        internalZonesTable = util.importTable(rb.getString("int.employment.file"));
-        internalZones = internalZonesTable.getColumnAsInt("ID");
-        internalZonesTable.buildIndex(internalZonesTable.getColumnPosition("ID"));
-        int emptyZoneCount = 0;
+        TableDataSet zoneTable;
+        int[] zones;
 
-        for (Zone zone : internalZoneList) {
-            try {
-                zone.setEmployment((int) internalZonesTable.getIndexedValueAt(zone.getId(), "Employment"));
-            } catch (Exception e) {
-                emptyZoneCount++ ;
-            }
-
+        ArrayList<Zone> internalZoneList = new ArrayList<>();
+        zoneTable = Util.readCSVfile(rb.getString("int.can"));
+        zoneTable.buildIndex(1);
+        zones = zoneTable.getColumnAsInt("ID");
+        for (int zone : zones) {
+            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
+            int employment = (int) zoneTable.getIndexedValueAt(zone, "Employment");
+            Zone internalZone = new Zone (zone, 0, employment, ZoneType.ONTARIO, combinedZone);
+            internalZoneList.add(internalZone);
         }
-    logger.warn(emptyZoneCount+ " zones were found with employment equal to 0");
-
-               /* //first read the internal zones from RSP //this part won't be required
-        int[] zones = rsp.getZones();
-        int[] pop = rsp.getPpByZone();
-
-        for (int i=0; i< zones.length; i++){
-            Zone zone = new Zone (zones[i], pop[i], ZoneType.ONTARIO);
-            zonesArray.add(zone);
-        }*/
+        return internalZoneList;
 
     }
 
@@ -106,37 +117,45 @@ public class mtoLongDistData {
         boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us", false);
         boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os", false);
 
-
+        TableDataSet externalCanadaTable;
+        TableDataSet externalUsTable;
+        TableDataSet externalOverseasTable;
+        int[] externalZonesCanada;
+        int[] externalZonesUs;
+        int[] externalZonesOverseas;
 
         //second, read the external zones from files
 
         if (externalCanada) {
-            externalCanadaTable = util.importTable(rb.getString("ext.can.file"));
+            externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
+                int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalCanadaTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA);
+                        (int)externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA, combinedZone);
                 externalZonesArray.add(zone);
             }
         }
         if (externalUs) {
-            externalUsTable = util.importTable(rb.getString("ext.us.file"));
+            externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
+                //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS);
+                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS, -1);
                 externalZonesArray.add(zone);
             }
         }
         if (externalOverseas){
-            externalOverseasTable = util.importTable(rb.getString("ext.os.file"));
+            externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
+                //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS);
+                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, -1);
                 externalZonesArray.add(zone);
             }
         }
@@ -212,7 +231,7 @@ public class mtoLongDistData {
         //print out accessibilities
 
         String fileName = rb.getString("access.out.file") + ".csv";
-        PrintWriter pw = util.openFileForSequentialWriting(fileName, false);
+        PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
         pw.println("Zone,Accessibility,Population,Employments");
 
         logger.info("Print out data of accessibility");
@@ -226,7 +245,39 @@ public class mtoLongDistData {
         pw.close();
     }
 
-        //original Rolf version below
+    public Map<Integer, Zone> getZoneLookup() {
+        return zoneLookup;
+    }
+
+    public ArrayList<Zone> getZoneList() {
+        return zoneList;
+    }
+
+    public ArrayList<Zone> getExternalZoneList() {
+        return externalZones;
+    }
+
+    public ArrayList<Zone> getInternalZoneList() {
+        return internalZones;
+    }
+
+    public void populateZones(SyntheticPopulation syntheticPopulationReader) {
+        for (Household hh : syntheticPopulationReader.getHouseholds()){
+            Zone zone = hh.getZone();
+            zone.addHouseholds(1);
+            zone.addPopulation(hh.getHhSize());
+            //add employees in their zone, discarded because employments are needed, instead employees:
+        /*Person[] personsInHousehold = hh.getPersonsOfThisHousehold();
+        for (Person pers:personsInHousehold){
+            if (pers.getWorkStatus()==1|pers.getWorkStatus()==2){
+                zone.addEmployment(1);
+            }
+        }*/
+        }
+
+    }
+
+    //original Rolf version below
         /*autoAccessibility = new double[zones.length];
         for (int orig: zones) {
             autoAccessibility[rsp.getIndexOfZone(orig)] = 0;

@@ -12,11 +12,11 @@ import java.util.Map;
  */
 
 
-public class surveyIntVisitorTravel {
+public class SurveyIntVisitorTravel {
 
-    static Logger logger = Logger.getLogger(surveyIntVisitorTravel.class);
+    static Logger logger = Logger.getLogger(SurveyIntVisitorTravel.class);
 
-    private static final Map<Integer,surveyIntVisitorTravel> intVisitorTravelMap = new HashMap<>();
+    private static final Map<Integer,SurveyIntVisitorTravel> intVisitorTravelMap = new HashMap<>();
 
     int pumfId;
     int refQuarter;
@@ -38,7 +38,7 @@ public class surveyIntVisitorTravel {
     //constructor
 
 
-    public surveyIntVisitorTravel(int pumfId, int refQuarter, int refYear, int purpose, String entryPort, int entryMode,
+    public SurveyIntVisitorTravel(int pumfId, int refQuarter, int refYear, int purpose, String entryPort, int entryMode,
                                   int origCountry, int[] provinces, int[] nightsByPlace, float weight, int travelParty, int entryRoute, int sgrCode) {
         this.pumfId = pumfId;
         this.refQuarter = refQuarter;
@@ -58,8 +58,8 @@ public class surveyIntVisitorTravel {
 
 
 
-    public static surveyIntVisitorTravel[] getIntVisitorTravelArray() {
-        return intVisitorTravelMap.values().toArray(new surveyIntVisitorTravel[intVisitorTravelMap.size()]);
+    public static SurveyIntVisitorTravel[] getIntVisitorTravelArray() {
+        return intVisitorTravelMap.values().toArray(new SurveyIntVisitorTravel[intVisitorTravelMap.size()]);
     }
 
     public int getPumfId() {

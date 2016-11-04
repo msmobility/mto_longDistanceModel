@@ -2,10 +2,14 @@ package de.tum.bgu.msm.longDistance;
 
 
 
+import com.pb.common.datafile.TableDataSet;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.syntheticPopulation.Person;
+import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
@@ -18,8 +22,12 @@ import java.util.ArrayList;
  */
 public class LongDistanceTrip {
 
+    private static int tripCounter = 0;
+    static final List<String> tripStates = MtoLongDistData.getTripStates();
+    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+
     private int tripId;
-    private int personId;
+    private Person traveller;
     private boolean international;
     private int tripPurpose;
     private int tripState;
@@ -29,16 +37,15 @@ public class LongDistanceTrip {
     private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
     private Zone origZone;
-    private static int tripCounter = 0;
-
+    private int destinationCombinedZoneId = -1;
 
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(int personId, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
+    public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
                             int hhAdultsTravelPartySize, int hhKidsTravelPartySize/**,ArrayList hhTravelParty**/, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripCounter;
-        this.personId = personId;
+        this.traveller = traveller;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
@@ -52,12 +59,30 @@ public class LongDistanceTrip {
         tripCounter++;
     }
 
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, SyntheticPopulation syntheticPopulation) {
+
+        this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
+        int personId = (int) tripsDomesticTable.getValueAt(row, "personId");
+        this.traveller = syntheticPopulation.getPersonFromId(personId);
+
+        this.international = tripsDomesticTable.getBooleanValueAt(row, "international");
+        this.tripPurpose = tripPurposes.indexOf(tripsDomesticTable.getStringValueAt(row, "tripPurpose"));
+        this.tripState = tripStates.indexOf(tripsDomesticTable.getStringValueAt(row, "tripState"));
+        int origZoneId = (int) tripsDomesticTable.getValueAt(row, "tripOriginZone");
+        origZone = zoneLookup.get(origZoneId);
+        this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
+        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
+        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
+        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
+    }
+
     public int getLongDistanceTripId() {
         return tripId;
     }
 
     public int getPersonId() {
-        return personId;
+        if (traveller == null) return 99999999;
+        else return traveller.getPersonId();
     }
 
     public boolean isLongDistanceInternational() {
@@ -86,5 +111,55 @@ public class LongDistanceTrip {
 
     public int getNonHhTravelPartySize() {
         return nonHhTravelPartySize;
+    }
+
+    public Zone getOrigZone() { return origZone; }
+
+    public int getDestZoneId() { return destinationCombinedZoneId; }
+
+
+    public void setDestination(int destinationZoneId) {
+        this.destinationCombinedZoneId = destinationZoneId;
+    }
+
+    public Person getTraveller() {
+        return traveller;
+    }
+
+    public static String getHeader() {
+        return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
+                "tripDestCombinedZone,tripMode," +
+                "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
+                "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh";
+    }
+    @Override
+    public String toString() {
+        LongDistanceTrip tr = this;
+        String str = null;
+        if (tr.getLongDistanceOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+            Person traveller = tr.getTraveller();
+
+            str = (tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
+                    tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
+                    + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                    + tr.getDestZoneId() + "," + tr.getMode() + ","
+                    + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                    + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize()
+                    + "," + traveller.getAge() + "," + traveller.getGender() + "," + traveller.getEducation() + "," + traveller.getWorkStatus() +
+                    "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh());
+        } else {
+            str =  (tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
+                    tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
+                    + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
+                    + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
+                    + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize()
+                    + ",-1,\"\",-1,-1,-1,-1,-1");
+
+        }
+        return str;
+    }
+
+    public String getMode() {
+        return "";
     }
 }

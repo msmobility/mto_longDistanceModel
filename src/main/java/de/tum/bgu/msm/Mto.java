@@ -2,9 +2,9 @@ package de.tum.bgu.msm;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
-import de.tum.bgu.msm.dataAnalysis.mtoAnalyzeData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.longDistance.mtoLongDistance;
+import de.tum.bgu.msm.dataAnalysis.MtoAnalyzeData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import org.apache.log4j.Logger;
 
 
@@ -20,15 +20,15 @@ import java.util.ResourceBundle;
  *
  */
 
-public class mto {
+public class Mto {
     // main class
-    private static Logger logger = Logger.getLogger(mto.class);
+    private static Logger logger = Logger.getLogger(Mto.class);
     private ResourceBundle rb;
     private static int year;
     private static boolean winter;
 
 
-    private mto(ResourceBundle rb) {
+    private Mto(ResourceBundle rb) {
         // constructor
         this.rb = rb;
     }
@@ -45,15 +45,15 @@ public class mto {
             System.exit(0);
         }
         long startTime = System.currentTimeMillis();
-        ResourceBundle rb = util.mtoInitialization(args[0]);
+        ResourceBundle rb = Util.mtoInitialization(args[0]);
         year = Integer.parseInt(args[1]);
         winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
 
-        mto model = new mto(rb);
+        Mto model = new Mto(rb);
         if (ResourceUtil.getBooleanProperty(rb, "analyze.tsrc.data", false)) model.runDataAnalysis();
         if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
 
-        float endTime = util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
+        float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);
         int min = (int) (endTime - 60 * hours);
         logger.info("Runtime: " + hours + " hours and " + min + " minutes.");
@@ -63,8 +63,8 @@ public class mto {
     private void runDataAnalysis() {
         // main method to run data analysis
 
-        mtoSurveyData data = SurveyDataImporter.importData(rb);
-        mtoAnalyzeData ld = new mtoAnalyzeData(rb, data);
+        MtoSurveyData data = SurveyDataImporter.importData(rb);
+        MtoAnalyzeData ld = new MtoAnalyzeData(rb, data);
         ld.runAnalyses();
         logger.info("Module runDataAnalysis completed.");
     }
@@ -73,7 +73,7 @@ public class mto {
     private void runLongDistModel() {
         // main method to run long-distance model
         logger.info("Started runLongDistModel for the year " + year);
-        mtoLongDistance ld = new mtoLongDistance(rb);
+        MtoLongDistance ld = new MtoLongDistance(rb);
         ld.runLongDistanceModel();
         logger.info("Module runLongDistModel completed.");
 

@@ -16,9 +16,9 @@ import java.util.HashMap;
  *
 **/
 
-public class surveyPerson implements Serializable {
+public class SurveyPerson implements Serializable {
 
-    static Logger logger = Logger.getLogger(surveyPerson.class);
+    static Logger logger = Logger.getLogger(SurveyPerson.class);
 
     int refYear;
     int refMonth;
@@ -35,7 +35,7 @@ public class surveyPerson implements Serializable {
     int hhIncome;
     int adultsInHh;
     int kidsInHh;
-    HashMap<Integer, surveyTour> tours;
+    HashMap<Integer, SurveyTour> tours;
 
     //addded by Carlos Llorca on 6/7/16 to evaluate the tripGeneration of the surveyPerson individuals instead of Synthetic pop
     //this should not be used if this survey population is not used to test the models
@@ -43,7 +43,7 @@ public class surveyPerson implements Serializable {
     public boolean  isDaytrip = false ;
     public boolean  isInOutTrip = false;
 
-    public surveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, String ageGroup,
+    public SurveyPerson(int refYear, int refMonth, int pumfId, float weight, float weight2, int prov, int cd, int cma, String ageGroup,
                         Gender gender, String education, LaborStatus laborStat, int hhIncome, int adultsInHh, int kidsInHh) {
         // constructor of new survey person
 
@@ -64,7 +64,7 @@ public class surveyPerson implements Serializable {
         this.kidsInHh = kidsInHh;
     }
 
-    public surveyPerson(Survey survey, String recString) {
+    public SurveyPerson(Survey survey, String recString) {
         this.refYear = survey.readInt(recString, "REFYEARP");  // ascii position in file: 01-04
         this.refMonth = survey.readInt(recString, "REFMTHP");  // ascii position in file: 05-06
 
@@ -95,7 +95,7 @@ public class surveyPerson implements Serializable {
         return refYear;
     }
 
-    public void addTour(surveyTour tour) {
+    public void addTour(SurveyTour tour) {
         tours.put(tour.getTripId(), tour);
     }
 
@@ -147,7 +147,7 @@ public class surveyPerson implements Serializable {
         return cma;
     }
 
-    public Collection<surveyTour> getTours() {
+    public Collection<SurveyTour> getTours() {
         return tours.values();
     }
 
@@ -159,7 +159,7 @@ public class surveyPerson implements Serializable {
         return refMonth;
     }
 
-    public surveyTour getTourFromId(int tripId) {
+    public SurveyTour getTourFromId(int tripId) {
         return tours.get(tripId);
     }
 }

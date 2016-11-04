@@ -7,9 +7,8 @@ import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyVisit;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
@@ -25,9 +24,6 @@ import java.nio.file.Paths;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
@@ -40,8 +36,8 @@ import static java.lang.System.exit;
  * Version 1
  *
  */
-public class util {
-    static Logger logger = Logger.getLogger(util.class);
+public class Util {
+    static Logger logger = Logger.getLogger(Util.class);
 
 
     public static ResourceBundle mtoInitialization(String resourceBundleName) {
@@ -112,12 +108,6 @@ public class util {
         return Math.round(value * Math.pow(10, digits) + 0.5)/(float) Math.pow(10, digits);
     }
 
-
-    public static long createTourId (long pumfId, int tripId) {
-        return pumfId * 100 + tripId;
-    }
-
-
     public static int getDaysOfMonth(int year, int month) {
         YearMonth yearMonthObject = YearMonth.of(year, month);
         return yearMonthObject.lengthOfMonth();
@@ -162,21 +152,6 @@ public class util {
         return ind;
     }
 
-
-    public static TableDataSet importTable(String filePath) {
-
-        // read a csv file into a TableDataSet
-        TableDataSet table;
-        CSVFileReader cfrReader = new CSVFileReader();
-        try {
-            table = cfrReader.readFile(new File( filePath ));
-        } catch (Exception e) {
-            throw new RuntimeException("File Not Found: <" + filePath + ">.", e);
-        }
-        return table;
-    }
-
-
     public static double[] scaleArray (double[] array, double maxVal) {
         // scale float array so that largest value equals maxVal
 
@@ -186,72 +161,5 @@ public class util {
         return array;
     }
 
-
-    public static <K,V> void outputCsv(String filename, String[] headers, Map<K,V> lines, BiFunction<K,V, Optional<String>> f) {
-        try {
-            FileWriter writer = new FileWriter(filename);
-            //write headers
-            writer.write(Arrays.stream(headers).collect(Collectors.joining(",")));
-            writer.write("\n");
-            for (K k : lines.keySet()) {
-                Optional<String> toWrite = f.apply(k,lines.get(k));
-                if (toWrite.isPresent()) {
-                    writer.write(toWrite.get());
-                    writer.write("\n");
-                }
-            }
-        } catch (IOException e) {
-            logger.error(e);
-        }
-
-    }
-
-    public static void outputTourCounts(mtoSurveyData data, String filename, Map<String, List<surveyTour>> tourMap) {
-        String[] headers = new String[]{"path", "mode", "trip_length", "tour_distance", "min_distance", "num_trips", "weighted_num_trips"};
-        outputCsv(filename, headers, tourMap, (key, tours) -> {
-            String ret = "";
-            LineString line = tours.get(0).generateTourLineString(data);
-            double weightedCount = tours.stream().mapToDouble(surveyTour::getWeight).sum();
-            if (line.isEmpty()) {
-                return Optional.empty();
-            } else {
-                ret += String.format("\"%s\"", line.toText());
-                ret += ',';
-                ret += tours.get(0).getMainModeStr();
-                ret += ',';
-                ret += line.getNumPoints()-1; //hack to get the number of stops in the trip again
-                ret += ',';
-                ret += (int) getTourDistance(line) / 1000;
-                ret += ',';
-                ret += (tours.get(0).calculateFurthestDistance(data)) * 2;
-                ret += ',';
-                ret += tours.size();
-                ret += ',';
-                ret += weightedCount;
-                return Optional.of(ret);
-            }
-        });
-    }
-
-    public static double getTourDistance(LineString ls) {
-        //this could also be done using a distance matrix, or even the skim matrix
-        double totalDistance = 0;
-        try {
-            Coordinate c0 = ls.getCoordinateN(0);
-            for (int i=1; i<ls.getNumPoints(); i++) {
-                Coordinate c1 = ls.getCoordinateN(i);
-                //flip lat and long
-                Coordinate c0flipped = new Coordinate(c0.y, c0.x);
-                Coordinate c1flipped = new Coordinate(c1.y, c1.x);
-
-                totalDistance += JTS.orthodromicDistance(c0flipped, c1flipped, CRS.decode("EPSG:4269"));
-                c0 = c1;
-            }
-        } catch (TransformException | FactoryException | IllegalArgumentException e) {
-            logger.error(ls, e);
-            exit(1);
-        }
-        return totalDistance;
-    }
 
 }

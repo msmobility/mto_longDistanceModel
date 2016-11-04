@@ -1,10 +1,10 @@
 package de.tum.bgu.msm.syntheticPopulation;
 
-import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.util;
+import de.tum.bgu.msm.Util;
+import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import org.apache.log4j.Logger;
 
 
@@ -12,10 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  *
@@ -29,48 +26,28 @@ import java.util.ResourceBundle;
  *
  */
 
-public class readSP {
+public class SyntheticPopulation {
 
-    private static Logger logger = Logger.getLogger(readSP.class);
+    private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
-    private TableDataSet zoneTable;
-    private int[] zones;
-    private int[] zoneIndex;
-    private int[] hhByZone;
-    private int[] ppByZone;
+    private final Map<Integer, Zone> zoneLookup;
 
-    private Map<Integer, Zone> internalZoneMap = new HashMap<>();
+    private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
-
-    private TableDataSet cdTable;
-    int [] cds;
-    int [] cdsIndex;
-    private int[] hhByCd;
-    private int[] ppByCd;
+    private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
+    private ArrayList<Zone> internalZoneList;
 
 
-    public readSP(ResourceBundle rb) {
+    public SyntheticPopulation(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
-    }
-
-
-
-    public ArrayList<Zone> readInternalZones(){
-        //create zones objects (empty) and a map to find them in hh zone assignment
-        ArrayList<Zone> internalZoneList = new ArrayList<>();
-        zoneTable = util.importTable(rb.getString("zone.system"));
-        zones = zoneTable.getColumnAsInt("ID");
-        for (int zone : zones) {
-            Zone internalZone = new Zone (zone, 0, 0, ZoneType.ONTARIO);
-            internalZoneList.add(internalZone);
-            internalZoneMap.put(zone, internalZone);
-        }
-        return internalZoneList;
+        this.zoneLookup = mtoLongDistData.getZoneLookup();
+        readSyntheticPopulation(mtoLongDistData.getInternalZoneList());
 
     }
 
     public void readSyntheticPopulation(ArrayList<Zone> internalZoneList) {
+        this.internalZoneList = internalZoneList;
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
         //readZonalData();
@@ -79,13 +56,12 @@ public class readSP {
         readSyntheticPersons();
         examSyntheticPopulation();
         //summarizePopulationData();
-        summarizePopulationByZone(internalZoneList);
     }
 
     /*public void readZonalData () {
         // Read in zonal data
 
-        zoneTable = util.importTable(rb.getString("zone.system"));
+        zoneTable = util.importTable(rb.getString("int.can"));
         zones = zoneTable.getColumnAsInt("ID");
         zoneIndex = new int[util.getHighestVal(zones) + 1];
         for (int i = 0; i < zones.length; i++) {
@@ -104,12 +80,13 @@ public class readSP {
 
     private void readSyntheticHouseholds() {
 
+
+
         String fileName = ResourceUtil.getProperty(rb, "syn.pop.hh");
 
         String recString = "";
         int recCount = 0;
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(fileName));
+        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
             recString = in.readLine();
 
             // read header
@@ -117,13 +94,13 @@ public class readSP {
             // Remove quotation marks if they are available in the header columns (after splitting by commas)
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posId     = util.findPositionInArray("hhid", header);
+            int posId     = Util.findPositionInArray("hhid", header);
 //            int posSize   = util.findPositionInArray("hhsize",header);
-            int posInc    = util.findPositionInArray("hhinc",header);
-            int posDdType = util.findPositionInArray("dtype",header);
+            int posInc    = Util.findPositionInArray("hhinc",header);
+            int posDdType = Util.findPositionInArray("dtype",header);
 //            int posWrkrs  = util.findPositionInArray("nworkers",header);
 //            int posKids   = util.findPositionInArray("kidspr",header);
-            int posTaz    = util.findPositionInArray("ID",header);
+            int posTaz    = Util.findPositionInArray("ID",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -137,9 +114,11 @@ public class readSP {
 //                int numKids = Integer.parseInt(lineElements[posKids]);
                 int taz     = Integer.parseInt(lineElements[posTaz]);
 
-                Zone zone = internalZoneMap.get(taz);
+                Zone zone = zoneLookup.get(taz);
 
-                new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
+                Household hh = new Household(id, hhInc, ddType, taz, zone);  // this automatically puts it in id->household map in Household class
+
+                householdMap.put(id,hh);
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop household file: " + fileName);
@@ -155,22 +134,21 @@ public class readSP {
 
         String recString = "";
         int recCount = 0;
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(fileName));
+        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
             recString = in.readLine();
 
             // read header
             String[] header = recString.split(",");
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posHhId             = util.findPositionInArray("hhid", header);
-            int posId               = util.findPositionInArray("uid", header);
-            int posAge              = util.findPositionInArray("age",header);
-            int posGender           = util.findPositionInArray("sex",header);
-            int posOccupation       = util.findPositionInArray("nocs",header);
-            int posAttSchool        = util.findPositionInArray("attsch",header);
-            int posHighestDegree    = util.findPositionInArray("hdgree",header);
-            int posEmploymentStatus = util.findPositionInArray("work_status",header);
+            int posHhId             = Util.findPositionInArray("hhid", header);
+            int posId               = Util.findPositionInArray("uid", header);
+            int posAge              = Util.findPositionInArray("age",header);
+            int posGender           = Util.findPositionInArray("sex",header);
+            int posOccupation       = Util.findPositionInArray("nocs",header);
+            int posAttSchool        = Util.findPositionInArray("attsch",header);
+            int posHighestDegree    = Util.findPositionInArray("hdgree",header);
+            int posEmploymentStatus = Util.findPositionInArray("work_status",header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -179,11 +157,14 @@ public class readSP {
                 int id         = Integer.parseInt(lineElements[posId]);
                 int hhId       = Integer.parseInt(lineElements[posHhId]);
                 int age        = Integer.parseInt(lineElements[posAge]);
-                String gender  = lineElements[posGender];
+                char gender  = lineElements[posGender].charAt(0);
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education  = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
-                new Person(id, hhId, age, gender, occupation, education, workStatus);  // this automatically puts it in id->household map in Household class
+                Household hh = getHouseholdFromId(hhId);
+                Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
+
+                personMap.put(id,pp);
             }
         } catch (IOException e) {
             logger.fatal("IO Exception caught reading synpop person file: " + fileName);
@@ -200,7 +181,7 @@ public class readSP {
         // Test 1: Were all persons created? The person read method checks whether all households mentioned in the person
         // file exist. Here, check if all persons mentioned in the household file exist
 
-        for (Household hh: Household.getHouseholdArray()) {
+        for (Household hh: getHouseholds()) {
             for (Person pp: hh.getPersonsOfThisHousehold()) {
                 if (pp == null) {
                     logger.error("Inconsistent synthetic population. Household " + hh.getId() + " is supposed to have " +
@@ -212,74 +193,48 @@ public class readSP {
         }
     }
 
-
-    /*private void summarizePopulationData () {
-        // calculate households and persons by zone
-
-        hhByZone = new int[zones.length];
-        ppByZone = new int[zones.length];
-
-        for (Household hh: Household.getHouseholdArray()) {
-            hhByZone[zoneIndex[hh.getTaz()]]++;
-            ppByZone[zoneIndex[hh.getTaz()]] += hh.getHhSize();
-        }
-
-        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
-        pw.println("zone,hh,pp");
-        for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
-        pw.close();
+    public Person getPersonFromId(int personId) {
+        return personMap.get(personId);
+    }
 
 
+    public int getPersonCount() {
+        return personMap.size();
+    }
 
-        hhByCd = new int[cdsIndex.length];
-        ppByCd = new int[cdsIndex.length];
 
-        for (Household hh: Household.getHouseholdArray()) {
-            hhByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]]++;
-            ppByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]] += hh.getHhSize();
-        }
+    public Collection<Person> getPersons() {
+        return personMap.values();
+    }
 
-        PrintWriter pw2 = util.openFileForSequentialWriting("output/popByCd.csv", false);
-        pw2.println("cd,hh,pp");
-        for (int cds: cdsIndex) {
-            if (cds!=0) pw2.println(cds+","+hhByCd[cdsIndex[cds]]+","+ppByCd[cdsIndex[cds]]);
+    public Collection<Household> getHouseholds() {
+        return householdMap.values();
+    }
+
+
+    public Household getHouseholdFromId(int householdId) {
+        return householdMap.get(householdId);
+    }
+
+
+    public int getHouseholdCount() {
+        return householdMap.size();
+    }
+
+    public void writeSyntheticPopulation() {
+        logger.info("Writing out data for trip generation (travellers)");
+
+        String OutputTravellersFilename = rb.getString("trav.out.file");
+        PrintWriter pw2 = Util.openFileForSequentialWriting(OutputTravellersFilename, false);
+
+        pw2.println("personId, away, daytrip, inOutTrip");
+        for (Person trav : getPersons()) {
+            //takes only persons travelling
+            if (trav.isAway | trav.isDaytrip | trav.isInOutTrip) {
+                pw2.println(trav.getPersonId() + "," + trav.isAway + "," + trav.isDaytrip + "," + trav.isInOutTrip);
+            }
         }
         pw2.close();
-        logger.info("Synthetic population summary written");
-
-    }*/
-
-    private void summarizePopulationByZone(ArrayList<Zone> internalZoneList){
-        for (Household hh : Household.getHouseholdArray()){
-            Zone zone = hh.getZone();
-            zone.addHouseholds(1);
-            zone.addPopulation(hh.getHhSize());
-            //add employees in their zone, discarded because employments are needed, instead employees:
-            /*Person[] personsInHousehold = hh.getPersonsOfThisHousehold();
-            for (Person pers:personsInHousehold){
-                if (pers.getWorkStatus()==1|pers.getWorkStatus()==2){
-                    zone.addEmployment(1);
-                }
-            }*/
-        }
-
-        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
-        pw.println("zone,hh,pp");
-        for (Zone zone: internalZoneList){
-            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
-        }
-        pw.close();
     }
 
-    public int[] getZones() {
-        return zones;
-    }
-
-    public int getIndexOfZone(int taz) {
-        return zoneIndex[taz];
-    }
-
-    public int[] getPpByZone() {
-        return ppByZone;
-    }
 }

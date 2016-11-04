@@ -2,9 +2,9 @@ package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.mtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyPerson;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.surveyTour;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyPerson;
+import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
 import org.apache.log4j.Logger;
 
 
@@ -21,13 +21,13 @@ import java.util.ResourceBundle;
  *         Created on 26 Feb. 2016 in Vienna, VA
  **/
 
-public class mtoAnalyzeData {
-    static Logger logger = Logger.getLogger(mtoAnalyzeData.class);
+public class MtoAnalyzeData {
+    static Logger logger = Logger.getLogger(MtoAnalyzeData.class);
     private ResourceBundle rb;
-    private mtoSurveyData data;
+    private MtoSurveyData data;
 
 
-    public mtoAnalyzeData(ResourceBundle rb, mtoSurveyData data) {
+    public MtoAnalyzeData(ResourceBundle rb, MtoSurveyData data) {
         this.rb = rb;
         this.data = data;
         // Constructor
@@ -49,8 +49,8 @@ public class mtoAnalyzeData {
 
         int[] incomeCountTrips = new int[10];
         int[] incomeCountPersons = new int[10];
-        Collection<surveyPerson> spList = data.getPersons();
-        for (surveyPerson sp : spList) {
+        Collection<SurveyPerson> spList = data.getPersons();
+        for (SurveyPerson sp : spList) {
             incomeCountPersons[sp.getHhIncome()] += sp.getWeight();
             if (sp.getNumberOfTrips() > 0) {
                 incomeCountTrips[sp.getHhIncome()] += sp.getWeight() * sp.getNumberOfTrips();
@@ -76,7 +76,7 @@ public class mtoAnalyzeData {
 
         // Create list of main modes
         int[] mainModes = data.getMainModeList().getColumnAsInt("Code");
-        int highestCode = util.getHighestVal(mainModes);
+        int highestCode = Util.getHighestVal(mainModes);
         int[] mainModeIndex = new int[highestCode + 1];
         for (int mode = 0; mode < mainModes.length; mode++) {
             mainModeIndex[mainModes[mode]] = mode;
@@ -84,13 +84,13 @@ public class mtoAnalyzeData {
 
         // Create list of CMA regions
         int[] homeCmaList = data.getCmaList().getColumnAsInt("CMAUID");
-        int[] cmaIndex = new int[util.getHighestVal(homeCmaList) + 1];
+        int[] cmaIndex = new int[Util.getHighestVal(homeCmaList) + 1];
         for (int i = 0; i < homeCmaList.length; i++) cmaIndex[homeCmaList[i]] = i;
         float[] tripsByHomeCma = new float[homeCmaList.length];
 
         // Create list of trip purposes
         int[] purpList = data.getTripPurposes().getColumnAsInt("Code");
-        int highestPurp = util.getHighestVal(purpList);
+        int highestPurp = Util.getHighestVal(purpList);
         int[] purposeIndex = new int[highestPurp + 1];
         for (int purp = 0; purp < purpList.length; purp++) purposeIndex[purpList[purp]] = purp;
         float[] purpCnt = new float[purpList.length];
@@ -99,11 +99,12 @@ public class mtoAnalyzeData {
         int[] stopFrequency = new int[100];
 
 //      iterate over all tours:
-        for (surveyPerson sp : data.getPersons()) {
+        //TODO: replace with streams and filters
+        for (SurveyPerson sp : data.getPersons()) {
             if (sp.getNumberOfTrips() == 0) continue;  //Person did not make long-distance trip
             float weight = sp.getWeight();
-            Collection<surveyTour> ldTrips = sp.getTours();
-            for (surveyTour st : ldTrips) {
+            Collection<SurveyTour> ldTrips = sp.getTours();
+            for (SurveyTour st : ldTrips) {
                 int origProvince = st.getOrigProvince();
                 if (origProvince != 35) continue;
                 System.out.println(sp.getPumfId() + " " + st.getTripId() + " " + origProvince);
@@ -113,7 +114,7 @@ public class mtoAnalyzeData {
                 int tripPurp = st.getTripPurp();
                 Float[] tripsByMode = destinationCounter.get(destProvince);
                 tripsByMode[mainModeIndex[mainMode]] = tripsByMode[mainModeIndex[mainMode]] + weight;
-                if (util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]] += weight;
+                if (Util.containsElement(homeCmaList, homeCma)) tripsByHomeCma[cmaIndex[homeCma]] += weight;
                 purpCnt[purposeIndex[tripPurp]] += weight;
                 modePurpCnt[mainModeIndex[mainMode]][purposeIndex[tripPurp]] += weight;
                 stopFrequency[st.getNumberOfStop()]++;
@@ -161,7 +162,7 @@ public class mtoAnalyzeData {
         logger.info("Writing out data for external model estimation");
         String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
-        PrintWriter pw = util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
+        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
         pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cma," +
                 "income,expansionFactor,longDistanceTrips,daysAtHome");
@@ -169,14 +170,14 @@ public class mtoAnalyzeData {
             pw.print(",daysOnInOutboundTravel" + txt + ",daysOnDaytrips" + txt + ",daysAway" + txt);
         pw.println();
 
-        for (surveyPerson sp : data.getPersons()) {
-            Collection<surveyTour> tours = sp.getTours();
+        for (SurveyPerson sp : data.getPersons()) {
+            Collection<SurveyTour> tours = sp.getTours();
             int[] daysInOut = new int[purposes.length];
             int[] daysDayTrip = new int[purposes.length];
             int[] daysAway = new int[purposes.length];
-            int daysHome = util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
+            int daysHome = Util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
             // First, count day trips
-            for (surveyTour st : tours) {
+            for (SurveyTour st : tours) {
                 int tripPurp = 0;
                 try {
                     tripPurp = translateTripPurpose(purposes, st.getTripPurp());
@@ -190,7 +191,7 @@ public class mtoAnalyzeData {
                 }
             }
             // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
-            for (surveyTour st : tours) {
+            for (SurveyTour st : tours) {
                 int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
                 if (st.getNumberNights() > 0) {
                     // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
