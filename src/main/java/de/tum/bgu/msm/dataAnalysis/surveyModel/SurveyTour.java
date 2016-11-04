@@ -145,9 +145,6 @@ public class SurveyTour implements Serializable {
         return distance;
     }
 
-    public int calculateFurthestDistance(MtoSurveyData data) {
-        return tourStops.stream().mapToInt(sv -> sv.distanceFromCd(data, getUniqueOrigCD())).max().getAsInt();
-    }
 
     public LineString generateTourLineString(MtoSurveyData data) {
         //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData

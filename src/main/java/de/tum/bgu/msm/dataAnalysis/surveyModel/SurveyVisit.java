@@ -85,20 +85,6 @@ public class SurveyVisit {
 
     }
 
-    public int distanceFromCd(MtoSurveyData data, int origCD) {
-        //calculate origin location
-        TableDataSet cdList = data.getCensusDivisionList();
-        float latitude = cdList.getIndexedValueAt(origCD, "LATITUDE");
-        float longitude = cdList.getIndexedValueAt(origCD, "LONGITUDE");
-        Coordinate origin_coord = new Coordinate(longitude, latitude);
-
-        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(JTSFactoryFinder.EMPTY_HINTS);
-
-        LineString ls = geometryFactory.createLineString(new Coordinate[]{origin_coord, cdToCoords(data)});
-
-        return (int) Util.getTourDistance(ls) / 1000;
-    }
-
     @Override
     public String toString() {
         return "SurveyVisit{" +
