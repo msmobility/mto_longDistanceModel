@@ -7,7 +7,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.syntheticPopulation.Person;
-import de.tum.bgu.msm.syntheticPopulation.ReadSP;
+import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 
 import java.util.List;
 import java.util.Map;
@@ -59,7 +59,7 @@ public class LongDistanceTrip {
         tripCounter++;
     }
 
-    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, ReadSP syntheticPopulation) {
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, SyntheticPopulation syntheticPopulation) {
 
         this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
         int personId = (int) tripsDomesticTable.getValueAt(row, "personId");

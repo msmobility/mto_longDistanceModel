@@ -1,10 +1,8 @@
 package de.tum.bgu.msm.syntheticPopulation;
 
-import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import org.apache.log4j.Logger;
@@ -28,9 +26,9 @@ import java.util.*;
  *
  */
 
-public class ReadSP {
+public class SyntheticPopulation {
 
-    private static Logger logger = Logger.getLogger(ReadSP.class);
+    private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
     private final Map<Integer, Zone> zoneLookup;
 
@@ -40,7 +38,7 @@ public class ReadSP {
     private ArrayList<Zone> internalZoneList;
 
 
-    public ReadSP(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
+    public SyntheticPopulation(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
         this.zoneLookup = mtoLongDistData.getZoneLookup();

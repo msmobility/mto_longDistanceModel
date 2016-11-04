@@ -7,13 +7,12 @@ import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
-import de.tum.bgu.msm.syntheticPopulation.ReadSP;
+import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -34,13 +33,13 @@ public class MtoLongDistance {
 
     private TripGenerationModel tripGenModel;
     private DomesticDestinationChoice dcModel;
-    private ReadSP syntheticPopulationReader;
+    private SyntheticPopulation syntheticPopulationReader;
 
     public MtoLongDistance(ResourceBundle rb) {
 
         this.rb = rb;
         mtoLongDistData = new MtoLongDistData(rb);
-        syntheticPopulationReader = new ReadSP(rb, mtoLongDistData);
+        syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         mtoLongDistData.populateZones(syntheticPopulationReader);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
         dcModel = new DomesticDestinationChoice(rb);

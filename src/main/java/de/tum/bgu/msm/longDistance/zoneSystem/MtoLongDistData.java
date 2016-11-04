@@ -6,7 +6,7 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.syntheticPopulation.Household;
-import de.tum.bgu.msm.syntheticPopulation.ReadSP;
+import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -261,7 +261,7 @@ public class MtoLongDistData {
         return internalZones;
     }
 
-    public void populateZones(ReadSP syntheticPopulationReader) {
+    public void populateZones(SyntheticPopulation syntheticPopulationReader) {
         for (Household hh : syntheticPopulationReader.getHouseholds()){
             Zone zone = hh.getZone();
             zone.addHouseholds(1);

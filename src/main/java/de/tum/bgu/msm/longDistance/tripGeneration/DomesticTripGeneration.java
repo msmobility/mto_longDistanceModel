@@ -4,7 +4,6 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.log4j.Logger;
@@ -36,7 +35,7 @@ public class DomesticTripGeneration {
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runTripGeneration(ReadSP syntheticPopulation) {
+    public ArrayList<LongDistanceTrip> runTripGeneration(SyntheticPopulation syntheticPopulation) {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         //domestic trip generation
