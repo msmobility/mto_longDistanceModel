@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
-import de.tum.bgu.msm.longDistance.mtoLongDistData;
+import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.util;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**
@@ -21,6 +20,7 @@ import java.util.ResourceBundle;
 public class TravelTimeAggregation {
     private final Logger logger = Logger.getLogger(this.getClass());
     private final ResourceBundle rb;
+    private Matrix autoTravelTime;
     double[][] cd_tt_small;
     int[] lookup = null;
 
@@ -34,13 +34,13 @@ public class TravelTimeAggregation {
 
         TravelTimeAggregation tca = new TravelTimeAggregation(rb);
         tca.run();
-        tca.save("output/cd_travel_times.omx");
+        tca.save(rb.getString("aggregated.zones.output.filename"));
 
     }
     public void run() {
-        mtoLongDistData mtoLongDistData = new mtoLongDistData(rb);
+        readSkim();
 
-        TableDataSet cd_mapping = TableDataSet.readFile("input/zone_cd_mapping.csv");
+        TableDataSet cd_mapping = TableDataSet.readFile(rb.getString("zone.aggregation.mapping.file"));
 
         int[] cds = Arrays.stream(cd_mapping.getColumnAsInt("zone_lvl2")).distinct().sorted().toArray();
         lookup = cds;
@@ -64,43 +64,72 @@ public class TravelTimeAggregation {
                 //logger.info(String.format("%d %d: %f",  origin, dest, mtoLongDistData.getAutoTravelTime(origin, dest)));
                 long pop_ij = origin_pop * dest_pop;
 
-                cd_tt[origin_cd-1][dest_cd-1] += mtoLongDistData.getAutoTravelTime(origin, dest) * pop_ij;
+                cd_tt[origin_cd-1][dest_cd-1] += getAutoTravelTime(origin, dest) * pop_ij;
                 cd_pp[origin_cd-1][dest_cd-1] += pop_ij;
 
 
             }
         }
-        File f = new File("output/cd_traveltimes2.csv");
-        try (FileWriter writer = new FileWriter(f) ) {
-            writer.write("origin_lvl2_zone, destination_lvl2_zone, travel_time\n");
-            for (int i = 0; i < cd_pp.length; i++) {
-                for (int j = 0; j < cd_pp.length; j++) {
-                    if (cd_tt[i][j] > 0) {
-                        float result = cd_tt[i][j] / cd_pp[i][j];
-                        writer.write(String.format("%d,%d, %f\n", i+1, j+1, result));
-                        //logger.info(String.format("%d %d: %d: %f", i, j, cd_pp[i][j], result));
-                        cd_tt_small[i][j] = result;
-                    }
-                    else {
-                        logger.warn("travel time is zero between " + (i+1) + " and " + (j+1));
-                    }
+        for (int i = 0; i < cd_pp.length; i++) {
+            for (int j = 0; j < cd_pp.length; j++) {
+                if (cd_tt[i][j] > 0) {
+                    float result = cd_tt[i][j] / cd_pp[i][j];
+                    //logger.info(String.format("%d %d: %d: %f", i, j, cd_pp[i][j], result));
+                    cd_tt_small[i][j] = result;
+                }
+                else {
+                    logger.warn("travel time is zero between " + (i+1) + " and " + (j+1));
                 }
             }
-        } catch (IOException ex) {
-            logger.error(ex);
         }
+
 
     }
 
     public void save(String filename) {
         logger.info("skim shape: " + cd_tt_small.length);
         int[] shape = new int[]{cd_tt_small.length, cd_tt_small.length};
-        OmxFile omxfile = new OmxFile(filename);
+        OmxFile omxfile = new OmxFile(filename + ".omx");
         omxfile.openNew(shape);
-        OmxMatrix omxMatrix = new OmxMatrix.OmxDoubleMatrix("cd_traveltimes", cd_tt_small, -1.0);
+        OmxMatrix omxMatrix = new OmxMatrix.OmxDoubleMatrix("combined_zones_skim", cd_tt_small, -1.0);
         omxfile.addMatrix(omxMatrix);
-        omxfile.addLookup(new OmxLookup.OmxIntLookup("cd", lookup, null));
+        omxfile.addLookup(new OmxLookup.OmxIntLookup("combined_zones", lookup, null));
         omxfile.save();
+
+        File f = new File(filename + ".csv");
+        try (FileWriter writer = new FileWriter(f) ) {
+            writer.write("origin_lvl2_zone, destination_lvl2_zone, travel_time\n");
+            for (int i = 0; i < cd_tt_small.length; i++) {
+                for (int j = 0; j < cd_tt_small.length; j++) {
+                    writer.write(String.format("%d,%d, %f\n", i + 1, j + 1, cd_tt_small[i][j]));
+                }
+            }
+        } catch (IOException ex) {
+            logger.error(ex);
+        }
+    }
+
+    public void readSkim() {
+        // read skim file
+        logger.info("  Reading skims files");
+
+        String hwyFileName = rb.getString("skim.combinedzones");
+        // Read highway hwySkim
+        OmxFile hSkim = new OmxFile(hwyFileName);
+        hSkim.openReadOnly();
+        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim"));
+        autoTravelTime = util.convertOmxToMatrix(timeOmxSkimAutos);
+        OmxLookup omxLookUp = hSkim.getLookup(rb.getString("lookup"));
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
+    }
+    public float getAutoTravelTime(int orig, int dest) {
+        try {
+            return autoTravelTime.getValueAt(orig, dest);
+        } catch (Exception e) {
+            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***", e);
+            return -999;
+        }
     }
 
 
