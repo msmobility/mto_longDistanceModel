@@ -11,6 +11,7 @@ import de.tum.bgu.msm.syntheticPopulation.ReadSP;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,6 @@ public class MtoLongDistance {
         if(ResourceUtil.getBooleanProperty(rb,"run.trip.gen",false)) {
             allTrips = tripGenModel.runTripGeneration(syntheticPopulationReader);
             //currently only internal zone list
-            if(ResourceUtil.getBooleanProperty(rb,"analyze.trips",false)) tripGenModel.runMtoAnalyzeTrips(allTrips, mtoLongDistData.getZoneList(), syntheticPopulationReader);
 
         } else {
             //load saved trips
@@ -69,13 +69,17 @@ public class MtoLongDistance {
 
         }
 
+        if(ResourceUtil.getBooleanProperty(rb,"write.trips",false)) {
+            syntheticPopulationReader.writeSyntheticPopulation();
+            //writePopByZone();
+            writeTrips(allTrips);
+        }
+
+
     }
 
-
-
-
-        //destination Choice
-        //if run trip gen is false, then load trips from file
+    //destination Choice
+    //if run trip gen is false, then load trips from file
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
@@ -87,8 +91,27 @@ public class MtoLongDistance {
     }
 
 
+    public void writeTrips(ArrayList<LongDistanceTrip> trips) {
+        logger.info("Writing out data for trip generation (trips)");
 
+        String OutputTripsFileName = rb.getString("trip.out.file");
+        PrintWriter pw = Util.openFileForSequentialWriting(OutputTripsFileName, false);
 
+        pw.println(LongDistanceTrip.getHeader());
+        for (LongDistanceTrip tr : trips) {
+            pw.println(tr.toString());
+        }
+        pw.close();
+    }
+
+    public void writePopByZone() {
+        PrintWriter pw = Util.openFileForSequentialWriting(rb.getString("zone.out.file"), false);
+        pw.println("zone,hh,pp");
+        for (Zone zone: mtoLongDistData.getInternalZoneList()){
+            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
+        }
+        pw.close();
+    }
 
 
 }

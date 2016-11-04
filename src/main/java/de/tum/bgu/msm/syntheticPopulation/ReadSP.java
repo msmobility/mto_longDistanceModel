@@ -37,6 +37,7 @@ public class ReadSP {
     private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
     private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
+    private ArrayList<Zone> internalZoneList;
 
 
     public ReadSP(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
@@ -48,6 +49,7 @@ public class ReadSP {
     }
 
     public void readSyntheticPopulation(ArrayList<Zone> internalZoneList) {
+        this.internalZoneList = internalZoneList;
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
         //readZonalData();
@@ -221,41 +223,20 @@ public class ReadSP {
         return householdMap.size();
     }
 
-    /*private void summarizePopulationData () {
-        // calculate households and persons by zone
+    public void writeSyntheticPopulation() {
+        logger.info("Writing out data for trip generation (travellers)");
 
-        hhByZone = new int[zones.length];
-        ppByZone = new int[zones.length];
+        String OutputTravellersFilename = rb.getString("trav.out.file");
+        PrintWriter pw2 = Util.openFileForSequentialWriting(OutputTravellersFilename, false);
 
-        for (Household hh: Household.getHouseholdArray()) {
-            hhByZone[zoneIndex[hh.getTaz()]]++;
-            ppByZone[zoneIndex[hh.getTaz()]] += hh.getHhSize();
-        }
-
-        PrintWriter pw = util.openFileForSequentialWriting("output/popByZone.csv", false);
-        pw.println("zone,hh,pp");
-        for (int zone: zones) pw.println(zone+","+hhByZone[zoneIndex[zone]]+","+ppByZone[zoneIndex[zone]]);
-        pw.close();
-
-
-
-        hhByCd = new int[cdsIndex.length];
-        ppByCd = new int[cdsIndex.length];
-
-        for (Household hh: Household.getHouseholdArray()) {
-            hhByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]]++;
-            ppByCd[cdsIndex[(int)cdTable.getIndexedValueAt(hh.getTaz(),"CD")]] += hh.getHhSize();
-        }
-
-        PrintWriter pw2 = util.openFileForSequentialWriting("output/popByCd.csv", false);
-        pw2.println("cd,hh,pp");
-        for (int cds: cdsIndex) {
-            if (cds!=0) pw2.println(cds+","+hhByCd[cdsIndex[cds]]+","+ppByCd[cdsIndex[cds]]);
+        pw2.println("personId, away, daytrip, inOutTrip");
+        for (Person trav : getPersons()) {
+            //takes only persons travelling
+            if (trav.isAway | trav.isDaytrip | trav.isInOutTrip) {
+                pw2.println(trav.getPersonId() + "," + trav.isAway + "," + trav.isDaytrip + "," + trav.isInOutTrip);
+            }
         }
         pw2.close();
-        logger.info("Synthetic population summary written");
-
-    }*/
-
+    }
 
 }

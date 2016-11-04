@@ -127,7 +127,7 @@ public class MtoLongDistData {
         //second, read the external zones from files
 
         if (externalCanada) {
-            externalCanadaTable = Util.importTable(rb.getString("ext.can.file"));
+            externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
             externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
             externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesCanada){
@@ -138,7 +138,7 @@ public class MtoLongDistData {
             }
         }
         if (externalUs) {
-            externalUsTable = Util.importTable(rb.getString("ext.us.file"));
+            externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
             externalZonesUs = externalUsTable.getColumnAsInt("ID");
             externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesUs){
@@ -149,7 +149,7 @@ public class MtoLongDistData {
             }
         }
         if (externalOverseas){
-            externalOverseasTable = Util.importTable(rb.getString("ext.os.file"));
+            externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
             externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
@@ -275,12 +275,6 @@ public class MtoLongDistData {
         }*/
         }
 
-        PrintWriter pw = Util.openFileForSequentialWriting("output/popByZone.csv", false);
-        pw.println("zone,hh,pp");
-        for (Zone zone: getInternalZoneList()){
-            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
-        }
-        pw.close();
     }
 
     //original Rolf version below
