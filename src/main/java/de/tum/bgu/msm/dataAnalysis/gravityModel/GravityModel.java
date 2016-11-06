@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * Created by Joe on 27/07/2016.
  */
 public class GravityModel {
-    public static final double G = -0.0041;
+    private double g = -0.0041;
 
     private Logger logger = Logger.getLogger(this.getClass());
     private AbstractMatrixMath matrixMath = new SerialMatrixMath();
@@ -39,37 +39,20 @@ public class GravityModel {
     //threshold
     private float solutionThreshold = 5;
     //max_iterations
-    private int maxIterations = 0;
+    private int maxIterations = 1;
     //expected_trip_length
-    private double expectedTripLength = 187.60; //make sure to exlude hte 99999 value
+    private double expectedTripLength = 0; //make sure to exlude hte 99999 value
 
-    public GravityModel(int[] zones, double[] productions, double[] attractions, double[][] skim, int maxIterations) {
+    public GravityModel(int[] zones, double[] productions, double[] attractions, double[][] skim, double g, double expectedTripLength) {
         this.zones = zones;
         this.productions = productions;
         this.attractions = attractions;
         this.skim = skim;
-        this.maxIterations = maxIterations;
+        this.g = g;
+        this.expectedTripLength = expectedTripLength;
 
 
     }
-
-    public static void main(String[] args) {
-              /*  double[][] skim = {{4.50, 4.00, 5.00},
-                    {6.00, 5.50, 6.00},
-                    {4.50, 6.50, 7.00},
-                    {5.00, 7.50, 6.00}};*/
-        int[] zones = new int[]{1, 2, 3};
-        double[] productions = new double[]{400, 350, 250};
-        double[] attractions = new double[]{300, 200, 500};
-        double[][] orig_skim = {{5, 10, 18}, {13, 5, 15}, {20, 16, 6}};
-        int iterations = 15;
-
-        //apply impedances to matrix
-
-        GravityModel gm = new GravityModel(zones, productions, attractions, orig_skim, iterations);
-        gm.run();
-    }
-
 
     public void run() {
         impedances =  new double[skim.length][skim[0].length];
@@ -143,7 +126,7 @@ public class GravityModel {
     }
 
     private double f(double cost) {
-        return Math.exp(G * cost);
+        return Math.exp(g * cost);
     }
 
 

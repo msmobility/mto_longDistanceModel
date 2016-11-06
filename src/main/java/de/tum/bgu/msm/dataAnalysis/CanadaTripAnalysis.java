@@ -1,10 +1,14 @@
 package de.tum.bgu.msm.dataAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
+import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModel;
 import de.tum.bgu.msm.longDistance.mtoLongDistData;
 import de.tum.bgu.msm.util;
 import javafx.util.Pair;
+import omx.OmxFile;
+import omx.OmxLookup;
+import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
@@ -18,9 +22,13 @@ public class CanadaTripAnalysis {
     private static final int MAX_NUM_ZONES = 10000;
     private final ResourceBundle rb;
     private final Logger logger = Logger.getLogger(this.getClass());
+    private Matrix autoSkim;
+
 
     public CanadaTripAnalysis(ResourceBundle rb) {
+
         this.rb = rb;
+        readSkim();
     }
 
     public static void main (String[] args) throws ClassNotFoundException {
@@ -28,9 +36,9 @@ public class CanadaTripAnalysis {
         ResourceBundle rb = util.mtoInitialization(args[0]);
 
         CanadaTripAnalysis tca = new CanadaTripAnalysis(rb);
-        tca.run("visit");
-        tca.run("leisure");
-        tca.run("business");
+        //tca.run("visit", -0.0047, 163);
+        //tca.run("leisure", -0.0049, 149);
+        tca.run("business", -0.0033, 244);
 
     }
 
@@ -64,7 +72,7 @@ public class CanadaTripAnalysis {
 
     }
 
-    private void run(String purpose) {
+    private void run(String purpose, double g, double etl) {
         TableDataSet zoneAttributes = null;
         //mtoSurveyData data = SurveyDataImporter.importData(rb);
         try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
@@ -108,8 +116,6 @@ public class CanadaTripAnalysis {
         attractions = Arrays.copyOf(attractions, numZones);
 
         //build gravity model
-        mtoLongDistData mtoLongDistData = new mtoLongDistData(rb);
-
         //get all travel times between II and IE zones, but exlcude EE;
         double[][] skim = new double[numZones][numZones];
         //for every
@@ -118,7 +124,7 @@ public class CanadaTripAnalysis {
         logger.info("highest zone:" + zones[numZones - 1] + " at " + (numZones - 1));
         for (int i = 0; i < numZones; i++) {
             for (int j = 0; j < numZones; j++) {
-                skim[i][j] = mtoLongDistData.getAutoTravelTime(zones[i], zones[j]);
+                skim[i][j] = autoSkim.getValueAt(zones[i], zones[j]);
 
                 //if (skim[i][j] < 80) skim [i][j] =0.0;
             }
@@ -128,11 +134,13 @@ public class CanadaTripAnalysis {
 
         logger.info("number of valid zones: " + numZones);
 
-        GravityModel gm = new GravityModel(zones, productions, attractions, skim, 1);
+        GravityModel gm = new GravityModel(zones, productions, attractions, skim, g, etl);
         gm.run();
         //output gravity model as a omx matrix
-        gm.save("output/tripDist_" + purpose + ".omx");
+
+        //gm.save("output/tripDist_" + purpose + ".omx");
         gm.outputToCsv("output/tripDist_" + purpose +".csv");
+
         /*try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
             gm.outputToDb(conn);
         } catch (SQLException ex) {
@@ -140,73 +148,19 @@ public class CanadaTripAnalysis {
         }*/
     }
 
-    //get zone for location
-    private int getZone (TableDataSet zoneMapping, int prov, int cd, int cma) {
+    public void readSkim() {
+        // read skim file
+        logger.info("  Reading skims files");
 
-        int zone = 0;
-        if (cd % 100 == 99) {
-            zone = 0;
-        }
-        else if (prov == 35) {
-            //get cd zone
-            //logger.info("" + prov + " - " + cd);
-            zone = (int) zoneMapping.getIndexedValueAt(cd, "zone");
-        } else {
-            try {
-                zone = (int) zoneMapping.getIndexedValueAt(cma, "zone");
-            } catch (ArrayIndexOutOfBoundsException e) {
-                zone = (int) zoneMapping.getIndexedValueAt(prov, "zone");
-            };
-        }
-        return zone;
-    }
-
-    private void testZoneMapping() {
-        TableDataSet zoneMapping = null;
-        try (Connection conn = DatabaseInteractions.getPostgresConnection()){
-
-            String sql = "select zone, " +
-                    "domesticVisit + domesticBusiness + domesticLeisure as production, " +
-                    "population + employment as attraction " +
-                    "from \"zone_counts\";";
-            logger.info(sql);
-
-            zoneMapping = readTableFromDB(conn, "select key, zone from pr_cd_cma_zone_mapping");
-
-            Statement stmt = conn.createStatement();
-            stmt.execute("select * from tsrc_trip where orcprovt = 35 or mddplfl = 35");
-            ResultSet rs = stmt.getResultSet();
-
-            PreparedStatement stmtUpdate = conn.prepareStatement("INSERT INTO trip_zones VALUES (?,?,?)");
-            conn.setAutoCommit(false);
-
-            while (rs.next()) {
-                int origin_prov = rs.getInt("orcprovt");
-                int origin_cd = rs.getInt("orccdt2");
-                int origin_cma = rs.getInt("orccmat2");
-
-                int dest_prov = rs.getInt("mddplfl");
-                int dest_cd = rs.getInt("mdccd");
-                int dest_cma = rs.getInt("mdccma2");
-
-                int o_zone = getZone(zoneMapping, origin_prov, origin_cd, origin_cma);
-                int d_zone = getZone(zoneMapping, dest_prov, dest_cd, dest_cma);
-                logger.info(String.format("%d :  %d -> %d (%d %d %d) -> (%d, %d, %d)"
-                        , rs.getInt("id"), o_zone,  d_zone, origin_prov, origin_cd, origin_cma, dest_prov, dest_cd, dest_cma));
-
-                stmtUpdate.setInt(1, rs.getInt("id"));
-                stmtUpdate.setInt(2, o_zone);
-                stmtUpdate.setInt(3, d_zone);
-                stmtUpdate.addBatch();
-
-            }
-            stmtUpdate.executeBatch();
-            conn.commit();
-
-        } catch (SQLException ex) {
-            logger.error("error connecting to db", ex);
-        }
-
+        String hwyFileName = rb.getString("skim.combinedzones");
+        // Read highway hwySkim
+        OmxFile hSkim = new OmxFile(hwyFileName);
+        hSkim.openReadOnly();
+        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim"));
+        autoSkim = util.convertOmxToMatrix(timeOmxSkimAutos);
+        OmxLookup omxLookUp = hSkim.getLookup(rb.getString("lookup"));
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+        autoSkim.setExternalNumbersZeroBased(externalNumbers);
     }
 
 
