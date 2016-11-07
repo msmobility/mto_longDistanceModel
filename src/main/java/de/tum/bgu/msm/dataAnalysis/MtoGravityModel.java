@@ -34,8 +34,8 @@ public class MtoGravityModel {
         ResourceBundle rb = util.mtoInitialization(args[0]);
 
         MtoGravityModel tca = new MtoGravityModel(rb);
-        //tca.run("visit", -0.0047, 163);
-        //tca.run("leisure", -0.0049, 149);
+        tca.run("visit", -0.0047, 163);
+        tca.run("leisure", -0.0049, 149);
         tca.run("business", -0.0033, 244);
 
     }
@@ -82,7 +82,7 @@ public class MtoGravityModel {
                     "\t\t\tcase when lvl2_orig < 70 then 1 else 0 end as zone_type,\n" +
                     "\t\t\tpurpose, wtep as production\n" +
                     "\t\tfrom tsrc_trip\n";
-            if (purpose != null) sql += "\t\twhere purpose = '" + purpose + "'\n and dist2<9999 and refyear = 2014";
+            if (purpose != null) sql += "\t\twhere purpose = '" + purpose + "'\n and refyear = 2014";
             sql +=  "\t\t) as t\n" +
                     "where t.zone_id = alt\n" +
                     "group by t.zone_id, zone_type, purpose\n" +
@@ -137,7 +137,7 @@ public class MtoGravityModel {
         //output gravity model as a omx matrix
 
         //gm.save("output/tripDist_" + purpose + ".omx");
-        gm.outputToCsv("output/tripDist_" + purpose +".csv");
+        //gm.outputToCsv("output/tripDist_" + purpose +".csv");
 
         /*try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
             gm.outputToDb(conn);
