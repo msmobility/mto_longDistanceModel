@@ -3,9 +3,7 @@ package de.tum.bgu.msm.dataAnalysis;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.dataAnalysis.gravityModel.GravityModel;
-import de.tum.bgu.msm.longDistance.mtoLongDistData;
 import de.tum.bgu.msm.util;
-import javafx.util.Pair;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -17,7 +15,7 @@ import java.util.*;
 /**
  * Created by Joe on 11/08/2016.
  */
-public class CanadaTripAnalysis {
+public class MtoGravityModel {
 
     private static final int MAX_NUM_ZONES = 10000;
     private final ResourceBundle rb;
@@ -25,7 +23,7 @@ public class CanadaTripAnalysis {
     private Matrix autoSkim;
 
 
-    public CanadaTripAnalysis(ResourceBundle rb) {
+    public MtoGravityModel(ResourceBundle rb) {
 
         this.rb = rb;
         readSkim();
@@ -35,7 +33,7 @@ public class CanadaTripAnalysis {
 
         ResourceBundle rb = util.mtoInitialization(args[0]);
 
-        CanadaTripAnalysis tca = new CanadaTripAnalysis(rb);
+        MtoGravityModel tca = new MtoGravityModel(rb);
         //tca.run("visit", -0.0047, 163);
         //tca.run("leisure", -0.0049, 149);
         tca.run("business", -0.0033, 244);
