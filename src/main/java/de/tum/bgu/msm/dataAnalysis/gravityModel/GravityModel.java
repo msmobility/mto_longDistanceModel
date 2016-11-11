@@ -5,6 +5,7 @@ import javafx.util.Pair;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.FileWriter;
@@ -12,16 +13,15 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by Joe on 27/07/2016.
  */
 public class GravityModel {
-    private double g = -0.0041;
 
     private Logger logger = Logger.getLogger(this.getClass());
     private AbstractMatrixMath matrixMath = new SerialMatrixMath();
@@ -43,25 +43,56 @@ public class GravityModel {
     //expected_trip_length
     private double expectedTripLength = 0; //make sure to exlude hte 99999 value
 
-    public GravityModel(int[] zones, double[] productions, double[] attractions, double[][] skim, double g, double expectedTripLength) {
+    public GravityModel(int[] zones, double[] productions, double[] attractions, double[][] skim, double expectedTripLength) {
         this.zones = zones;
         this.productions = productions;
         this.attractions = attractions;
         this.skim = skim;
-        this.g = g;
         this.expectedTripLength = expectedTripLength;
+        logger.setLevel(Level.INFO);
 
 
     }
 
-    public void run() {
-        impedances =  new double[skim.length][skim[0].length];
-        logger.info("Running gravity model estimation");
 
-        logger.info("\tCalculating impedances");
+ //   od.filter <- function( orig_pr, lvl2_orig, dest_pr, lvl2_dest ){
+ //       quebec.exceptions = lvl2_orig != lvl2_dest &
+ //               orig_pr == 24 & dest_pr == 24 &
+ //               (lvl2_orig %in% c(85, 117) | lvl2_dest %in% c(85, 117))
+ //       is.included = (orig_pr <= 35 & dest_pr >= 35) | (orig_pr >= 35 & dest_pr <= 35) | quebec.exceptions
+ //       return (is.included)
+
+    public double calibrate() {
+        double est = 0;
+        double max_k = -0.001;
+        double min_k = -0.02;
+        double k = 0;
+        int i = 0;
+        while (i < 10 && Math.abs(est - expectedTripLength) > 2) {
+            k = (max_k + min_k)/2;
+            k = Math.round(k * 10000.0) / 10000.0; //4dp
+            est = run(k);
+            logger.debug(String.format(" %.4f : %.2f | %.2f", k, est, expectedTripLength));
+
+            if (est < expectedTripLength) min_k = k;
+            else max_k = k;
+            i++;
+        }
+        logger.info(String.format("Solution: %.4f : %.2f // %.2f", k, est, expectedTripLength));
+        return k;
+    }
+
+    public double run(double k) {
+        impedances =  new double[skim.length][skim[0].length];
+        logger.debug("Running gravity model estimation");
+
+        logger.debug("\tCalculating impedances");
         for (int i = 0; i < impedances.length; i++) {
             for (int j = 0; j < impedances[i].length; j++) {
-                impedances[i][j] = f(skim[i][j]);
+
+                impedances[i][j] = f(k, skim[i][j]);
+
+
             }
         }
         //iteration
@@ -78,19 +109,19 @@ public class GravityModel {
         double[][] newFactors = new double[productions.length][attractions.length];
 
         //logger.info(matrixMath.buildString(impedances));
-        logger.info("\titerating...");
+        logger.debug("\titerating...");
         while (i <= maxIterations) {
             matrixMath.sumReduceRows(TT_i, impedances);
             matrixMath.sumReduceColumns(TT_j, impedances);
             double o_diff = matrixMath.absoluteDifference(TT_i, productions);
             double d_diff = matrixMath.absoluteDifference(TT_j, attractions);
-            logger.info(String.format("\t\tmissing origins: %.2f, missing destinations: %.2f", o_diff, d_diff));
+            logger.debug(String.format("\t\tmissing origins: %.2f, missing destinations: %.2f", o_diff, d_diff));
 
             found = o_diff < solutionThreshold && d_diff < solutionThreshold;
             if (found) break;
             else {
                 char round = a ? 'a' : 'b';
-                logger.info("\t\titeration: " + i + ": " + round);
+                logger.debug("\t\titeration: " + i + ": " + round);
                 if (a) {
                     matrixMath.setOnes(b_j);
                     matrixMath.divide(a_i, productions, TT_i);
@@ -100,33 +131,35 @@ public class GravityModel {
                     matrixMath.setOnes(a_i);
                     a = true;
                 }
-                logger.info("\t\t\tcreate new factors: " + i + ": " + round);
+                logger.debug("\t\t\tcreate new factors: " + i + ": " + round);
                 matrixMath.outerProduct(newFactors, a_i, b_j);
-                logger.info("\t\t\tadjust impedances: " + i + ": " + round);
+                logger.debug("\t\t\tadjust impedances: " + i + ": " + round);
                 matrixMath.multiply(impedances, impedances, newFactors);
                 i += 1;
                 //logger.info(matrixMath.buildString(impedances));
             }
 
         }
-        logger.info("\tsuitable solution found");
+        logger.debug("\tsuitable solution found");
         double[][] test_result = new double[impedances.length][impedances[0].length];
         matrixMath.multiply(test_result, impedances, skim);
         //logger.info(matrixMath.buildString(test_result));
         double est = matrixMath.sum(test_result) / matrixMath.sum(impedances);
-        logger.info(String.format("\tEstimated avg. trip length: %.2f of %s", est, expectedTripLength));
-        logger.info(String.format("\tTotal number of trips: %.2f", matrixMath.sum(impedances)));
+        logger.debug(String.format("\tEstimated avg. trip length: %.2f of %s", est, expectedTripLength));
+        logger.debug(String.format("\tTotal number of trips: %.2f", matrixMath.sum(impedances)));
 
         matrixMath.sumReduceRows(TT_i, impedances);
         matrixMath.sumReduceColumns(TT_j, impedances);
         double o_diff = matrixMath.absoluteDifference(TT_i, productions);
         double d_diff = matrixMath.absoluteDifference(TT_j, attractions);
-        logger.info(String.format("\t\tmissing origins: %.2f, missing destinations: %.2f", o_diff, d_diff));
+        logger.debug(String.format("\t\tmissing origins: %.2f, missing destinations: %.2f", o_diff, d_diff));
+
+        return est;
 
     }
 
-    private double f(double cost) {
-        return Math.exp(g * cost);
+    private double f(double k, double cost) {
+        return Math.exp(k * cost);
     }
 
 
