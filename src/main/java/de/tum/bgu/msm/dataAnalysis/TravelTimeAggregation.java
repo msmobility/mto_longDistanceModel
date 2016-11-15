@@ -91,7 +91,7 @@ public class TravelTimeAggregation {
         int[] shape = new int[]{cd_tt_small.length, cd_tt_small.length};
         OmxFile omxfile = new OmxFile(filename + ".omx");
         omxfile.openNew(shape);
-        OmxMatrix omxMatrix = new OmxMatrix.OmxDoubleMatrix("combined_zones_skim", cd_tt_small, -1.0);
+        OmxMatrix omxMatrix = new OmxMatrix.OmxDoubleMatrix("distance", cd_tt_small, -1.0);
         omxfile.addMatrix(omxMatrix);
         omxfile.addLookup(new OmxLookup.OmxIntLookup("combined_zones", lookup, null));
         omxfile.save();

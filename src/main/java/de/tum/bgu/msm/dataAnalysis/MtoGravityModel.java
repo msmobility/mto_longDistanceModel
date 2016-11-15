@@ -84,13 +84,12 @@ public class MtoGravityModel {
                     " left outer join \n" +
                     "\t(\n" +
                     "\t\tselect lvl2_orig as zone_id, \n" +
-                    "\t\t\tcase when lvl2_orig < 70 then 1 else 0 end as zone_type,\n" +
-                    "\t\t\tpurpose, sum(wtep) as production\n" +
+                    "\t\t\tpurpose, sum(wtep)  / (365 * 4) as production\n" + //4 years, want the daily trips
                     "\t\tfrom tsrc_trip_filtered\n";
 
             if (purpose != null) sql += "\t\twhere purpose = '" + purpose + "'\n";
 
-            sql +=  "\t\tgroup by zone_id, zone_type, purpose\n" +
+            sql +=  "\t\tgroup by zone_id, purpose\n" +
                     "\t\t) as t \n" +
                     "on t.zone_id = alt\n" +
                     "order by alt, purpose";
@@ -136,8 +135,8 @@ public class MtoGravityModel {
         double k = gm.calibrate();
         //output gravity model as a omx matrix
 
-        //gm.save("output/tripDist_" + purpose + ".omx");
-        //gm.outputToCsv("output/tripDist_" + purpose +".csv");
+        gm.save("output/tripDist_" + purpose + ".omx");
+        gm.outputToCsv("output/tripDist_" + purpose +".csv");
 
         /*try (Connection conn = DatabaseInteractions.getPostgresConnection()) {
             gm.outputToDb(conn);
