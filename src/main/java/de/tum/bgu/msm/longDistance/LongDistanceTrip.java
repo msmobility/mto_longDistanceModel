@@ -128,9 +128,11 @@ public class LongDistanceTrip {
 
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
-                "tripDestCombinedZone,tripMode," +
-                "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
-                "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh";
+                "tripDestCombinedZone"
+        //      +  ",tripMode," +
+        //        "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
+        //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
+                ;
     }
     @Override
     public String toString() {
@@ -139,21 +141,47 @@ public class LongDistanceTrip {
         if (tr.getLongDistanceOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
             Person traveller = tr.getTraveller();
 
-            str = (tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
-                    + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
-                    + tr.getDestZoneId() + "," + tr.getMode() + ","
-                    + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
-                    + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize()
-                    + "," + traveller.getAge() + "," + traveller.getGender() + "," + traveller.getEducation() + "," + traveller.getWorkStatus() +
-                    "," + traveller.getIncome() + "," + traveller.getAdultsHh() + "," + traveller.getKidsHh());
+            str = (tr.getLongDistanceTripId()
+                    + "," + tr.getPersonId()
+                    + "," + tr.isLongDistanceInternational()
+                    + "," + tripPurposes.get(tr.getLongDistanceTripPurpose())
+                    + "," + tripStates.get(tr.getLongDistanceTripState())
+                    + "," + tr.getLongDistanceOrigZone().getId()
+                    + "," + tr.getLongDistanceOrigZone().getCombinedZoneId()
+                    + "," + tr.getLongDistanceOrigZone().getZoneType()
+                    + "," + tr.getDestZoneId()
+            /*        + "," + tr.getMode()
+                    + "," + tr.getLongDistanceNights()
+                    + "," + tr.getAdultsHhTravelPartySize()
+                    + "," + tr.getKidsHhTravelPartySize()
+                    + "," + tr.getNonHhTravelPartySize()
+                    + "," + traveller.getAge()
+                    + "," + Character.toString(traveller.getGender())
+                    + "," + traveller.getEducation()
+                    + "," + traveller.getWorkStatus()
+                    + "," + traveller.getIncome()
+                    + "," + traveller.getAdultsHh()
+                    + "," + traveller.getKidsHh()
+            */
+            );
         } else {
-            str =  (tr.getLongDistanceTripId() + "," + tr.getPersonId() + "," + tr.isLongDistanceInternational() + "," +
-                    tripPurposes.get(tr.getLongDistanceTripPurpose()) + "," + tripStates.get(tr.getLongDistanceTripState()) + ","
-                    + tr.getLongDistanceOrigZone().getId() + "," + tr.getLongDistanceOrigZone().getCombinedZoneId() + "," + tr.getLongDistanceOrigZone().getZoneType() + ","
-                    + tr.getLongDistanceNights() + "," + tr.getAdultsHhTravelPartySize()
-                    + "," + tr.getKidsHhTravelPartySize() + "," + tr.getNonHhTravelPartySize()
-                    + ",-1,\"\",-1,-1,-1,-1,-1");
+            str =  (tr.getLongDistanceTripId()
+                    + "," + tr.getPersonId()
+                    + "," + tr.isLongDistanceInternational()
+                    + "," + tripPurposes.get(tr.getLongDistanceTripPurpose())
+                    + "," + tripStates.get(tr.getLongDistanceTripState())
+                    + "," + tr.getLongDistanceOrigZone().getId()
+                    + "," + tr.getLongDistanceOrigZone().getCombinedZoneId()
+                    + "," + tr.getLongDistanceOrigZone().getZoneType()
+                    + "," + tr.getDestZoneId()
+            /*        + "," + tr.getMode()
+                    + "," + tr.getLongDistanceNights()
+                    + "," + tr.getAdultsHhTravelPartySize()
+                    + "," + tr.getKidsHhTravelPartySize()
+                    + "," + tr.getNonHhTravelPartySize()
+                    + ",-1,,-1,-1,-1,-1,-1"
+            */
+            );
 
         }
         return str;

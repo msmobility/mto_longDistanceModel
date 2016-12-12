@@ -82,7 +82,7 @@ public class MtoLongDistance {
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
-            if (!t.isLongDistanceInternational() && t.getOrigZone().getZoneType() == ZoneType.ONTARIO) {
+            if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);
                 t.setDestination(destZoneId);
             }

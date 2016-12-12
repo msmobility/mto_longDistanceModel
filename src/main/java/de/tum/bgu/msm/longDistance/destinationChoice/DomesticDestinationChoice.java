@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -51,23 +52,18 @@ public class DomesticDestinationChoice {
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
-        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.combinedzones.time"));
+        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.combinedzones.distance"));
         autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup("combinedZone");
+        OmxLookup omxLookUp = hSkim.getLookup(rb.getString("skim.combinedzones.lookup"));
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
 
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {
-        //need a legitimate trip purpose
-    //    if (trip.getTripPurpose() > 3) {
-     //       return 0;
-     //   }
-
         List<Pair<Integer, Double>> utilities = Arrays.stream(combinedZones.getColumnAsInt("alt"))
                 //calculate exp(Ui) for each destination
-                .mapToObj(d ->  new Pair<> ( d, Math.exp(calculateDestinationUtility(trip, d))))
+                .mapToObj(destination ->  new Pair<> ( destination, Math.exp(calculateUtility(trip, destination))))
                 .collect(Collectors.toList());
         //calculate the probability for each trip, based on the destination utilities
         double probability_denominator = utilities.stream()
@@ -79,13 +75,11 @@ public class DomesticDestinationChoice {
                 .collect(Collectors.toList());
 
         //choose one destination, weighted at random by the probabilities
-        int selectedDestination = new EnumeratedDistribution<>(probabilities).sample();
-
-        return selectedDestination;
+        return new EnumeratedDistribution<>(probabilities).sample();
 
     }
 
-    private double calculateDestinationUtility(LongDistanceTrip trip, int destination) {
+    private double calculateUtility(LongDistanceTrip trip, int destination) {
         String tripPurpose = "";
 
         switch (trip.getLongDistanceTripPurpose()) {
@@ -104,22 +98,56 @@ public class DomesticDestinationChoice {
         int origin = trip.getOrigZone().getCombinedZoneId();
         float distance = autoTravelTime.getValueAt(origin, destination);
 
-        int lang_barrier = 1 - ((int) combinedZones.getIndexedValueAt(origin,"speak_french") * (int) combinedZones.getIndexedValueAt(destination,"speak_french"));
-        int mm = (int) combinedZones.getIndexedValueAt(origin,"alt_is_metro") * (int) combinedZones.getIndexedValueAt(destination,"alt_is_metro");
-        int mr = (int) combinedZones.getIndexedValueAt(origin,"alt_is_metro") * (1 - (int) combinedZones.getIndexedValueAt(destination,"alt_is_metro"));
+        if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
+        //if (distance < 40) return Double.NEGATIVE_INFINITY;
 
-        double b_distance = coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-        double b_population = coefficients.getStringIndexedValueAt("pop_log", tripPurpose);
-        double b_lang_barrier = coefficients.getStringIndexedValueAt("lang.barrier", tripPurpose);
-        double b_mm = coefficients.getStringIndexedValueAt("mm", tripPurpose);
-        double b_mr = coefficients.getStringIndexedValueAt("rm", tripPurpose);
+        double civic = combinedZones.getIndexedValueAt(destination,"population") + combinedZones.getIndexedValueAt(destination,"employment");
+        double mm_inter = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
+        double m_intra = origin != destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro")
+                * combinedZones.getIndexedValueAt(destination,"alt_is_metro") : 0;
+        double r_intra = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
+        double fs_niagara = destination == 30 ? combinedZones.getIndexedValueAt(destination,"sightseeing") : 0;
+        double fs_outdoors = combinedZones.getIndexedValueAt(destination,"outdoors");
+        double fs_skiing = combinedZones.getIndexedValueAt(destination,"skiing");
+        double fs_medical = combinedZones.getIndexedValueAt(destination,"medical");
+        double fs_sightseeing = combinedZones.getIndexedValueAt(destination,"sightseeing");
+        double fs_hotel = combinedZones.getIndexedValueAt(destination,"hotel");
 
-        double u = b_distance * Math.exp(-1.0 * distance)
-                + b_population * Math.log(combinedZones.getIndexedValueAt(destination,"population"))
-                + b_lang_barrier * lang_barrier
-                + b_mm * mm
-                + b_mr * mr;
+        //Coefficients
+        double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);;
 
+        double b_distance = coefficients.getStringIndexedValueAt("distance", tripPurpose);
+        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra", tripPurpose);
+        double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter", tripPurpose);
+        double b_r_intra = coefficients.getStringIndexedValueAt("r_intra", tripPurpose);
+        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
+        double b_outdoors = coefficients.getStringIndexedValueAt("outdoors", tripPurpose);
+        double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose);
+        double b_medical = coefficients.getStringIndexedValueAt("medical", tripPurpose);
+        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
+        double b_sightseeing = coefficients.getStringIndexedValueAt("sightseeing", tripPurpose);
+
+        //log conversions
+        civic = civic > 0 ? Math.log(civic) : 0;
+        fs_niagara = fs_niagara > 0 ? Math.log(fs_niagara) : 0;
+        fs_outdoors = fs_outdoors > 0 ? Math.log(fs_outdoors) : 0;
+        fs_skiing = fs_skiing > 0 ? Math.log(fs_skiing) : 0;
+        fs_medical = fs_medical > 0 ? Math.log(fs_medical) : 0;
+        fs_sightseeing = fs_sightseeing > 0 ? Math.log(fs_sightseeing) : 0;
+        fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
+
+        double u =  b_distance * Math.exp(-alpha * distance)
+                + b_civic * civic
+                + b_mm_inter * mm_inter
+                + b_m_intra * m_intra
+                + b_r_intra * r_intra
+                + b_niagara * fs_niagara
+                + b_outdoors * fs_outdoors
+                + b_skiing * fs_skiing
+                + b_medical * fs_medical
+                + b_hotel * fs_hotel
+                + b_sightseeing * fs_sightseeing;
         return u;
     }
 
