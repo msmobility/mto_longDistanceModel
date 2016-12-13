@@ -100,8 +100,8 @@ public class DomesticDestinationChoice {
         float distance = autoTravelTime.getValueAt(origin, destination);
 
         //if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
-        if (distance < 40) return Double.NEGATIVE_INFINITY;
-        if (origin == destination && trip.getOrigZone().getZoneType() == ZoneType.EXTCANADA) return Double.NEGATIVE_INFINITY;
+        //if (distance < 40) return Double.NEGATIVE_INFINITY;
+        //if (origin == destination && trip.getOrigZone().getZoneType() == ZoneType.EXTCANADA) return Double.NEGATIVE_INFINITY;
 
         String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
         String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
@@ -128,11 +128,11 @@ public class DomesticDestinationChoice {
 
         double b_distance_log_1000 = coefficients.getStringIndexedValueAt("dist_log_1000", tripPurpose);
         double b_distance_log_1000_3000 = coefficients.getStringIndexedValueAt("dist_log_1000_3000", tripPurpose);
-        double b_distance_log_3000 = coefficients.getStringIndexedValueAt("dist_log_3000", tripPurpose);
+        double b_distance_log_3000_x = coefficients.getStringIndexedValueAt("dist_log_3000", tripPurpose);
 
-        double b_civic_1000 = coefficients.getStringIndexedValueAt("civic_1000", tripPurpose);
-        double b_civic_1000_3000 = coefficients.getStringIndexedValueAt("civic_1000_3000", tripPurpose);
-        double b_civic_3000 = coefficients.getStringIndexedValueAt("civic_3000", tripPurpose);
+        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        //double b_civic_1000 = coefficients.getStringIndexedValueAt("civic_1000", tripPurpose);
+        //double b_civic_1000_x = coefficients.getStringIndexedValueAt("civic_1000_x", tripPurpose);
 
         double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra", tripPurpose);
         double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter_no_visit", tripPurpose);
@@ -164,12 +164,11 @@ public class DomesticDestinationChoice {
 
                 + b_distance_log_1000 * (distance < 1000 ? 1 : 0) * log_distance
                         + b_distance_log_1000_3000 * (distance >= 1000 && distance < 3000 ? 1 : 0) * log_distance
-                + b_distance_log_3000 * (distance >= 3000 ? 1 : 0) * log_distance
+                + b_distance_log_3000_x * (distance >= 3000 ? 1 : 0) * log_distance
 
-                + b_civic_1000 * (civic < 1000 ? 1 : 0)* civic
-                        + b_civic_1000_3000 * (civic >= 1000 ? 1 : 0) * civic
-                + b_civic_3000 * (civic >= 3000 ? 1 : 0) * civic
-
+         //       + b_civic_1000 * (distance < 1000 ? 1 : 0)* civic
+         //               + b_civic_1000_x * (distance >= 1000  ? 1 : 0) * civic
+                + b_civic * civic
                 + b_mm_inter * mm_inter
                 + b_m_intra * m_intra
                 + b_r_intra * r_intra
