@@ -75,7 +75,8 @@ public class DomesticDestinationChoice {
                 .collect(Collectors.toList());
 
         //choose one destination, weighted at random by the probabilities
-        return new EnumeratedDistribution<>(probabilities).sample();
+        int chosen = new EnumeratedDistribution<>(probabilities).sample();
+        return chosen;
 
     }
 
@@ -98,8 +99,8 @@ public class DomesticDestinationChoice {
         int origin = trip.getOrigZone().getCombinedZoneId();
         float distance = autoTravelTime.getValueAt(origin, destination);
 
-        if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
-        //if (distance < 40) return Double.NEGATIVE_INFINITY;
+        //if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
+        if (distance < 40) return Double.NEGATIVE_INFINITY;
 
         double civic = combinedZones.getIndexedValueAt(destination,"population") + combinedZones.getIndexedValueAt(destination,"employment");
         double mm_inter = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
@@ -116,19 +117,35 @@ public class DomesticDestinationChoice {
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);;
 
-        double b_distance = coefficients.getStringIndexedValueAt("distance", tripPurpose);
-        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        double b_distance_exp = coefficients.getStringIndexedValueAt("dist_exp_0", tripPurpose);
+        double b_distance_exp_1000 = coefficients.getStringIndexedValueAt("dist_exp_1000", tripPurpose);
+    //    double b_distance_exp_3000 = coefficients.getStringIndexedValueAt("dist_exp_3000", tripPurpose);
+
+        double b_distance_log = coefficients.getStringIndexedValueAt("dist_log_0", tripPurpose);
+        double b_distance_log_1000 = coefficients.getStringIndexedValueAt("dist_log_1000", tripPurpose);
+    //    double b_distance_log_3000 = coefficients.getStringIndexedValueAt("dist_log_3000", tripPurpose);
+
+        double b_civic = coefficients.getStringIndexedValueAt("civic_0", tripPurpose);
+        double b_civic_1000 = coefficients.getStringIndexedValueAt("civic_1000", tripPurpose);
+    //    double b_civic_3000 = coefficients.getStringIndexedValueAt("civic_3000", tripPurpose);
+
         double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra", tripPurpose);
-        double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter", tripPurpose);
+        double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter_no_visit", tripPurpose);
         double b_r_intra = coefficients.getStringIndexedValueAt("r_intra", tripPurpose);
         double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
-        double b_outdoors = coefficients.getStringIndexedValueAt("outdoors", tripPurpose);
-        double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose);
-        double b_medical = coefficients.getStringIndexedValueAt("medical", tripPurpose);
-        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
-        double b_sightseeing = coefficients.getStringIndexedValueAt("sightseeing", tripPurpose);
+
+        double b_outdoors = coefficients.getStringIndexedValueAt("log_outdoors", tripPurpose);
+        double b_skiing = coefficients.getStringIndexedValueAt("log_skiing", tripPurpose);
+
+        //double b_outdoors = coefficients.getStringIndexedValueAt("summer_log_outdoors", tripPurpose);
+        //double b_skiing = coefficients.getStringIndexedValueAt("winter_log_skiing", tripPurpose);
+
+        double b_medical = coefficients.getStringIndexedValueAt("visit_log_medical", tripPurpose);
+        double b_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
+        double b_sightseeing = coefficients.getStringIndexedValueAt("log_sightseeing", tripPurpose);
 
         //log conversions
+        double log_distance = distance > 0 ? Math.log(distance) : 0;
         civic = civic > 0 ? Math.log(civic) : 0;
         fs_niagara = fs_niagara > 0 ? Math.log(fs_niagara) : 0;
         fs_outdoors = fs_outdoors > 0 ? Math.log(fs_outdoors) : 0;
@@ -137,8 +154,22 @@ public class DomesticDestinationChoice {
         fs_sightseeing = fs_sightseeing > 0 ? Math.log(fs_sightseeing) : 0;
         fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
 
-        double u =  b_distance * Math.exp(-alpha * distance)
-                + b_civic * civic
+        double u =
+                b_distance_exp * (distance < 1000 ? 1 : 0) * Math.exp(-alpha * distance)
+                        + b_distance_exp_1000  * (distance >= 1000 ? 1 : 0) * Math.exp(-alpha * distance)
+        //                + b_distance_exp_1000  * (distance >= 1000 && distance < 3000 ? 1 : 0) * Math.exp(-alpha * distance)
+         //       + b_distance_log_3000 * (distance >= 3000 ? 1 : 0) * Math.exp(-alpha * distance)
+
+                + b_distance_log * (distance < 1000 ? 1 : 0) * log_distance
+                        + b_distance_log_1000 * (distance >= 1000 ? 1 : 0) * log_distance
+         //               + b_distance_log_1000 * (distance >= 1000 && distance < 3000 ? 1 : 0) * log_distance
+         //       + b_distance_log_3000 * (distance >= 3000 ? 1 : 0) * log_distance
+
+                + b_civic * (civic < 1000 ? 1 : 0) *civic
+                        + b_civic_1000 * (civic >= 1000 ? 1 : 0) * civic
+        //                + b_civic_1000 * (civic >= 1000 && civic < 3000 ? 1 : 0) * civic
+        //        + b_civic_3000 * (civic >= 3000 ? 1 : 0) * civic
+
                 + b_mm_inter * mm_inter
                 + b_m_intra * m_intra
                 + b_r_intra * r_intra
@@ -148,6 +179,7 @@ public class DomesticDestinationChoice {
                 + b_medical * fs_medical
                 + b_hotel * fs_hotel
                 + b_sightseeing * fs_sightseeing;
+
         return u;
     }
 
