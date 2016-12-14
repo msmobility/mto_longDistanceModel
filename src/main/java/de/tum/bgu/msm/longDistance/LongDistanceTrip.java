@@ -25,6 +25,7 @@ public class LongDistanceTrip {
     private static int tripCounter = 0;
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+    private boolean is_summer = true; //TODO: make this take value of configuration
 
     private int tripId;
     private Person traveller;
@@ -42,7 +43,7 @@ public class LongDistanceTrip {
 
     //ArrayList<Long> destinations;
 
-    public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, int nights,
+    public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, boolean summer, int nights,
                             int hhAdultsTravelPartySize, int hhKidsTravelPartySize/**,ArrayList hhTravelParty**/, int nonHhTravelPartySize /**,ArrayList<Long> destinations**/) {
         this.tripId = tripCounter;
         this.traveller = traveller;
@@ -50,6 +51,7 @@ public class LongDistanceTrip {
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
         this.origZone = origZone;
+        this.is_summer = summer;
         this.nights = nights;
         this.hhAdultsTravelPartySize = hhAdultsTravelPartySize;
         this.hhKidsTravelPartySize = hhKidsTravelPartySize;
@@ -70,10 +72,12 @@ public class LongDistanceTrip {
         this.tripState = tripStates.indexOf(tripsDomesticTable.getStringValueAt(row, "tripState"));
         int origZoneId = (int) tripsDomesticTable.getValueAt(row, "tripOriginZone");
         origZone = zoneLookup.get(origZoneId);
-        this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
-        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
-        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
-        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
+
+        //escaped for the moment for destination choice TODO: remove
+        //this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
+        //this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
+        //this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
+        //this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
     }
 
     public int getLongDistanceTripId() {
@@ -189,5 +193,13 @@ public class LongDistanceTrip {
 
     public String getMode() {
         return "";
+    }
+
+    public boolean isSummer() {
+        return is_summer;
+    }
+
+    public String getTripPurpose() {
+        return tripPurposes.get(getLongDistanceTripPurpose());
     }
 }

@@ -47,7 +47,7 @@ public class DomesticDestinationChoice {
         // read skim file
         logger.info("  Reading skims files");
 
-        String matrixName = "auto.skim.combinedzones." + Mto.getYear();
+        String matrixName = "auto.skim.combinedzones.2013";
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
@@ -84,13 +84,13 @@ public class DomesticDestinationChoice {
         String tripPurpose = "";
 
         switch (trip.getLongDistanceTripPurpose()) {
-            case 0:
+            case 2:
                 tripPurpose = "leisure";
                 break;
-            case 1:
+            case 0:
                 tripPurpose = "visit";
                 break;
-            case 2:
+            case 1:
                 tripPurpose = "business";
                 break;
         }
@@ -120,30 +120,25 @@ public class DomesticDestinationChoice {
         double fs_hotel = combinedZones.getIndexedValueAt(destination,"hotel");
 
         //Coefficients
-        double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);;
+        double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
 
-        double b_distance_exp = coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-    //    double b_distance_exp_1000 = coefficients.getStringIndexedValueAt("dist_exp_1000", tripPurpose);
-    //    double b_distance_exp_3000 = coefficients.getStringIndexedValueAt("dist_exp_3000", tripPurpose);
 
-        double b_distance_log_1000 = coefficients.getStringIndexedValueAt("dist_log_1000", tripPurpose);
-        double b_distance_log_1000_3000 = coefficients.getStringIndexedValueAt("dist_log_1000_3000", tripPurpose);
-        double b_distance_log_3000_x = coefficients.getStringIndexedValueAt("dist_log_3000", tripPurpose);
+        double k = 1.1;
+        //if (distance > 1000) k = -10000;
+        //if (distance > 4200) k = 1;
+
+        double b_distance_exp = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
+        //double b_distance_log = 0.2 * coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
 
         double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
-        //double b_civic_1000 = coefficients.getStringIndexedValueAt("civic_1000", tripPurpose);
-        //double b_civic_1000_x = coefficients.getStringIndexedValueAt("civic_1000_x", tripPurpose);
 
-        double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra", tripPurpose);
+        double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra_no_business", tripPurpose);
         double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter_no_visit", tripPurpose);
         double b_r_intra = coefficients.getStringIndexedValueAt("r_intra", tripPurpose);
         double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
 
-        double b_outdoors = coefficients.getStringIndexedValueAt("leisure_log_outdoors", tripPurpose);
-        double b_skiing = coefficients.getStringIndexedValueAt("leisure_log_skiing", tripPurpose);
-
-        //double b_outdoors = coefficients.getStringIndexedValueAt("summer_log_outdoors", tripPurpose);
-        //double b_skiing = coefficients.getStringIndexedValueAt("winter_log_skiing", tripPurpose);
+        double b_outdoors = coefficients.getStringIndexedValueAt("summer_log_outdoors", tripPurpose);
+        double b_skiing = coefficients.getStringIndexedValueAt("winter_log_skiing", tripPurpose);
 
         double b_medical = coefficients.getStringIndexedValueAt("visit_log_medical", tripPurpose);
         double b_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
@@ -161,20 +156,15 @@ public class DomesticDestinationChoice {
 
         double u =
                 b_distance_exp * Math.exp(-alpha * distance)
+         //       + b_distance_log * log_distance
 
-                + b_distance_log_1000 * (distance < 1000 ? 1 : 0) * log_distance
-                        + b_distance_log_1000_3000 * (distance >= 1000 && distance < 3000 ? 1 : 0) * log_distance
-                + b_distance_log_3000_x * (distance >= 3000 ? 1 : 0) * log_distance
-
-         //       + b_civic_1000 * (distance < 1000 ? 1 : 0)* civic
-         //               + b_civic_1000_x * (distance >= 1000  ? 1 : 0) * civic
                 + b_civic * civic
                 + b_mm_inter * mm_inter
                 + b_m_intra * m_intra
                 + b_r_intra * r_intra
                 + b_niagara * fs_niagara
-                + b_outdoors * fs_outdoors
-                + b_skiing * fs_skiing
+                + b_outdoors * (trip.isSummer() ? 1 : 0)* fs_outdoors
+                + b_skiing * (!trip.isSummer() ? 1 : 0) *  fs_skiing
                 + b_medical * fs_medical
                 + b_hotel * fs_hotel
                 + b_sightseeing * fs_sightseeing;

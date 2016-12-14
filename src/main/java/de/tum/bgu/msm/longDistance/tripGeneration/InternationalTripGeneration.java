@@ -116,7 +116,7 @@ public class InternationalTripGeneration {
         hhTravelParty.addAll(adultsHhTravelParty);
         int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
 
-        return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(),
+        return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), true,
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
 
