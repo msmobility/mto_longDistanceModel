@@ -9,14 +9,13 @@ import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.syntheticPopulation.Person;
+import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.log4j.Logger;
+import org.apache.commons.math3.util.Pair;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,7 +51,7 @@ public class Scenario {
     }
 
     void iterate() {
-        int iterations = 20;
+        int iterations = 1;
         int[][] purpose_counter = new int[3][iterations];
         loadtrips();
         logger.info("Running Destination Choice Model for " + allTrips.size() + " trips, " + iterations + " times...");
@@ -86,12 +85,18 @@ public class Scenario {
         allTrips = new ArrayList<>();
         logger.info("\tLoading trips");
         TableDataSet tripsDomesticTable = Util.readCSVfile(rb.getString("scenario.trip.file"));
-        for (int i=1; i<=tripsDomesticTable.getRowCount(); i++) {
+        double num_trips = 1000000; //no other
 
-            int origZoneId = (int) tripsDomesticTable.getValueAt(i, "lvl2_orig");
-            int num_trips = (int) tripsDomesticTable.getValueAt(i, "wtep") / (365*4);
-            String purpose = tripsDomesticTable.getStringValueAt(i, "purpose");
-            String season = tripsDomesticTable.getStringValueAt(i, "season");
+        List<Pair<Integer, Double>> tripWeights = IntStream.rangeClosed(1,tripsDomesticTable.getRowCount())
+                .mapToObj(i -> new Pair<>(i, (double)tripsDomesticTable.getValueAt(i, "wtep"))).collect(Collectors.toList());
+        EnumeratedDistribution<Integer> tripSelector = new EnumeratedDistribution<>(tripWeights);
+        for (int j=1; j<=num_trips; j++) {
+            int tripIndex = tripSelector.sample();
+
+            int origZoneId = (int) tripsDomesticTable.getValueAt(tripIndex, "lvl2_orig");
+            //int num_trips = (int) tripsDomesticTable.getValueAt(i, "wtep") / (365*4);
+            String purpose = tripsDomesticTable.getStringValueAt(tripIndex, "purpose");
+            String season = tripsDomesticTable.getStringValueAt(tripIndex, "season");
             boolean is_summer = "summer".equals(season);
             int purpose_int = 0;
             switch (purpose) {
@@ -103,12 +108,9 @@ public class Scenario {
 
             Zone dummyZone = new Zone(0,0,0, ZoneType.ONTARIO, origZoneId);
 
-            if (purpose_int < 3) {
-                for (int w=0; w<num_trips; w++) {
-                    LongDistanceTrip ldt = new LongDistanceTrip(null, false, purpose_int, 0, dummyZone, is_summer, 0, 0, 0, 0);
-                    allTrips.add(ldt);
-                }
-            }
+            LongDistanceTrip ldt = new LongDistanceTrip(null, false, purpose_int, 0, dummyZone, is_summer, 0, 0, 0, 0);
+            allTrips.add(ldt);
+
         }
 
     }

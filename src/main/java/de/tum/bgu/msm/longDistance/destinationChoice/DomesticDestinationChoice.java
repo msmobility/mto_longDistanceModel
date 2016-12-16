@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -123,12 +124,14 @@ public class DomesticDestinationChoice {
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
 
 
-        double k = 1.1;
-        //if (distance > 1000) k = -10000;
-        //if (distance > 4200) k = 1;
+        double k = 1;
+        if (tripPurpose.equals("business")) k = 1.05;
+        if (tripPurpose.equals("visit")) k = 1.15;
+        if (tripPurpose.equals("leisure")) k = 1.15;
+
 
         double b_distance_exp = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-        //double b_distance_log = 0.2 * coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
+        double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
 
         double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
 
@@ -156,7 +159,7 @@ public class DomesticDestinationChoice {
 
         double u =
                 b_distance_exp * Math.exp(-alpha * distance)
-         //       + b_distance_log * log_distance
+                + b_distance_log * log_distance
 
                 + b_civic * civic
                 + b_mm_inter * mm_inter
