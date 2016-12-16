@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
@@ -51,39 +52,44 @@ public class Scenario {
     }
 
     void iterate() {
-        int iterations = 1;
+        int iterations = 20;
         int[][] purpose_counter = new int[3][iterations];
+        loadtrips();
+        logger.info("Running Destination Choice Model for " + allTrips.size() + " trips, " + iterations + " times...");
 
         IntStream.range(0, iterations).forEach(i -> {
-            run();
+            runDestinationChoice(allTrips);
 
             allTrips.stream().filter(t -> t.getDestZoneId() == 24)
                     .forEach(t -> {
                         purpose_counter[t.getLongDistanceTripPurpose()][i] += 1;
                     });
 
-        //    logger.info(String.format("%d, %d, %d",
-        //            purpose_counter[0][i], purpose_counter[1][i], purpose_counter[2][i]));
+            logger.info(String.format("%d, %d, %d",
+                    purpose_counter[1][i], purpose_counter[2][i], purpose_counter[0][i]));
 
         });
 
-        logger.info(String.format("\n" + "\tbusiness: %d\n" +"\tleisure:  %d\n\tvisit: \t  %d",
-                (int) Arrays.stream(purpose_counter[1]).average().getAsDouble(),
-                (int) Arrays.stream(purpose_counter[2]).average().getAsDouble(),
-                (int) Arrays.stream(purpose_counter[0]).average().getAsDouble()
-        ));
+        for (int p = 0; p < 3; p++) {
+            int average = (int) Arrays.stream(purpose_counter[p]).average().getAsDouble();
+            int min = Arrays.stream(purpose_counter[p]).min().getAsInt();
+            int max = Arrays.stream(purpose_counter[p]).max().getAsInt();
+            System.out.println(String.format("%s, %d, %d, %d", MtoLongDistData.getTripPurposes().get(p), average, min, max));
+
+        }
+
         writeTrips();
 
     }
 
-    void run() {
+    void loadtrips() {
         allTrips = new ArrayList<>();
-
-        TableDataSet tripsDomesticTable = Util.readCSVfile("C:\\Users\\Joe\\canada\\data\\mnlogit\\mnlogit_trips_no_intra_province.csv");
-        Map<Integer, Zone>  zoneLookup = mtoLongDistData.getZoneLookup();
+        logger.info("\tLoading trips");
+        TableDataSet tripsDomesticTable = Util.readCSVfile(rb.getString("scenario.trip.file"));
         for (int i=1; i<=tripsDomesticTable.getRowCount(); i++) {
 
             int origZoneId = (int) tripsDomesticTable.getValueAt(i, "lvl2_orig");
+            int num_trips = (int) tripsDomesticTable.getValueAt(i, "wtep") / (365*4);
             String purpose = tripsDomesticTable.getStringValueAt(i, "purpose");
             String season = tripsDomesticTable.getStringValueAt(i, "season");
             boolean is_summer = "summer".equals(season);
@@ -98,18 +104,16 @@ public class Scenario {
             Zone dummyZone = new Zone(0,0,0, ZoneType.ONTARIO, origZoneId);
 
             if (purpose_int < 3) {
-                LongDistanceTrip ldt = new LongDistanceTrip(null, false, purpose_int, 0, dummyZone, is_summer,0 , 0, 0, 0);
-                allTrips.add(ldt);
+                for (int w=0; w<num_trips; w++) {
+                    LongDistanceTrip ldt = new LongDistanceTrip(null, false, purpose_int, 0, dummyZone, is_summer, 0, 0, 0, 0);
+                    allTrips.add(ldt);
+                }
             }
         }
-
-        runDestinationChoice(allTrips);
-
 
     }
 
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);
