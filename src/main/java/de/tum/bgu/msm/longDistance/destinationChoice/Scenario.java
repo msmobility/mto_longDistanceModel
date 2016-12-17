@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 import org.apache.commons.math3.util.Pair;
 
@@ -51,7 +52,7 @@ public class Scenario {
     }
 
     void iterate() {
-        int iterations = 1;
+        int iterations = 20;
         int[][] purpose_counter = new int[3][iterations];
         loadtrips();
         logger.info("Running Destination Choice Model for " + allTrips.size() + " trips, " + iterations + " times...");
@@ -81,22 +82,21 @@ public class Scenario {
 
     }
 
-    void loadtrips() {
+    private void loadtrips() {
         allTrips = new ArrayList<>();
         logger.info("\tLoading trips");
         TableDataSet tripsDomesticTable = Util.readCSVfile(rb.getString("scenario.trip.file"));
+        tripsDomesticTable.buildIndex(1);
         double num_trips = 1000000; //no other
-
-        List<Pair<Integer, Double>> tripWeights = IntStream.rangeClosed(1,tripsDomesticTable.getRowCount())
-                .mapToObj(i -> new Pair<>(i, (double)tripsDomesticTable.getValueAt(i, "wtep"))).collect(Collectors.toList());
-        EnumeratedDistribution<Integer> tripSelector = new EnumeratedDistribution<>(tripWeights);
+        int[] tripIds = tripsDomesticTable.getColumnAsInt("id");
+        EnumeratedIntegerDistribution tripSelector = new EnumeratedIntegerDistribution(tripIds, tripsDomesticTable.getColumnAsDouble("wtep"));
         for (int j=1; j<=num_trips; j++) {
-            int tripIndex = tripSelector.sample();
+            int tripId = tripSelector.sample();
 
-            int origZoneId = (int) tripsDomesticTable.getValueAt(tripIndex, "lvl2_orig");
+            int origZoneId = (int) tripsDomesticTable.getIndexedValueAt(tripId, "lvl2_orig");
             //int num_trips = (int) tripsDomesticTable.getValueAt(i, "wtep") / (365*4);
-            String purpose = tripsDomesticTable.getStringValueAt(tripIndex, "purpose");
-            String season = tripsDomesticTable.getStringValueAt(tripIndex, "season");
+            String purpose = tripsDomesticTable.getIndexedStringValueAt(tripId, "purpose");
+            String season = tripsDomesticTable.getIndexedStringValueAt(tripId, "season");
             boolean is_summer = "summer".equals(season);
             int purpose_int = 0;
             switch (purpose) {
@@ -115,7 +115,7 @@ public class Scenario {
 
     }
 
-    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
+    private void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);
@@ -123,7 +123,7 @@ public class Scenario {
             }
         });
     }
-    public void writeTrips() {
+    private void writeTrips() {
         logger.info("Writing out data for trip generation (trips)");
 
         String OutputTripsFileName = rb.getString("scenario.out.file");

@@ -12,6 +12,7 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 
@@ -27,6 +28,7 @@ public class DomesticDestinationChoice {
     private TableDataSet combinedZones;
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
+    private int[] alternatives;
 
     public DomesticDestinationChoice(ResourceBundle rb) {
         //coef format
@@ -41,7 +43,7 @@ public class DomesticDestinationChoice {
         //load combined zones distance skim
         readSkim(rb);
 
-
+        alternatives = combinedZones.getColumnAsInt("alt");
     }
 
     public void readSkim(ResourceBundle rb) {
@@ -62,21 +64,18 @@ public class DomesticDestinationChoice {
 
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {
-        List<Pair<Integer, Double>> utilities = Arrays.stream(combinedZones.getColumnAsInt("alt"))
+
+        double[] utilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
-                .mapToObj(destination ->  new Pair<> ( destination, Math.exp(calculateUtility(trip, destination))))
-                .collect(Collectors.toList());
+                .mapToDouble(a -> Math.exp(calculateUtility(trip, a))).toArray();
         //calculate the probability for each trip, based on the destination utilities
-        double probability_denominator = utilities.stream()
-                .mapToDouble(Pair::getSecond).sum();
+        double probability_denominator = Arrays.stream(utilities).sum();
 
         //calculate the probability for each trip, based on the destination utilities
-        List<Pair<Integer, Double>> probabilities = utilities.stream()
-                .map(p -> new Pair<> (p.getFirst(), p.getSecond()/probability_denominator))
-                .collect(Collectors.toList());
+        double[] probabilities = Arrays.stream(utilities).map(u -> u/probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        int chosen = new EnumeratedDistribution<>(probabilities).sample();
+        int chosen = new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
         return chosen;
 
     }
@@ -123,12 +122,7 @@ public class DomesticDestinationChoice {
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
 
-
-        double k = 1;
-        if (tripPurpose.equals("business")) k = 1.05;
-        if (tripPurpose.equals("visit")) k = 1.15;
-        if (tripPurpose.equals("leisure")) k = 1.15;
-
+        double k = coefficients.getStringIndexedValueAt("k", tripPurpose); //calibration coefficient
 
         double b_distance_exp = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
         double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
