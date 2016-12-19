@@ -65,7 +65,7 @@ public class Scenario {
                         purpose_counter[t.getLongDistanceTripPurpose()][i] += 1;
                     });
 
-            logger.info(String.format("%d, %d, %d",
+            logger.info(String.format("%d,%d,%d",
                     purpose_counter[1][i], purpose_counter[2][i], purpose_counter[0][i]));
 
         });
@@ -74,7 +74,7 @@ public class Scenario {
             int average = (int) Arrays.stream(purpose_counter[p]).average().getAsDouble();
             int min = Arrays.stream(purpose_counter[p]).min().getAsInt();
             int max = Arrays.stream(purpose_counter[p]).max().getAsInt();
-            System.out.println(String.format("%s, %d, %d, %d", MtoLongDistData.getTripPurposes().get(p), average, min, max));
+            System.out.println(String.format("%s,%d,%d,%d", MtoLongDistData.getTripPurposes().get(p), average, min, max));
 
         }
 
