@@ -62,6 +62,7 @@ public class DomesticTripGeneration {
                 if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
                     //obtain a vector of socio-demographics of person and transform to TSRC
                     float[] personDescription = readPersonSocioDemographics(pers);
+                    pers.travelProbabilities = new float[3][3];
                     for (String tripPurpose : tripPurposes) {
                     //the model would only be applied to a person who is an adult and is not in a long distance travel already
                         double[] utility = new double[3];
@@ -78,7 +79,6 @@ public class DomesticTripGeneration {
 
                         //store the probabilities for later international trip generation
                         //TODO maybe this is only needed for non traveller and this way international trip generation is faster
-                        pers.travelProbabilities = new float[3][3];
                         for (String tripState : tripStates){
                             pers.travelProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probability[tripStates.indexOf(tripState)];
                         }
@@ -104,6 +104,7 @@ public class DomesticTripGeneration {
                 }
             }
         }
+        logger.info(tripCount + " domestic trips from Ontario");
         return trips;
     }
 

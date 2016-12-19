@@ -57,6 +57,7 @@ public class TripGenerationModel {
 
         ArrayList<LongDistanceTrip> trips_domestic;
         ArrayList<LongDistanceTrip> trips_international;
+        ArrayList<LongDistanceTrip> extCanTrips_international;
         ArrayList<LongDistanceTrip> trips_visitors;
 
 
@@ -73,7 +74,7 @@ public class TripGenerationModel {
         trips_domestic = tgdomestic.runTripGeneration(syntheticPopulation);
         logger.info("Domestic Trips from Ontario generated");
 
-        //generate international trips (must be done after domestic)
+        //generate international trips from ONTARIO(must be done after domestic)
         //recalculate accessibility to external international zones
         toZones = Arrays.asList("EXTUS", "EXTOVERSEAS");
         mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float) -0.01);
@@ -82,6 +83,11 @@ public class TripGenerationModel {
         InternationalTripGeneration tginternational = new InternationalTripGeneration(rb);
         trips_international = tginternational.runInternationalTripGeneration(syntheticPopulation);
         logger.info("International trips from Ontario generated");
+
+        //generate international trips from non-Ontarian but Canadian
+        ExtCanInternationalTripGeneration extCantginternational = new ExtCanInternationalTripGeneration(rb);
+        extCanTrips_international = extCantginternational.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
+
 
         //generate visitors
         //recalculate accessibility to Ontario
@@ -99,6 +105,7 @@ public class TripGenerationModel {
         allTrips.addAll(trips_international);
         allTrips.addAll(trips_domestic);
         allTrips.addAll(trips_visitors);
+        allTrips.addAll(extCanTrips_international);
 
         return allTrips;
 

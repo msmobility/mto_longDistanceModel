@@ -32,6 +32,8 @@ public class InternationalTripGeneration {
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
+        //international trips from Ontario
+
         String internationalTriprates = rb.getString("int.trips");
         TableDataSet internationalTripRates = Util.readCSVfile(internationalTriprates);
         internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
@@ -50,24 +52,24 @@ public class InternationalTripGeneration {
 
         //recalculate the probabilities adapted to the new accessibility values
         IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
-            Person pers = syntheticPopulation.getPersonFromId(p);
-            personIds[p] = pers.getPersonId();
-            if (pers.travelProbabilities != null) {
-                for (String tripPurpose : tripPurposes) {
-                    for (String tripState : tripStates) {
-                        int j = tripStates.indexOf(tripState);
-                        int i = tripPurposes.indexOf(tripPurpose);
-                        //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
-                        //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
-                        double calibrationFactor = 2;
-                        probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
-                        sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+                Person pers = syntheticPopulation.getPersonFromId(p);
+                personIds[p] = pers.getPersonId();
+                if (pers.travelProbabilities != null) {
+                    for (String tripPurpose : tripPurposes) {
+                        for (String tripState : tripStates) {
+                            int j = tripStates.indexOf(tripState);
+                            int i = tripPurposes.indexOf(tripPurpose);
+                            //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
+                            //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
+                            double calibrationFactor = 0;
+                            probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
+                            sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+                        }
                     }
                 }
-            }
         });
-
         logger.info("Int Trip: sum of probabilities done");
+        int totalTripCount = 0;
         for (String tripPurpose : tripPurposes) {
             for (String tripState : tripStates) {
                 int tripCount = 0;
@@ -100,11 +102,14 @@ public class InternationalTripGeneration {
                         LongDistanceTrip trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, tripCount, travelPartyProbabilities);
                         trips.add(trip);
                         tripCount++;
+                        totalTripCount++;
                     }
                 }
                 logger.info(tripCount + " international trips generated in Ontario, with purpose " + tripPurpose + " and state " + tripState);
             }
+
         }
+        logger.info(totalTripCount + " total international trips from Ontario");
         return trips;
     }
 
