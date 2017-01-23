@@ -58,6 +58,7 @@ public class TripGenerationModel {
         ArrayList<LongDistanceTrip> trips_domestic;
         ArrayList<LongDistanceTrip> trips_international;
         ArrayList<LongDistanceTrip> trips_visitors;
+        ArrayList<LongDistanceTrip> trips_extCanInt;
 
 
         //read skim for auto and run the model
@@ -93,12 +94,16 @@ public class TripGenerationModel {
         trips_visitors = vgen.runVisitorsTripGeneration(mtoLongDistData.getExternalZoneList());
         logger.info("Visitor trips to Ontario generated");
 
+        ExtCanToIntTripGeneration extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
+        trips_extCanInt = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
+
         //analyze and write out generated trips
         //first, join the different list of trips
         ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
         allTrips.addAll(trips_international);
         allTrips.addAll(trips_domestic);
         allTrips.addAll(trips_visitors);
+        allTrips.addAll(trips_extCanInt);
 
         return allTrips;
 

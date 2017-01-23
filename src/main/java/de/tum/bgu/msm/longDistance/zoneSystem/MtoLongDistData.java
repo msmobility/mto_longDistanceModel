@@ -124,7 +124,7 @@ public class MtoLongDistData {
         int[] externalZonesUs;
         int[] externalZonesOverseas;
 
-        //second, read the external zones from files
+        //read the external zones from files
 
         if (externalCanada) {
             externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));

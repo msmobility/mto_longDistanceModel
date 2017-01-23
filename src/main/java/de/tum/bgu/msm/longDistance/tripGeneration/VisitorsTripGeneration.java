@@ -53,23 +53,23 @@ public class VisitorsTripGeneration {
                     int usDummy;
                     double tripRate;
                     //TODO decide one of the 2 alternatives for all the trips
-                    if(zone.getZoneType().equals(ZoneType.EXTCANADA)){
+                    //if(zone.getZoneType().equals(ZoneType.EXTCANADA)){
                         //go to method b: generate all travellers and apply later destination choice
                         tripRate = visitorsRatePerZone.getIndexedValueAt(zone.getId(),column);
-                    } else {
-                        //method a: generate only trips that end in Ontario
-                        if (zone.getZoneType().equals(ZoneType.EXTUS)) usDummy = 1;
-                        else usDummy = 0;
-                        int osDummy;
-                        if (zone.getZoneType().equals(ZoneType.EXTOVERSEAS)) osDummy = 1;
-                        else osDummy = 0;
-                        //binary choice model for each purpose and state, with Utility = a+b*US + c*Acc (similarly to an average trip rate)
-                        double expTerm = Math.exp(visitorRateCoefficients.getIndexedValueAt(1, column) +
-                                visitorRateCoefficients.getIndexedValueAt(2, column) * usDummy +
-                                visitorRateCoefficients.getIndexedValueAt(3, column) * osDummy +
-                                visitorRateCoefficients.getIndexedValueAt(4, column) * zone.getAccessibility());
-                        tripRate = expTerm / (1 + expTerm);
-                    }
+//                    } else {
+//                        //method a: generate only trips that end in Ontario
+//                        if (zone.getZoneType().equals(ZoneType.EXTUS)) usDummy = 1;
+//                        else usDummy = 0;
+//                        int osDummy;
+//                        if (zone.getZoneType().equals(ZoneType.EXTOVERSEAS)) osDummy = 1;
+//                        else osDummy = 0;
+//                        //binary choice model for each purpose and state, with Utility = a+b*US + c*Acc (similarly to an average trip rate)
+//                        double expTerm = Math.exp(visitorRateCoefficients.getIndexedValueAt(1, column) +
+//                                visitorRateCoefficients.getIndexedValueAt(2, column) * usDummy +
+//                                visitorRateCoefficients.getIndexedValueAt(3, column) * osDummy +
+//                                visitorRateCoefficients.getIndexedValueAt(4, column) * zone.getAccessibility());
+//                        tripRate = expTerm / (1 + expTerm);
+//                    }
                     //both methods a and b give the same variable tripRate to get the total number of trips to generate
                     int numberOfTrips = (int) (tripRate * zone.getPopulation());
                     for (int i = 0; i < numberOfTrips; i++) {

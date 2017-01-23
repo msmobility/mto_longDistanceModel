@@ -61,6 +61,7 @@ public class DomesticTripGeneration {
             for (Person pers : membersList) {
                 if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
                     //obtain a vector of socio-demographics of person and transform to TSRC
+                    pers.travelProbabilities = new float[3][3];
                     float[] personDescription = readPersonSocioDemographics(pers);
                     for (String tripPurpose : tripPurposes) {
                     //the model would only be applied to a person who is an adult and is not in a long distance travel already
@@ -78,7 +79,7 @@ public class DomesticTripGeneration {
 
                         //store the probabilities for later international trip generation
                         //TODO maybe this is only needed for non traveller and this way international trip generation is faster
-                        pers.travelProbabilities = new float[3][3];
+
                         for (String tripState : tripStates){
                             pers.travelProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probability[tripStates.indexOf(tripState)];
                         }
