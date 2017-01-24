@@ -103,6 +103,7 @@ public class DomesticDestinationChoice {
         //if (distance < 40) return Double.NEGATIVE_INFINITY;
         //if (origin == destination && trip.getOrigZone().getZoneType() == ZoneType.EXTCANADA) return Double.NEGATIVE_INFINITY;
 
+        //TODO: check if this west-east transformation is suitable
         String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
         String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
         if (origin_east_west.equals(destination_east_west) && !"ontario".equals(origin_east_west)) return Double.NEGATIVE_INFINITY;

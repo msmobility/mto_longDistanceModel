@@ -86,6 +86,7 @@ public class MtoLongDistance {
                 int destZoneId = dcModel.selectDestination(t);
                 t.setDestination(destZoneId);
             }
+
         });
     }
 

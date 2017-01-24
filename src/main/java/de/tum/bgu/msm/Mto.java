@@ -50,7 +50,7 @@ public class Mto {
         winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
 
         Mto model = new Mto(rb);
-        if (ResourceUtil.getBooleanProperty(rb, "analyze.tsrc.data", false)) model.runDataAnalysis();
+        if (ResourceUtil.getBooleanProperty(rb, "analyze.survey.data", false)) model.runDataAnalysis();
         if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
 
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);

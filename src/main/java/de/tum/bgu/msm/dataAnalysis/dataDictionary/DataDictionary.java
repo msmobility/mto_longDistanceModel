@@ -42,6 +42,18 @@ public class DataDictionary {
 
                 }
             }
+            //its
+            File itsLoc = new File(rb.getString("its.data.dir"));
+            String[] itsYears = rb.getString("its.years").split(",");
+            String itsSection = "Canadians";
+            for (String year : itsYears) {
+                String key = ("its" + "_" + year + "_" + itsSection).toLowerCase();
+                String fileName = rb.getString("its.data.dir") + File.separator + year + File.separator;
+                fileName += String.format("datadict_ITS_%s_%s.csv", itsSection, year);
+                File surveyFile = new File(fileName);
+                surveys.put(key, new Survey(surveyFile));
+
+            }
 
             logger.info("dictionary creation successful");
 

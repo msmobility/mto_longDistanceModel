@@ -41,7 +41,7 @@ public class MtoAnalyzeData {
             countTravelersByIncome();
             tripsByModeAndOriginProvince();
         }
-        if (ResourceUtil.getBooleanProperty(rb, "write.tsrc.data")) writeOutData();
+        if (ResourceUtil.getBooleanProperty(rb, "write.survey.data")) writeOutData();
     }
 
 

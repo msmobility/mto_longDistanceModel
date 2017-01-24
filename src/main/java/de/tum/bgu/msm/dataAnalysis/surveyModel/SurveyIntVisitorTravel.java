@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.dataAnalysis;
+package de.tum.bgu.msm.dataAnalysis.surveyModel;
 
 import org.apache.log4j.Logger;
 
@@ -27,7 +27,6 @@ public class SurveyIntVisitorTravel {
     int origCountry;
     //zero position is equal to position 1 and means "first country visited". This is to be coherent with nightsByPlace
     int[] provinces = new int[16];
-
     int[] nightsByPlace = new int[16];
     float weight;
     int travelParty;

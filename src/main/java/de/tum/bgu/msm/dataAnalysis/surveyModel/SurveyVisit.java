@@ -79,7 +79,7 @@ public class SurveyVisit {
             float longitude = cdList.getIndexedValueAt(getUniqueCD(), "LONGITUDE");
             return new Coordinate(longitude, latitude);
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.warn(String.format("cd %d not found in record", getUniqueCD()));
+            //logger.warn(String.format("cd %d not found in record", getUniqueCD()));
             return new Coordinate(-90, 60);
         }
 
