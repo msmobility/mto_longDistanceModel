@@ -45,14 +45,36 @@ public class DataDictionary {
             //its
             File itsLoc = new File(rb.getString("its.data.dir"));
             String[] itsYears = rb.getString("its.years").split(",");
-            String itsSection = "Canadians";
+            //String[] itsSections = new String[]{"Canadians", "USVisitors", "OSVisitors", "Visitors"};
             for (String year : itsYears) {
-                String key = ("its" + "_" + year + "_" + itsSection).toLowerCase();
+                //dealing with particularities of its visitor data - almost each year is different
+                String section = "Canadians";
+                String key = ("its" + "_" + year + "_" + section).toLowerCase();
                 String fileName = rb.getString("its.data.dir") + File.separator + year + File.separator;
-                fileName += String.format("datadict_ITS_%s_%s.csv", itsSection, year);
+                fileName += String.format("datadict_ITS_%s_%s.csv", section, year);
                 File surveyFile = new File(fileName);
                 surveys.put(key, new Survey(surveyFile));
-
+                if (year.equals("2011") | year.equals("2012")){
+                    section = "USVisitors";
+                     key = ("its" + "_" + year + "_" + section).toLowerCase();
+                     fileName = rb.getString("its.data.dir") + File.separator + year + File.separator;
+                    fileName += String.format("datadict_ITS_%s_%s.csv", section, year);
+                     surveyFile = new File(fileName);
+                    surveys.put(key, new Survey(surveyFile));
+                    section = "OSVisitors";
+                     key = ("its" + "_" + year + "_" + section).toLowerCase();
+                     fileName = rb.getString("its.data.dir") + File.separator + year + File.separator;
+                    fileName += String.format("datadict_ITS_%s_%s.csv", section, year);
+                     surveyFile = new File(fileName);
+                    surveys.put(key, new Survey(surveyFile));
+                } else {
+                    section = "Visitors";
+                     key = ("its" + "_" + year + "_" + section).toLowerCase();
+                     fileName = rb.getString("its.data.dir") + File.separator + year + File.separator;
+                    fileName += String.format("datadict_ITS_%s_%s.csv", section, year);
+                     surveyFile = new File(fileName);
+                    surveys.put(key, new Survey(surveyFile));
+                }
             }
 
             logger.info("dictionary creation successful");

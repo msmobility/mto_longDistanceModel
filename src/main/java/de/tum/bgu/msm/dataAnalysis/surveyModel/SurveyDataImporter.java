@@ -68,16 +68,25 @@ public class SurveyDataImporter {
         // read all ITS data
 
         readItsConversionTables();
-        for (int year : ResourceUtil.getIntegerArray(rb, "its.years")) readITSCanData(year);
+        for (int year : ResourceUtil.getIntegerArray(rb, "its.years")) {
+            readPrintITSCanData(year);
+        if (year < 2013) {
+            readPrintITSOSVisitorData(year);
+            readPrintITSUSVisitorData(year);
+        } else {
+            readPrintITSVisitorData(year);
+        }
+        }
+
 
     }
 
 
-    private void readITSCanData(int year) {
+    private void readPrintITSCanData(int year) {
 
         // read ITS data
-        logger.info("  Reading ITS data for " + year);
-        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data") + year + "_PUMF.txt";
+        logger.info("  Reading ITS Canadian traveller data for " + year);
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data.cdn") + year + "_PUMF.txt";
         String recString;
         int recCount = 0;
         String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file");
@@ -123,7 +132,7 @@ public class SurveyDataImporter {
                         place = survey.read(recString, "PLVSC" + i);
                         if (!place.substring(0, 5).trim().isEmpty()) {
                             destCountry[i] = convertCountry(Integer.parseInt(place.substring(0, 5)));
-                            if (destCountry[i] == 11840) Integer.parseInt(place.substring(5, 7));
+                            if (destCountry[i] == 11840) destUsState[i]= Integer.parseInt(place.substring(5, 7));
                             else destUsState[i] = 99;
                             if (destCountry[i] == 11840) destUsRegion[i] = survey.readInt(recString, "USREGC" + i);
                             else destUsRegion[i] = 99;
@@ -178,12 +187,312 @@ public class SurveyDataImporter {
         } catch (Exception e) {
             logger.error("Could not read ITS data: " + e);
         }
-        logger.info("  Read " + recCount + " ITS records in " + year);
+        logger.info("  Read " + recCount + " ITS Canadian traveller records in " + year);
 
 //        for (int days=0;days<365;days++) logger.info("Days " + days + ": " + (purp[1][days]+purp[3][days]) + "," +
 //                purp[2][days] + "," + purp[4][days]);
     }
 
+
+    private void readPrintITSUSVisitorData(int year){
+        logger.info("  Reading ITS US Visitor data for " + year);
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data.vis") + "US_" + year + "_PUMF.txt";
+        String recString;
+        int recCount = 0;
+        String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file")+ "USVis";
+        PrintWriter out = Util.openFileForSequentialWriting(its_out_location + year + ".csv", false);
+        //System.out.println(fileName);
+        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,mode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
+        Survey survey = dataDictionary.getSurvey("ITS", year, "USVisitors");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+
+                int origCountry = 11840;
+                String stringState = survey.read(recString, "RSPLACEC");
+                int origState = Integer.parseInt(stringState.substring(5,7));
+                String entryPort = survey.read(recString, "CDNENC");
+
+                int date = survey.readInt(recString, "DATEN");
+                int travelParty = survey.readInt(recString, "TPSZE");
+                int purpose = convertPurpose(survey.readInt(recString, "RSN"));
+
+                int entryRoute = survey.readInt(recString, "RTEN");
+                float weight = survey.readFloat(recString, "PERSFAC");
+
+                int[] destPR = new int [16];
+                int[] destCD = new int [16];
+                int[] destCMA = new int [16];
+                int[] destTR = new int [16];
+                int[] nights = new int [16];
+
+                nights[0] = survey.readInt(recString, "TPROVNGT");
+                destPR[0] = (int) Math.floor (survey.readInt(recString, "VSPRCD1")/100);
+                destCD [0] = survey.readInt(recString, "VSPRCD1") - destPR[0]*100 ;
+                destCMA[0] = survey.readInt(recString, "VSCMA1");
+                destTR[0] = survey.readInt(recString, "VSTRC1");
+
+
+                out.println( recCount + "," +
+                        year +"," +
+                        date +"," +
+                        origCountry +"," +
+                        origState +"," +
+                        "-999" +"," +
+                        entryRoute +"," +
+                        travelParty +"," +
+                        "-999" +"," +
+                        entryPort + "," +
+                        purpose + "," +
+                        destPR[0] + "," +
+                        destCD[0] + "," +
+                        destCMA[0] + "," +
+                        destTR[0] + "," +
+                        nights [0] +"," +
+                        weight + "," +
+                        "US" + "," +
+                        "0");
+
+
+                for (int i = 1; i < 16; i++) {
+                    String place = survey.read(recString, "VSPRCD" + i);
+                    if (!place.trim().isEmpty()) {
+                        nights[i] = survey.readInt(recString, "NTSVS" + i);
+                        destPR[i] = (int) Math.floor (survey.readInt(recString, "VSPRCD" + i)/100); ;
+                        destCD [i] = survey.readInt(recString, "VSPRCD" + i) - destPR[i]*100 ; ;
+                        destCMA[i] = survey.readInt(recString, "VSCMA" + i);
+                        destTR[i] = survey.readInt(recString, "VSTRC" + i);
+                        out.println(recCount + "," +
+                                year + "," +
+                                date + "," +
+                                origCountry + "," +
+                                origState + "," +
+                                "-999" + "," +
+                                entryRoute + "," +
+                                travelParty + "," +
+                                "-999" + "," +
+                                entryPort + "," +
+                                purpose + "," +
+                                destPR[i] + "," +
+                                destCD[i] + "," +
+                                destCMA[i] + "," +
+                                destTR[i] + "," +
+                                nights[i] + "," +
+                                weight + "," +
+                                "US" + "," + i);
+                    }
+                }
+            }
+                out.close();
+            } catch (Exception e) {
+                logger.error("Could not read ITS data: " + e);
+            }
+            logger.info("  Read " + recCount + " ITS US Visitor records in " + year);
+
+    }
+    private void readPrintITSOSVisitorData (int year){
+        logger.info("  Reading ITS OS Visitor data for " + year);
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data.vis") + "OS_" + year + "_PUMF.txt";
+        String recString;
+        int recCount = 0;
+        String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file")+ "OSVis";
+        PrintWriter out = Util.openFileForSequentialWriting(its_out_location + year + ".csv", false);
+        //System.out.println(fileName);
+        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,mode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
+        Survey survey = dataDictionary.getSurvey("ITS", year, "OSVisitors");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+
+                int origCountry = convertCountry(survey.readInt(recString, "RSPLACEC"));
+                int origState = -999;
+                String entryPort = survey.read(recString, "CDNENC");
+
+                int date = survey.readInt(recString, "DATEN");
+                int travelParty = survey.readInt(recString, "TPSZE");
+                int purpose = convertPurpose(survey.readInt(recString, "RSN"));
+
+                int entryRoute = survey.readInt(recString, "RTEN");
+                float weight = survey.readFloat(recString, "PERSFAC");
+
+                int[] destPR = new int [16];
+                int[] destCD = new int [16];
+                int[] destCMA = new int [16];
+                int[] destTR = new int [16];
+                int[] nights = new int [16];
+
+                nights[0] = survey.readInt(recString, "TPROVNGT");
+                destPR[0] = (int) Math.floor (survey.readInt(recString, "VSPRCD1")/100);
+                destCD [0] = survey.readInt(recString, "VSPRCD1") - destPR[0]*100 ;
+                destCMA[0] = survey.readInt(recString, "VSCMA1");
+                destTR[0] = survey.readInt(recString, "VSTRC1");
+
+
+                out.println( recCount + "," +
+                        year +"," +
+                        date +"," +
+                        origCountry +"," +
+                        origState +"," +
+                        "-999" +"," +
+                        entryRoute +"," +
+                        travelParty +"," +
+                        "-999" +"," +
+                        entryPort + "," +
+                        purpose + "," +
+                        destPR[0] + "," +
+                        destCD[0] + "," +
+                        destCMA[0] + "," +
+                        destTR[0] + "," +
+                        nights [0] +"," +
+                        weight + "," +
+                        "OS" + "," + "0");
+
+
+                for (int i = 1; i < 16; i++) {
+                    String place = survey.read(recString, "VSPRCD" + i);
+                    if (!place.trim().isEmpty()) {
+                        nights[i] = survey.readInt(recString, "NTSVS" + i);
+                        destPR[i] = (int) Math.floor (survey.readInt(recString, "VSPRCD" + i)/100); ;
+                        destCD [i] = survey.readInt(recString, "VSPRCD" + i) - destPR[i]*100 ; ;
+                        destCMA[i] = survey.readInt(recString, "VSCMA" + i);
+                        destTR[i] = survey.readInt(recString, "VSTRC" + i);
+                        out.println(recCount + "," +
+                                year + "," +
+                                date + "," +
+                                origCountry + "," +
+                                origState + "," +
+                                "-999" + "," +
+                                entryRoute + "," +
+                                travelParty + "," +
+                                "-999" + "," +
+                                entryPort + "," +
+                                purpose + "," +
+                                destPR[i] + "," +
+                                destCD[i] + "," +
+                                destCMA[i] + "," +
+                                destTR[i] + "," +
+                                nights[i] + "," +
+                                weight + "," +
+                                "OS" + "," + i);
+                    }
+                }
+            }
+
+
+
+            out.close();
+        } catch (Exception e) {
+            logger.error("Could not read ITS data: " + e);
+        }
+        logger.info("  Read " + recCount + " ITS OS Visitor records in " + year);
+
+
+    }
+    private void readPrintITSVisitorData (int year){
+        logger.info("  Reading ITS Visitor data for " + year);
+        String fileName = workDirectory + rb.getString("its.data.dir") + "/" + year + "/" + ResourceUtil.getProperty(rb, "its.data.vis") + year + "_PUMF.txt";
+        String recString;
+        int recCount = 0;
+        String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file")+ "Vis";
+        PrintWriter out = Util.openFileForSequentialWriting(its_out_location + year + ".csv", false);
+        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,mode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
+        Survey survey = dataDictionary.getSurvey("ITS", year, "Visitors");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(fileName));
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                int id = survey.readInt(recString, "VPUMFID");
+                int origCountry = -999;
+                int origState = -999;
+                int origSGR = survey.readInt(recString, "VSGRCODE");
+                String entryPort = "-999";
+                int mode = survey.readInt(recString, "VMODENTP");
+
+                int date = survey.readInt(recString, "VQUARTER");
+                int travelParty = survey.readInt(recString, "VTPSZEP");
+                //needs change in the data dictionary
+                int purpose = survey.readInt(recString, "VRSNP");
+
+                int entryRoute = survey.readInt(recString, "VRTEN");
+                float weight = survey.readFloat(recString, "VWEIGHT");
+                //This needs a change in the data dictionary because in 2014 its name is VWEIGHTP
+                //and additional correction to read until pos. 607 instead of 608 - error in specifications?
+
+                int[] destPR = new int [11];
+                int[] destCD = new int [11];
+                int[] destCMA = new int [11];
+                int[] destTR = new int [11];
+                int[] nights = new int [11];
+
+                nights[0] = survey.readInt(recString, "VNIGHTS");
+                //This needs a change in the data dictionary because in 2014 its name is VNIGHTSC
+                destPR[0] = survey.readInt(recString, "VSPRCD01");
+                destCD [0] = -99;
+                destCMA[0] = survey.readInt(recString, "VSCMA01");
+                destTR[0] = survey.readInt(recString, "VSTRC01");
+
+
+                out.println( recCount + "," +
+                        year +"," +
+                        date +"," +
+                        origCountry +"," +
+                        origState +"," +
+                        origSGR +"," +
+                        entryRoute +"," +
+                        travelParty +"," +
+                        mode +"," +
+                        entryPort + "," +
+                        purpose + "," +
+                        destPR[0] + "," +
+                        destCD[0] + "," +
+                        destCMA[0] + "," +
+                        destTR[0] + "," +
+                        nights [0] +"," +
+                        weight + "," +
+                        "All"+ "," + "0");
+
+
+                for (int i = 1; i < 11; i++) {
+                    String index = String.valueOf(i);
+                    if (i<10) index = "0" + i;
+                    int place = survey.readInt(recString, "VSPRCD" + index);
+                    if (place!=96) {
+                        nights[i] = survey.readInt(recString, "VNTSVS" + index);
+                        destPR[i] = survey.readInt(recString, "VSPRCD" + index);
+                        destCD [i] = -99 ;
+                        destCMA[i] = survey.readInt(recString, "VSCMA" + index);
+                        destTR[i] = survey.readInt(recString, "VSTRC" + index);
+                        out.println(recCount + "," +
+                                year + "," +
+                                date + "," +
+                                origCountry + "," +
+                                origState + "," +
+                                origSGR + "," +
+                                entryRoute + "," +
+                                travelParty + "," +
+                                mode + "," +
+                                entryPort + "," +
+                                purpose + "," +
+                                destPR[i] + "," +
+                                destCD[i] + "," +
+                                destCMA[i] + "," +
+                                destTR[i] + "," +
+                                nights[i] + "," +
+                                weight + "," +
+                                "All"+ "," + i);
+                    }
+                }
+            }
+
+            out.close();
+        } catch (Exception e) {
+            logger.error("Could not read ITS data: " + e);
+        }
+        logger.info("  Read " + recCount + " ITS Visitor records in " + year);
+
+    }
 
     private void readTSRCdata(int year) {
         // read TSRC data
