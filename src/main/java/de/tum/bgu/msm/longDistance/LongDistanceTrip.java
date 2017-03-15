@@ -39,6 +39,7 @@ public class LongDistanceTrip {
     private int nonHhTravelPartySize;
     private Zone origZone;
     private int destinationCombinedZoneId = -1;
+    private int travelMode=-1;
 
 
     //ArrayList<Long> destinations;
@@ -130,6 +131,12 @@ public class LongDistanceTrip {
         return traveller;
     }
 
+    public void setMode(int travelMode) {
+        this.travelMode = travelMode;
+    }
+
+
+
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"
@@ -191,8 +198,8 @@ public class LongDistanceTrip {
         return str;
     }
 
-    public String getMode() {
-        return "";
+    public int getMode() {
+        return travelMode;
     }
 
     public boolean isSummer() {

@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -33,6 +34,7 @@ public class MtoLongDistance {
 
     private TripGenerationModel tripGenModel;
     private DomesticDestinationChoice dcModel;
+    private DomesticModeChoice mcModel;
     private SyntheticPopulation syntheticPopulationReader;
 
     public MtoLongDistance(ResourceBundle rb) {
@@ -43,6 +45,7 @@ public class MtoLongDistance {
         mtoLongDistData.populateZones(syntheticPopulationReader);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
         dcModel = new DomesticDestinationChoice(rb);
+        mcModel = new DomesticModeChoice(rb);
 
     }
 
@@ -68,6 +71,14 @@ public class MtoLongDistance {
 
         }
 
+
+        if(ResourceUtil.getBooleanProperty(rb,"run.mode.choice",false)) {
+
+
+        }
+
+
+
         if(ResourceUtil.getBooleanProperty(rb,"write.trips",false)) {
             syntheticPopulationReader.writeSyntheticPopulation();
             //writePopByZone();
@@ -85,6 +96,18 @@ public class MtoLongDistance {
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);
                 t.setDestination(destZoneId);
+            }
+
+        });
+    }
+
+
+    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
+        logger.info("Running mode Choice Model for " + trips.size() + " trips");
+        trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
+            if (!t.isLongDistanceInternational()) {
+                int mode = mcModel.selectMode(t);
+                t.setMode(mode);
             }
 
         });
