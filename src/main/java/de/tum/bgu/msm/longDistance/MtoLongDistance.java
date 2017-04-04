@@ -44,8 +44,8 @@ public class MtoLongDistance {
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         mtoLongDistData.populateZones(syntheticPopulationReader);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
-        dcModel = new DomesticDestinationChoice(rb);
-        mcModel = new DomesticModeChoice(rb);
+        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
+        mcModel = new DomesticModeChoice(rb, mtoLongDistData);
 
     }
 
@@ -73,7 +73,7 @@ public class MtoLongDistance {
 
 
         if(ResourceUtil.getBooleanProperty(rb,"run.mode.choice",false)) {
-
+            runModeChoice(allTrips);
 
         }
 
@@ -94,7 +94,7 @@ public class MtoLongDistance {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational()) {
-                int destZoneId = dcModel.selectDestination(t);
+                int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setDestination(destZoneId);
             }
 
@@ -103,9 +103,9 @@ public class MtoLongDistance {
 
 
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Running mode Choice Model for " + trips.size() + " trips");
+        logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
-            if (!t.isLongDistanceInternational()) {
+            if (!t.isLongDistanceInternational() & t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
                 int mode = mcModel.selectMode(t);
                 t.setMode(mode);
             }

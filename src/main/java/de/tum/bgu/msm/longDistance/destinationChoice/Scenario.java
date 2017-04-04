@@ -36,7 +36,7 @@ public class Scenario {
 
         this.rb = rb;
         mtoLongDistData = new MtoLongDistData(rb);
-        dcModel = new DomesticDestinationChoice(rb);
+        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
 
     }
 

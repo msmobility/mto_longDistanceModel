@@ -113,7 +113,7 @@ public class InternationalTripGeneration {
         ArrayList<Person> kidsHhTravelParty = DomesticTripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
-        hhTravelParty.addAll(adultsHhTravelParty);
+        hhTravelParty.addAll(kidsHhTravelParty);
         int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
 
         return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), true,

@@ -1,6 +1,18 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
+import com.pb.common.datafile.TableDataSet;
+import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
+import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.syntheticPopulation.Person;
+import omx.OmxFile;
+import omx.OmxLookup;
+import omx.OmxMatrix;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.log4j.Logger;
+import java.util.*;
 
 import java.util.ResourceBundle;
 
@@ -8,41 +20,199 @@ import java.util.ResourceBundle;
  * Created by carlloga on 15.03.2017.
  */
 public class DomesticModeChoice {
+    private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
 
     ResourceBundle rb;
-    //distance and price matrices
-    //coefficients table
 
-    public DomesticModeChoice(ResourceBundle rb) {
+    private int[] modes = {0, 1, 2, 3};
+    private String[] modeNames = {"auto", "air", "rail", "bus"};
+    // 0 is auto, 1 is plane, 2 is train, 3 is rail
+
+    //the arrays of matrices are stored in the order of modes
+    private Matrix[] travelTimeMatrix = new Matrix[4];
+    private Matrix[] priceMatrix = new Matrix[4];
+    private Matrix[] transferMatrix = new Matrix[4];
+    private Matrix[] frequencyMatrix = new Matrix[4];
+
+    private TableDataSet modeChoiceCoefficients;
+    private TableDataSet combinedZones;
+    String[] tripPurposeArray;
+    String[] tripStateArray;
+
+
+    public DomesticModeChoice(ResourceBundle rb, MtoLongDistData ldData) {
         this.rb = rb;
 
+
+        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
+        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
+
+        modeChoiceCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
+        modeChoiceCoefficients.buildStringIndex(1);
+
+        //taken from destination choice
+        combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        combinedZones.buildIndex(1);
+
+        readSkimByMode(rb);
     }
 
     //constructor with read coefficients and matrices
 
+
+    public void readSkimByMode(ResourceBundle rb) {
+        // read skim file
+        logger.info("  Reading skims files");
+
+
+        String travelTimeFileName = rb.getString("travel.time.combined" );
+        String priceFileName = rb.getString("price.combined" );
+        String transfersFileName = rb.getString("transfer.combined" );
+        String freqFileName = rb.getString("freq.combined" );
+
+        for (int m : modes) {
+
+            String matrixName = modeNames[m];
+
+            OmxFile skim = new OmxFile(travelTimeFileName);
+            skim.openReadOnly();
+            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
+            travelTimeMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            OmxLookup omxLookUp = skim.getLookup(rb.getString("skim.mode.choice.lookup"));
+            int[] externalNumbers = (int[]) omxLookUp.getLookup();
+            travelTimeMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(priceFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            priceMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            priceMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(transfersFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            transferMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            transferMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(freqFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            frequencyMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            frequencyMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+        }
+    }
+
     public int selectMode(LongDistanceTrip trip) {
 
-        int mode = 0;
+        double[] expUtilities = Arrays.stream(modes)
+                //calculate exp(Ui) for each destination
+                .mapToDouble(m -> Math.exp(calculateUtility(trip, m))).toArray();
 
-        //for each mode/trip calculate utility
+        //todo in principle it is sufficient with the exp utilities, as the values do not need to sum 1
+        double probability_denominator = Arrays.stream(expUtilities).sum();
+        //todo if there is no access by any mode for the selected OD pair, just go by car
+        if (probability_denominator == 0){
+            expUtilities[0] = 1;
+        }
 
-        //transfor utility to porbability
+        //calculate the probability for each trip, based on the destination utilities
+        //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
-        //sample and pick up mode
-
-        return mode;
-
+        //choose one destination, weighted at random by the probabilities
+        return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
     }
 
-    public double calculateUtility(LongDistanceTrip trip, int destination) {
+    public double calculateUtility(LongDistanceTrip trip, int m) {
 
-        double utility = Double.NEGATIVE_INFINITY;
+
+        double utility;
+        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String column = modeNames[m] + "." + tripPurpose;
+        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+
+        //trip-related variables
+        int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
+        //todo verify which travel party has been included in the analysis
+        int overnight = 1;
+        if (tripState.equals("daytrip")){
+            overnight = 0;
+        }
+
+        int origin = trip.getOrigZone().getCombinedZoneId();
+        int destination = trip.getDestZoneId();
+
+        //zone-related variables
+        //todo verify the exact definitions of ruralRural and intraMetro
+        double interMetro =  combinedZones.getIndexedValueAt(origin,"alt_is_metro")
+                * combinedZones.getIndexedValueAt(destination,"alt_is_metro");
+        double ruralRural = 0;
+        if (combinedZones.getIndexedValueAt(origin,"alt_is_metro") ==1 | combinedZones.getIndexedValueAt(destination,"alt_is_metro") ==1){
+            ruralRural = 1;
+        }
+
+        //todo need to fill these values for intrazonal trips!
+
+        double time = travelTimeMatrix[m].getValueAt(origin, destination);
+        double price = priceMatrix[m].getValueAt(origin, destination);
+        double frequency = frequencyMatrix[m].getValueAt(origin, destination);
+
+        //todo change this!!!!!
+        if (origin==destination){
+            if (m==0) {
+                time = 60;
+                price = 20;
+            }
+        }
+
+        //person-related variables
+        Person p = trip.getTraveller();
+        //todo check income thresholds > or >=?
+        double incomeLow = p.getIncome() <= 50000 ? 1 : 0 ;
+        double incomeHigh = p.getIncome() >= 100000 ? 1 : 0 ;
+
+        double young = p.getAge() < 25 ? 1 : 0 ;
+        double male = p.getGender()=='M' ? 1 : 0 ;
+
+        double educationUniv = p.getEducation()>5? 1 : 0 ;
+
+        //getCoefficients
+        double b_intercept = modeChoiceCoefficients.getStringIndexedValueAt("intercept", column);
+        double b_frequency= modeChoiceCoefficients.getStringIndexedValueAt("frequency", column);
+        double b_price= modeChoiceCoefficients.getStringIndexedValueAt("price", column);
+        double b_time= modeChoiceCoefficients.getStringIndexedValueAt("time", column);
+        double b_incomeLow= modeChoiceCoefficients.getStringIndexedValueAt("income_low", column);
+        double b_incomeHigh= modeChoiceCoefficients.getStringIndexedValueAt("income_high", column);
+        double b_young= modeChoiceCoefficients.getStringIndexedValueAt("young", column);
+        double b_interMetro= modeChoiceCoefficients.getStringIndexedValueAt("inter_metro", column);
+        double b_ruralRural= modeChoiceCoefficients.getStringIndexedValueAt("rural_rural", column);
+        double b_male= modeChoiceCoefficients.getStringIndexedValueAt("male", column);
+        double b_educationUniv= modeChoiceCoefficients.getStringIndexedValueAt("education_univ", column);
+        double b_overnight= modeChoiceCoefficients.getStringIndexedValueAt("overnight", column);
+        double b_party= modeChoiceCoefficients.getStringIndexedValueAt("party", column);
+
+        utility = b_intercept + b_frequency*frequency +
+                b_price * price +
+                b_time * time +
+                b_incomeLow * incomeLow +
+                b_incomeHigh * incomeHigh +
+                b_young * young +
+                b_interMetro * interMetro +
+                b_ruralRural* ruralRural +
+                b_male * male +
+                b_educationUniv * educationUniv +
+                b_overnight * overnight +
+                b_party * party;
+
+        if (time < 0 ) utility = Double.NEGATIVE_INFINITY;
 
 
         return utility;
 
     }
+
+
 
 
 }

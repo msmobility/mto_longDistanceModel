@@ -29,12 +29,14 @@ public class DomesticDestinationChoice {
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
     private int[] alternatives;
+    String[] tripPurposeArray;
 
-    public DomesticDestinationChoice(ResourceBundle rb) {
+    public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData) {
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
         coefficients.buildStringIndex(1);
+        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
 
         //load alternatives - need to calculate distance, lang_barrier, and metro-regional for each OD pair
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
@@ -65,37 +67,36 @@ public class DomesticDestinationChoice {
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {
 
-        double[] utilities = Arrays.stream(alternatives)
+        //        switch (trip.getLongDistanceTripPurpose()) {
+//            case 2:
+//                tripPurpose = "leisure";
+//                break;
+//            case 0:
+//                tripPurpose = "visit";
+//                break;
+//            case 1:
+//                tripPurpose = "business";
+//                break;
+//        }
+        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+
+        double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
-                .mapToDouble(a -> Math.exp(calculateUtility(trip, a))).toArray();
+                .mapToDouble(a -> Math.exp(calculateUtility(trip, tripPurpose, a))).toArray();
         //calculate the probability for each trip, based on the destination utilities
-        double probability_denominator = Arrays.stream(utilities).sum();
+        double probability_denominator = Arrays.stream(expUtilities).sum();
 
         //calculate the probability for each trip, based on the destination utilities
-        double[] probabilities = Arrays.stream(utilities).map(u -> u/probability_denominator).toArray();
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        int chosen = new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
-        return chosen;
+        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
 
     }
 
-    private double calculateUtility(LongDistanceTrip trip, int destination) {
-        String tripPurpose = "";
+    private double calculateUtility(LongDistanceTrip trip, String tripPurpose, int destination) {
+        // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
-        switch (trip.getLongDistanceTripPurpose()) {
-            case 2:
-                tripPurpose = "leisure";
-                break;
-            case 0:
-                tripPurpose = "visit";
-                break;
-            case 1:
-                tripPurpose = "business";
-                break;
-        }
-
-        //TODO: check ordering or number -> string value (ie purpose 1 = "visit""?)
         int origin = trip.getOrigZone().getCombinedZoneId();
         float distance = autoTravelTime.getValueAt(origin, destination);
 

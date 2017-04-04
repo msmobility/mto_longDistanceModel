@@ -139,9 +139,8 @@ public class LongDistanceTrip {
 
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
-                "tripDestCombinedZone"
-        //      +  ",tripMode," +
-        //        "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
+                "tripDestCombinedZone"  +  ",tripMode,"
+        //        +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
     }
@@ -161,8 +160,8 @@ public class LongDistanceTrip {
                     + "," + tr.getLongDistanceOrigZone().getCombinedZoneId()
                     + "," + tr.getLongDistanceOrigZone().getZoneType()
                     + "," + tr.getDestZoneId()
-            /*        + "," + tr.getMode()
-                    + "," + tr.getLongDistanceNights()
+                    + "," + tr.getMode()
+             /*         + "," + tr.getLongDistanceNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
@@ -185,13 +184,12 @@ public class LongDistanceTrip {
                     + "," + tr.getLongDistanceOrigZone().getCombinedZoneId()
                     + "," + tr.getLongDistanceOrigZone().getZoneType()
                     + "," + tr.getDestZoneId()
-            /*        + "," + tr.getMode()
-                    + "," + tr.getLongDistanceNights()
+                    + "," + tr.getMode()
+/*                    + "," + tr.getLongDistanceNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
-                    + ",-1,,-1,-1,-1,-1,-1"
-            */
+                    + ",-1,,-1,-1,-1,-1,-1"*/
             );
 
         }

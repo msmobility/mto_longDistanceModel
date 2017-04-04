@@ -265,7 +265,8 @@ public class DomesticTripGeneration {
     }
 
     public static int addNonHhTravelPartySize(String tripPurpose, TableDataSet travelPartyProbabilities) {
-
+        // methods selects party size for travel groups that are composed of non-household members
+        // note that additional travelers on this trip are not specified in the synthetic population (simplified approach)
         double randomChoice3 = Math.random();
         int k = 0;
         String column = tripPurpose + ".nonHh";
@@ -280,7 +281,7 @@ public class DomesticTripGeneration {
         ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
-        hhTravelParty.addAll(adultsHhTravelParty);
+        hhTravelParty.addAll(kidsHhTravelParty);
         int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
         int tripDuration;
         if (pers.isDaytrip) tripDuration = 0;

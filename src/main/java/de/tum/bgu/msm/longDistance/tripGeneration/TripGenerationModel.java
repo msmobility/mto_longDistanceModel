@@ -39,16 +39,14 @@ public class TripGenerationModel {
         //initialize parameters for accessibility
         List<String> fromZones;
         List<String> toZones;
-        float alphaAuto;
-        float betaAuto;
         //calculate accessibility (not used in the model, only for external analysis)
         if (ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false)) {
             //read skims
             //md.readSkim("auto");
             mtoLongDistData.readSkim("transit");
             //input parameters for accessibility calculations from mto properties
-            alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
-            betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
+            float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
+            float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
             fromZones = ResourceUtil.getListWithUserDefinedSeparator(rb, "orig.zone.type", ",");
             toZones = ResourceUtil.getListWithUserDefinedSeparator(rb, "dest.zone.type", ",");
             mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alphaAuto, betaAuto);
@@ -98,12 +96,12 @@ public class TripGenerationModel {
         trips_extCanInt = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
 
         //analyze and write out generated trips
-        //first, join the different list of trips
+        //first, join the different lists of trips
         ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
-        allTrips.addAll(trips_international);
-        allTrips.addAll(trips_domestic);
-        allTrips.addAll(trips_visitors);
-        allTrips.addAll(trips_extCanInt);
+        allTrips.addAll(trips_international); // Ontarians who to international destinations
+        allTrips.addAll(trips_domestic);      // Ontarians who travel within Canada
+        allTrips.addAll(trips_visitors);      // Visitors from outside of Ontario (Rest of Canada or internationals) who visit Canada
+        allTrips.addAll(trips_extCanInt);     // Canadians who do not live in Ontario traveling to international destinations (who may travel through Ontario)
 
         return allTrips;
 
