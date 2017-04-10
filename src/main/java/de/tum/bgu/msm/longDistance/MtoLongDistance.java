@@ -16,13 +16,11 @@ import java.io.PrintWriter;
 import java.util.*;
 
 /**
- *
  * Ontario Provincial Model
  * Class to run long-distance travel demand model
  * Author: Rolf Moeckel, Technical University of Munich (TUM), rolf.moeckel@tum.de
  * Date: 18 April 2016
  * Version 1
- *
  */
 
 public class MtoLongDistance {
@@ -49,40 +47,64 @@ public class MtoLongDistance {
 
     }
 
-    public void runLongDistanceModel () {
+    public void runLongDistanceModel() {
 
-        if(ResourceUtil.getBooleanProperty(rb,"run.trip.gen",false)) {
+        if (ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false)) {
             allTrips = tripGenModel.runTripGeneration(syntheticPopulationReader);
             //currently only internal zone list
 
         } else {
-            //load saved trips
-            logger.info("Loading generated trips");
-            TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.out.file"));
+            if (ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false)) {
 
-            for (int i=0; i<tripsDomesticTable.getRowCount(); i++) {
-                LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i+1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader);
-                allTrips.add(ldt);
+                //load saved trips without destination
+                logger.info("Loading generated trips");
+                TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.in.file"));
+
+                for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
+                    LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, false);
+                    allTrips.add(ldt);
+
+                }
+            } else {
+                //load saved trip with destinations
+                logger.info("Loading generated trips");
+                TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.in.file"));
+
+                for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
+                    LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, true);
+                    allTrips.add(ldt);
+                }
 
             }
         }
-        if(ResourceUtil.getBooleanProperty(rb,"run.dest.choice",false)) {
+
+        if (ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false)) {
             runDestinationChoice(allTrips);
 
         }
 
+        /*//todo filter trips from selected OD pairs for mode choice
+        ArrayList<LongDistanceTrip> selectedTrips = new ArrayList<>();
+        for (LongDistanceTrip tr : allTrips){
+            if (tr.getDestZoneId()==103 & tr.getOrigZone().getCombinedZoneId()> 18 & tr.getOrigZone().getCombinedZoneId()< 28) {
 
-        if(ResourceUtil.getBooleanProperty(rb,"run.mode.choice",false)) {
+                    selectedTrips.add(tr);
+
+            }
+        }*/
+
+
+        if (ResourceUtil.getBooleanProperty(rb, "run.mode.choice", false)) {
+//
             runModeChoice(allTrips);
-
         }
 
 
-
-        if(ResourceUtil.getBooleanProperty(rb,"write.trips",false)) {
+        if (ResourceUtil.getBooleanProperty(rb, "write.trips", false)) {
             syntheticPopulationReader.writeSyntheticPopulation();
             //writePopByZone();
             writeTrips(allTrips);
+
         }
 
 
@@ -92,7 +114,7 @@ public class MtoLongDistance {
     //if run trip gen is false, then load trips from file
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
+        trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setDestination(destZoneId);
@@ -104,7 +126,7 @@ public class MtoLongDistance {
 
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
+        trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational() & t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
                 int mode = mcModel.selectMode(t);
                 t.setMode(mode);
@@ -120,18 +142,24 @@ public class MtoLongDistance {
         String OutputTripsFileName = rb.getString("trip.out.file");
         PrintWriter pw = Util.openFileForSequentialWriting(OutputTripsFileName, false);
 
+
         pw.println(LongDistanceTrip.getHeader());
+
+
         for (LongDistanceTrip tr : trips) {
+            //if (tr.getOrigZone().getZoneType() == ZoneType.ONTARIO){
             pw.println(tr.toString());
         }
+
+
         pw.close();
     }
 
     public void writePopByZone() {
         PrintWriter pw = Util.openFileForSequentialWriting(rb.getString("zone.out.file"), false);
         pw.println("zone,hh,pp");
-        for (Zone zone: mtoLongDistData.getInternalZoneList()){
-            pw.println(zone.getId() +","+ zone.getHouseholds()+"," + zone.getPopulation());
+        for (Zone zone : mtoLongDistData.getInternalZoneList()) {
+            pw.println(zone.getId() + "," + zone.getHouseholds() + "," + zone.getPopulation());
         }
         pw.close();
     }

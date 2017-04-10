@@ -109,7 +109,7 @@ public class DomesticModeChoice {
                 //calculate exp(Ui) for each destination
                 .mapToDouble(m -> Math.exp(calculateUtility(trip, m))).toArray();
 
-        //todo in principle it is sufficient with the exp utilities, as the values do not need to sum 1
+
         double probability_denominator = Arrays.stream(expUtilities).sum();
         //todo if there is no access by any mode for the selected OD pair, just go by car
         if (probability_denominator == 0){
@@ -134,7 +134,7 @@ public class DomesticModeChoice {
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
-        //todo verify which travel party has been included in the analysis
+
         int overnight = 1;
         if (tripState.equals("daytrip")){
             overnight = 0;
@@ -144,21 +144,34 @@ public class DomesticModeChoice {
         int destination = trip.getDestZoneId();
 
         //zone-related variables
-        //todo verify the exact definitions of ruralRural and intraMetro
+
         double interMetro =  combinedZones.getIndexedValueAt(origin,"alt_is_metro")
                 * combinedZones.getIndexedValueAt(destination,"alt_is_metro");
         double ruralRural = 0;
-        if (combinedZones.getIndexedValueAt(origin,"alt_is_metro") ==1 | combinedZones.getIndexedValueAt(destination,"alt_is_metro") ==1){
+        if (combinedZones.getIndexedValueAt(origin,"alt_is_metro") ==0 | combinedZones.getIndexedValueAt(destination,"alt_is_metro") ==0){
             ruralRural = 1;
         }
 
-        //todo need to fill these values for intrazonal trips!
 
         double time = travelTimeMatrix[m].getValueAt(origin, destination);
         double price = priceMatrix[m].getValueAt(origin, destination);
         double frequency = frequencyMatrix[m].getValueAt(origin, destination);
 
-        //todo change this!!!!!
+        double vot= modeChoiceCoefficients.getStringIndexedValueAt("vot", column);
+
+//        //todo scenario testing - remove for final version
+/*        if (origin >18 & origin < 28 & destination == 103 & m == 1){
+            price = price * 2;
+        }*/
+
+
+        double impedance = 0;
+        if (vot != 0){
+            impedance = price/(vot/60) + time;
+        }
+
+
+        //todo solve intrazonal times
         if (origin==destination){
             if (m==0) {
                 time = 60;
@@ -191,6 +204,7 @@ public class DomesticModeChoice {
         double b_educationUniv= modeChoiceCoefficients.getStringIndexedValueAt("education_univ", column);
         double b_overnight= modeChoiceCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party= modeChoiceCoefficients.getStringIndexedValueAt("party", column);
+        double b_impedance= modeChoiceCoefficients.getStringIndexedValueAt("impedance", column);
 
         utility = b_intercept + b_frequency*frequency +
                 b_price * price +
@@ -203,7 +217,9 @@ public class DomesticModeChoice {
                 b_male * male +
                 b_educationUniv * educationUniv +
                 b_overnight * overnight +
-                b_party * party;
+                b_party * party +
+                b_impedance * impedance;
+
 
         if (time < 0 ) utility = Double.NEGATIVE_INFINITY;
 

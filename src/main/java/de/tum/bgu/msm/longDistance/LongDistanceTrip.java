@@ -62,7 +62,7 @@ public class LongDistanceTrip {
         tripCounter++;
     }
 
-    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, SyntheticPopulation syntheticPopulation) {
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, SyntheticPopulation syntheticPopulation, boolean assignDestination) {
 
         this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
         int personId = (int) tripsDomesticTable.getValueAt(row, "personId");
@@ -74,11 +74,14 @@ public class LongDistanceTrip {
         int origZoneId = (int) tripsDomesticTable.getValueAt(row, "tripOriginZone");
         origZone = zoneLookup.get(origZoneId);
 
-        //escaped for the moment for destination choice TODO: remove
+        if (assignDestination) this.destinationCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
+
+
+        //escaped for the moment for destination choice
         //this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
-        //this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
-        //this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
-        //this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
+//        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
+//        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
+//        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
     }
 
     public int getLongDistanceTripId() {
@@ -118,6 +121,7 @@ public class LongDistanceTrip {
         return nonHhTravelPartySize;
     }
 
+    //todo remove duplicate
     public Zone getOrigZone() { return origZone; }
 
     public int getDestZoneId() { return destinationCombinedZoneId; }
@@ -161,7 +165,7 @@ public class LongDistanceTrip {
                     + "," + tr.getLongDistanceOrigZone().getZoneType()
                     + "," + tr.getDestZoneId()
                     + "," + tr.getMode()
-             /*         + "," + tr.getLongDistanceNights()
+                 /*     + "," + tr.getLongDistanceNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
@@ -171,8 +175,7 @@ public class LongDistanceTrip {
                     + "," + traveller.getWorkStatus()
                     + "," + traveller.getIncome()
                     + "," + traveller.getAdultsHh()
-                    + "," + traveller.getKidsHh()
-            */
+                    + "," + traveller.getKidsHh()*/
             );
         } else {
             str =  (tr.getLongDistanceTripId()
