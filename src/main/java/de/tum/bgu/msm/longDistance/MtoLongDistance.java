@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.USInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
@@ -36,7 +36,7 @@ public class MtoLongDistance {
 
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
-    private IntInboundDestinationChoice dcIInboundModel;
+    private USInboundDestinationChoice dcUSInBoundModel;
 
     private DomesticModeChoice mcDomesticModel;
 
@@ -51,11 +51,10 @@ public class MtoLongDistance {
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
 
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
-        dcOutboundModel = new IntOutboundDestinationChoice();
-        dcOutboundModel = new IntOutboundDestinationChoice();
+        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData);
+        dcUSInBoundModel = new USInboundDestinationChoice(rb, mtoLongDistData);
 
         mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
-
 
     }
 
@@ -95,7 +94,7 @@ public class MtoLongDistance {
 
         }
 
-//        //todo filter trips from selected OD pairs for mode choice
+//        //todo filter trips from selected OD pairs for mode choice scenario
 //        ArrayList<LongDistanceTrip> selectedTrips = new ArrayList<>();
 //        for (LongDistanceTrip tr : allTrips){
 //            if (tr.getDestZoneId()==103 & tr.getOrigZone().getCombinedZoneId()> 18 & tr.getOrigZone().getCombinedZoneId()< 28) {
@@ -130,9 +129,12 @@ public class MtoLongDistance {
                 t.setDestination(destZoneId);
             } else {
                 if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO | t.getOrigZone().getZoneType() == ZoneType.EXTCANADA){
-                    //trips with an origin in Canada and destination international OUTBOUND
-                } else {
-                    //trips with an international origin and destination whithin CANADA
+                    int destZoneId = dcOutboundModel.selectDestination(t);
+                    t.setDestination(destZoneId);
+                } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS){
+                    // visitor trips with an international origin and destination within CANADA
+                    int destZoneId = dcUSInBoundModel.selectDestination(t);
+                    t.setDestination(destZoneId);
                 }
 
             }

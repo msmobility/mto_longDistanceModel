@@ -17,7 +17,7 @@ import java.util.ResourceBundle;
 /**
  * Created by carlloga on 4/12/2017.
  */
-public class IntOutboundDestinationChoice {
+public class USInboundDestinationChoice {
 
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
@@ -27,43 +27,34 @@ public class IntOutboundDestinationChoice {
     String[] tripPurposeArray;
 
 
-    public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
-
-        coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
+    public USInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
+        //coef format
+        // table format: coeff | visit | leisure | business
+        coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
 
         //load alternatives
-        destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
+        destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         destCombinedZones.buildIndex(1);
 
         //load combined zones distance skim
         readSkim(rb);
-        alternatives = destCombinedZones.getColumnAsInt("combinedZone");
-
+        alternatives = destCombinedZones.getColumnAsInt("alt");
     }
+
 
     public int selectDestination(LongDistanceTrip trip) {
 
-        int destination;
-        //0 visit, 1 business and 2 leisure
-
         String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
 
-        if (selectUs(trip, tripPurpose)){
+        double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateCanZoneUtility(trip, tripPurpose, a))).toArray();
 
-            double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateUsZoneUtility(trip, tripPurpose, a))).toArray();
-            double probability_denominator = Arrays.stream(expUtilities).sum();
+        double probability_denominator = Arrays.stream(expUtilities).sum();
 
-            double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
-            destination =  new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
-
-        } else {
-            destination = -1;
-        }
-
-        return destination;
+        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
     }
 
 
@@ -84,28 +75,10 @@ public class IntOutboundDestinationChoice {
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
 
-    public boolean selectUs(LongDistanceTrip trip, String tripPurpose){
 
-        double exp_utility = Math.exp(coefficients.getStringIndexedValueAt("isUs", tripPurpose));
+    public double calculateCanZoneUtility(LongDistanceTrip trip, String tripPurpose, int destination){
 
-        double probability = exp_utility / (1 + exp_utility);
-
-        if (trip.getLongDistanceNights() == 0 ){
-            //daytrips are always to US
-            return true;
-        } else{
-            if (Math.random() < probability){
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-
-    public double calculateUsZoneUtility(LongDistanceTrip trip, String tripPurpose, int destination){
-
-        //read coefficients
+//read coefficients
 
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
         double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
@@ -115,10 +88,14 @@ public class IntOutboundDestinationChoice {
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         //read destination data
-        double population =  destCombinedZones.getIndexedValueAt(destination, "population");
+        double population =  destCombinedZones.getIndexedValueAt(destination,"population");
 
         return b_population * population +
                 b_dist * Math.exp(alpha_dist * dist);
+
+
     }
+
+
 
 }

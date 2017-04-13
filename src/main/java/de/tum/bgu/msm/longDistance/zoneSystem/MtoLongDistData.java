@@ -144,7 +144,8 @@ public class MtoLongDistData {
             for (int externalZone : externalZonesUs){
                 //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalUsTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS, -1);
+                        (int)externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS,  (int)externalUsTable.getIndexedValueAt(externalZone, "CombinedZone"));
+
                 externalZonesArray.add(zone);
             }
         }
