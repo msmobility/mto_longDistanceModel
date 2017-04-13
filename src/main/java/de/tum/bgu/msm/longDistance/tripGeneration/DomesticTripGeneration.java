@@ -6,6 +6,7 @@ import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -29,8 +30,22 @@ public class DomesticTripGeneration {
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
 
+    private TableDataSet tripGenerationCoefficients;
+    private TableDataSet travelPartyProbabilities;
+
+
     public DomesticTripGeneration(ResourceBundle rb) {
         this.rb = rb;
+
+        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
+        tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
+        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
+        tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
+
+        String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
+        ;
+        travelPartyProbabilities = Util.readCSVfile(travelPartyProbabilitiesFilename);
+        travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.ldd = ldd;
     }
 
@@ -41,72 +56,123 @@ public class DomesticTripGeneration {
         //domestic trip generation
         //read the coefficients and probabilities of increasing travel parties
 
-        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        TableDataSet tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
-        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
-
-        String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");;
-        TableDataSet travelPartyProbabilities =  Util.readCSVfile(travelPartyProbabilitiesFilename);
-        travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
-
-
-         // initialize the trip count to zero
+        // initialize the trip count to zero
         int tripCount = 0;
+
+        double[] expUtilities = new double[4];
+        expUtilities[3] = 1;
+        double[] probabilities = new double[4];
+
+
         for (Household hhold : syntheticPopulation.getHouseholds()) {
+
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
             Collections.shuffle(membersList);
 
-
             for (Person pers : membersList) {
-                if (!pers.isAway & !pers.isDaytrip & !pers.isInOutTrip & pers.getAge() > 17) {
-                    //obtain a vector of socio-demographics of person and transform to TSRC
-                    pers.travelProbabilities = new float[3][3];
-                    float[] personDescription = readPersonSocioDemographics(pers);
+
+
+                //array to store 3 x 3 trip probabilities for later use in international
+                float[][] tgProbabilities = new float[3][3];
+
+
+                if (!pers.isAway() & !pers.isDaytrip() & !pers.isInOutTrip() & pers.getAge() > 17) {
+
+                    //pers.travelProbabilities = new float[3][3];
+                    //float[] personDescription = readPersonSocioDemographics(pers);
+
                     for (String tripPurpose : tripPurposes) {
-                    //the model would only be applied to a person who is an adult and is not in a long distance travel already
-                        double[] utility = new double[3];
-                        double[] probability = new double[3];
-                        for (String tripState : tripStates){
-                           utility[tripStates.indexOf(tripState)] = estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients);
-                        }
-                        double utilities;
-                        utilities = 1 + Math.exp(utility[0]) + Math.exp(utility[1]) + Math.exp(utility[2]);
-                        //calculates the probabilities
-                        probability[0] = Math.exp(utility[0]) / utilities;
-                        probability[1] = Math.exp(utility[1]) / utilities;
-                        probability[2] = Math.exp(utility[2]) / utilities;
 
-                        //store the probabilities for later international trip generation
+                        for (String tripState : tripStates) {
+                            //expUtilities[tripStates.indexOf(tripState)] = Math.exp(estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients));
+                            expUtilities[tripStates.indexOf(tripState)] = Math.exp(calculateUtility(pers, tripPurpose, tripState));
+                        }
+
+                        double denominator = Arrays.stream(expUtilities).sum();
+                        probabilities = Arrays.stream(expUtilities).map(u -> u / denominator).toArray();
+
                         //TODO maybe this is only needed for non traveller and this way international trip generation is faster
-
-                        for (String tripState : tripStates){
-                            pers.travelProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probability[tripStates.indexOf(tripState)];
+                        for (String tripState : tripStates) {
+                            tgProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probabilities[tripStates.indexOf(tripState)];
                         }
-                        // generate a random value for each person and purpose to get the domestic travel decisions
-                        double randomChoice1 = Math.random();
-                        if (randomChoice1 < probability[0]){
-                            pers.isAway = true;
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose,"away", probability, tripCount, travelPartyProbabilities);
-                            trips.add(trip);
-                            tripCount++;
-                        } else if (randomChoice1 < probability[1] + probability[0] ){
-                            pers.isDaytrip = true;
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, "daytrip", probability, tripCount, travelPartyProbabilities);
-                            trips.add(trip);
-                            tripCount++;
-                        } else if (randomChoice1 < probability[2] + probability[1] + probability[0] ){
-                            pers.isInOutTrip = true;
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, "inout", probability, tripCount, travelPartyProbabilities);
+                        //select the trip state
+                        double randomNumber1 = Math.random();
+                        int tripStateAsInt = 3;
+
+                        if (randomNumber1 < probabilities[0]) {
+                            tripStateAsInt = 0;
+                            pers.setAway(true);
+                        } else if (randomNumber1 < probabilities[1] + probabilities[0]) {
+                            tripStateAsInt = 1;
+                            pers.setDaytrip(true);
+                        } else if (randomNumber1 < probabilities[2] + probabilities[1] + probabilities[0]) {
+                            tripStateAsInt = 2;
+                            pers.setInOutTrip(true);
+                        }
+
+                        if (tripStateAsInt < 3) {
+                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateAsInt), probabilities, tripCount, travelPartyProbabilities);
                             trips.add(trip);
                             tripCount++;
                         }
                     }
                 }
+                pers.setTravelProbabilities(tgProbabilities);
+
             }
+
+
+            //logger.info(tripCount + " of " + persCount);
         }
         return trips;
     }
+
+    public double calculateUtility(Person pers, String tripPurpose, String tripState) {
+
+        double accessibility = pers.getHousehold().getZone().getAccessibility();
+
+        int winter = 0;
+        //variable is winter
+        if (Mto.getWinter()) winter = 1;
+
+        //read coefficients
+        String coefficientColumn = tripState + "." + tripPurpose;
+
+        double intercept = tripGenerationCoefficients.getStringIndexedValueAt("(intercept)", coefficientColumn);
+        double b_young = tripGenerationCoefficients.getStringIndexedValueAt("Young", coefficientColumn);
+        double b_retired = tripGenerationCoefficients.getStringIndexedValueAt("Retired", coefficientColumn);
+        double b_female = tripGenerationCoefficients.getStringIndexedValueAt("Female", coefficientColumn);
+        double b_adultsHh = tripGenerationCoefficients.getStringIndexedValueAt("adultsInHousehold", coefficientColumn);
+        double b_kidsHh = tripGenerationCoefficients.getStringIndexedValueAt("kidsInHousehold", coefficientColumn);
+        double b_highSchool = tripGenerationCoefficients.getStringIndexedValueAt("HighSchool", coefficientColumn);
+        double b_postSecondary = tripGenerationCoefficients.getStringIndexedValueAt("PostSecondary", coefficientColumn);
+        double b_university = tripGenerationCoefficients.getStringIndexedValueAt("University", coefficientColumn);
+        double b_employed = tripGenerationCoefficients.getStringIndexedValueAt("Employed", coefficientColumn);
+        double b_income2 = tripGenerationCoefficients.getStringIndexedValueAt("income2", coefficientColumn);
+        double b_income3 = tripGenerationCoefficients.getStringIndexedValueAt("income3", coefficientColumn);
+        double b_income4 = tripGenerationCoefficients.getStringIndexedValueAt("income4", coefficientColumn);
+        double b_accessibility = tripGenerationCoefficients.getStringIndexedValueAt("accessibility", coefficientColumn);
+        double b_winter = tripGenerationCoefficients.getStringIndexedValueAt("winter", coefficientColumn);
+
+        return intercept +
+                b_young * Boolean.compare(pers.isYoung(), false) +
+                b_retired * Boolean.compare(pers.isRetired(), false) +
+                b_female * Boolean.compare(pers.isFemale(), false) +
+                b_adultsHh * pers.getAdultsHh() +
+                b_kidsHh * pers.getKidsHh() +
+                b_highSchool * Boolean.compare(pers.isHighSchool(), false) +
+                b_postSecondary * Boolean.compare(pers.isPostSecondary(), false) +
+                b_university * Boolean.compare(pers.isUniversity(), false) +
+                b_employed * Boolean.compare(pers.isEmployed(), false) +
+                b_income2 * Boolean.compare(pers.isIncome2(), false) +
+                b_income3 * Boolean.compare(pers.isIncome3(), false) +
+                b_income4 * Boolean.compare(pers.isIncome4(), false) +
+                b_accessibility * accessibility +
+                b_winter * winter;
+
+    }
+
 
     public static float[] readPersonSocioDemographics(Person pers) {
         float personDescription[] = new float[15];
@@ -182,10 +248,10 @@ public class DomesticTripGeneration {
         personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
 
         //variable is winter
-        if (Mto.getWinter()){
-        personDescription[14] = 1;
-         } else {
-        personDescription[14] = 0;
+        if (Mto.getWinter()) {
+            personDescription[14] = 1;
+        } else {
+            personDescription[14] = 0;
         }
 
         return personDescription;
@@ -193,7 +259,6 @@ public class DomesticTripGeneration {
 
     public static double estimateMlogitUtility(float[] personDescription, String tripPurpose, String tripState, TableDataSet tripGenerationCoefficients) {
         double utility = 0;
-        double probability;
         // set sum of utilities of the 4 alternatives
 
         //j is an index for tripStates
@@ -228,13 +293,13 @@ public class DomesticTripGeneration {
         double randomChoice2 = Math.random();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
-            if (pers2 != pers & !pers2.isAway & !pers2.isDaytrip & !pers2.isInOutTrip & pers2.getAge() > 17) {
+            if (pers2 != pers & !pers2.isAway() & !pers2.isDaytrip() & !pers2.isInOutTrip() & pers2.getAge() > 17) {
                 String column = tripPurpose + "." + Math.min(pers.getAdultsHh(), 5);
                 double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
                 if (randomChoice2 < probability2) {
-                    if (pers.isAway) pers2.isAway = true;
-                    else if (pers.isDaytrip) pers2.isDaytrip = true;
-                    else if (pers.isInOutTrip) pers2.isInOutTrip = true;
+                    if (pers.isAway()) pers2.setAway(true);
+                    else if (pers.isDaytrip()) pers2.setDaytrip(true);
+                    else if (pers.isInOutTrip()) pers2.setInOutTrip(true);
                     hhmember++;
                     hhTravelParty.add(hhmember, pers2);
                 }
@@ -249,13 +314,13 @@ public class DomesticTripGeneration {
         double randomChoice2 = Math.random();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
-            if (pers2 != pers & !pers2.isAway & !pers2.isDaytrip & !pers2.isInOutTrip & pers2.getAge() < 18) {
+            if (pers2 != pers & !pers2.isAway() & !pers2.isDaytrip() & !pers2.isInOutTrip() & pers2.getAge() < 18) {
                 String column = "kids." + tripPurpose + "." + Math.min(pers.getKidsHh(), 5);
-                double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember+1, 5), column);
+                double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
                 if (randomChoice2 < probability2) {
-                    if (pers.isAway) pers2.isAway = true;
-                    else if (pers.isDaytrip) pers2.isDaytrip = true;
-                    else if (pers.isInOutTrip) pers2.isInOutTrip = true;
+                    if (pers.isAway()) pers2.setAway(true);
+                    else if (pers.isDaytrip()) pers2.setDaytrip(true);
+                    else if (pers.isInOutTrip()) pers2.setInOutTrip(true);
                     hhTravelParty.add(hhmember, pers2);
                     hhmember++;
                 }
@@ -275,7 +340,7 @@ public class DomesticTripGeneration {
         return k;
     }
 
-    private LongDistanceTrip createLongDistanceTrip(Person pers, String tripPurpose, String tripState, double probability[], int tripCount, TableDataSet travelPartyProbabilities){
+    private LongDistanceTrip createLongDistanceTrip(Person pers, String tripPurpose, String tripState, double probability[], int tripCount, TableDataSet travelPartyProbabilities) {
 
         ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
         ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
@@ -284,15 +349,14 @@ public class DomesticTripGeneration {
         hhTravelParty.addAll(kidsHhTravelParty);
         int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
         int tripDuration;
-        if (pers.isDaytrip) tripDuration = 0;
+        if (pers.isDaytrip()) tripDuration = 0;
         else {
             tripDuration = estimateTripDuration(probability);
         }
         return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
-                pers.getHousehold().getZone(),  true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+                pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }
-
 
 
 }

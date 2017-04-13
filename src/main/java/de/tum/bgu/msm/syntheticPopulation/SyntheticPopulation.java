@@ -230,8 +230,8 @@ public class SyntheticPopulation {
         pw2.println("personId, away, daytrip, inOutTrip");
         for (Person trav : getPersons()) {
             //takes only persons travelling
-            if (trav.isAway | trav.isDaytrip | trav.isInOutTrip) {
-                pw2.println(trav.getPersonId() + "," + trav.isAway + "," + trav.isDaytrip + "," + trav.isInOutTrip);
+            if (trav.isAway() | trav.isDaytrip() | trav.isInOutTrip()) {
+                pw2.println(trav.getPersonId() + "," + trav.isAway() + "," + trav.isDaytrip() + "," + trav.isInOutTrip());
             }
         }
         pw2.close();

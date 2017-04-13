@@ -3,6 +3,8 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -31,8 +33,13 @@ public class MtoLongDistance {
     private MtoLongDistData mtoLongDistData;
 
     private TripGenerationModel tripGenModel;
+
     private DomesticDestinationChoice dcModel;
-    private DomesticModeChoice mcModel;
+    private IntOutboundDestinationChoice dcOutboundModel;
+    private IntInboundDestinationChoice dcIInboundModel;
+
+    private DomesticModeChoice mcDomesticModel;
+
     private SyntheticPopulation syntheticPopulationReader;
 
     public MtoLongDistance(ResourceBundle rb) {
@@ -42,8 +49,13 @@ public class MtoLongDistance {
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         mtoLongDistData.populateZones(syntheticPopulationReader);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
+
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
-        mcModel = new DomesticModeChoice(rb, mtoLongDistData);
+        dcOutboundModel = new IntOutboundDestinationChoice();
+        dcOutboundModel = new IntOutboundDestinationChoice();
+
+        mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
+
 
     }
 
@@ -83,15 +95,14 @@ public class MtoLongDistance {
 
         }
 
-        /*//todo filter trips from selected OD pairs for mode choice
-        ArrayList<LongDistanceTrip> selectedTrips = new ArrayList<>();
-        for (LongDistanceTrip tr : allTrips){
-            if (tr.getDestZoneId()==103 & tr.getOrigZone().getCombinedZoneId()> 18 & tr.getOrigZone().getCombinedZoneId()< 28) {
-
-                    selectedTrips.add(tr);
-
-            }
-        }*/
+//        //todo filter trips from selected OD pairs for mode choice
+//        ArrayList<LongDistanceTrip> selectedTrips = new ArrayList<>();
+//        for (LongDistanceTrip tr : allTrips){
+//            if (tr.getDestZoneId()==103 & tr.getOrigZone().getCombinedZoneId()> 18 & tr.getOrigZone().getCombinedZoneId()< 28) {
+//                    selectedTrips.add(tr);
+//            }
+//        }
+//        ArrayList<LongDistanceTrip> allTrips = selectedTrips;
 
 
         if (ResourceUtil.getBooleanProperty(rb, "run.mode.choice", false)) {
@@ -104,7 +115,6 @@ public class MtoLongDistance {
             syntheticPopulationReader.writeSyntheticPopulation();
             //writePopByZone();
             writeTrips(allTrips);
-
         }
 
 
@@ -118,6 +128,13 @@ public class MtoLongDistance {
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setDestination(destZoneId);
+            } else {
+                if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO | t.getOrigZone().getZoneType() == ZoneType.EXTCANADA){
+                    //trips with an origin in Canada and destination international OUTBOUND
+                } else {
+                    //trips with an international origin and destination whithin CANADA
+                }
+
             }
 
         });
@@ -128,7 +145,7 @@ public class MtoLongDistance {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
             if (!t.isLongDistanceInternational() & t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
-                int mode = mcModel.selectMode(t);
+                int mode = mcDomesticModel.selectMode(t);
                 t.setMode(mode);
             }
 

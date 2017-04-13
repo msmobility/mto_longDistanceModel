@@ -56,9 +56,6 @@ public class Household {
         hhSize++;
     }
 
-
-
-
     public int getId() {
         return id;
     }

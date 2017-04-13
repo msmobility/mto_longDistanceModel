@@ -52,7 +52,7 @@ public class InternationalTripGeneration {
         IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
             Person pers = syntheticPopulation.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
-            if (pers.travelProbabilities != null) {
+            if (pers.getTravelProbabilities() != null) {
                 for (String tripPurpose : tripPurposes) {
                     for (String tripState : tripStates) {
                         int j = tripStates.indexOf(tripState);
@@ -60,7 +60,7 @@ public class InternationalTripGeneration {
                         //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
                         //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
                         double calibrationFactor = 2;
-                        probabilityMatrix[i][j][p] = pers.travelProbabilities[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
+                        probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
                         sumProbabilities[i][j] += probabilityMatrix[i][j][p];
                     }
                 }
@@ -88,14 +88,14 @@ public class InternationalTripGeneration {
                         cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
                     Person pers = syntheticPopulation.getPersonFromId(personIds[p]);
-                    if (!pers.isDaytrip & !pers.isAway & !pers.isInOutTrip & pers.getAge() > 17 & tripCount < numberOfTrips) {
+                    if (!pers.isDaytrip() & !pers.isAway() & !pers.isInOutTrip() & pers.getAge() > 17 & tripCount < numberOfTrips) {
                         switch (tripState) {
                             case "away" :
-                                pers.isAway = true;
+                                pers.setAway(true);
                             case "daytrip":
-                                pers.isDaytrip = true;
+                                pers.setDaytrip(true);
                             case "inout":
-                                pers.isInOutTrip = true;
+                                pers.setInOutTrip(true);
                         }
                         LongDistanceTrip trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, tripCount, travelPartyProbabilities);
                         trips.add(trip);

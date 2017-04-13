@@ -77,11 +77,11 @@ public class LongDistanceTrip {
         if (assignDestination) this.destinationCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
 
 
-        //escaped for the moment for destination choice
-        //this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
-//        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
-//        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
-//        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
+        //included for mode choice
+        this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
+        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
+        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
+        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
     }
 
     public int getLongDistanceTripId() {
@@ -144,7 +144,8 @@ public class LongDistanceTrip {
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-        //        +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,personAge,personGender," +
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty"
+//                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
     }
@@ -165,11 +166,11 @@ public class LongDistanceTrip {
                     + "," + tr.getLongDistanceOrigZone().getZoneType()
                     + "," + tr.getDestZoneId()
                     + "," + tr.getMode()
-                 /*     + "," + tr.getLongDistanceNights()
+                    + "," + tr.getLongDistanceNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
-                    + "," + traveller.getAge()
+                    /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
                     + "," + traveller.getWorkStatus()

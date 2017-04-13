@@ -83,17 +83,18 @@ public class TripGenerationModel {
         logger.info("International trips from Ontario generated");
 
         //generate visitors
-        //recalculate accessibility to Ontario
-        fromZones = Arrays.asList("ONTARIO", "EXTCANADA", "EXTUS", "EXTOVERSEAS");
-        toZones = Arrays.asList("ONTARIO");
-        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float) -0.01);
-        logger.info("Accessibility for visitors to Ontario calculated");
+//        //recalculate accessibility to Ontario
+//        fromZones = Arrays.asList("ONTARIO", "EXTCANADA", "EXTUS", "EXTOVERSEAS");
+//        toZones = Arrays.asList("ONTARIO");
+//        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float) -0.01);
+//        logger.info("Accessibility for visitors to Ontario calculated");
         VisitorsTripGeneration vgen = new VisitorsTripGeneration(rb);
         trips_visitors = vgen.runVisitorsTripGeneration(mtoLongDistData.getExternalZoneList());
-        logger.info("Visitor trips to Ontario generated");
+        logger.info("Visitor trips to Canada generated");
 
         ExtCanToIntTripGeneration extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
         trips_extCanInt = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
+        logger.info("International trips from non-Ontarian zones generated");
 
         //analyze and write out generated trips
         //first, join the different lists of trips
