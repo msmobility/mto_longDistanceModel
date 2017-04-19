@@ -83,12 +83,12 @@ public class InternationalTripGeneration {
                 int p = 0;
                 double cumulative = probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
                 for (double randomNumber : randomChoice){
-                    while (randomNumber > cumulative & p < personIds.length - 1) {
+                    while (randomNumber > cumulative && p < personIds.length - 1) {
                         p++;
                         cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
                     Person pers = syntheticPopulation.getPersonFromId(personIds[p]);
-                    if (!pers.isDaytrip() & !pers.isAway() & !pers.isInOutTrip() & pers.getAge() > 17 & tripCount < numberOfTrips) {
+                    if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
                         switch (tripState) {
                             case "away" :
                                 pers.setAway(true);
@@ -118,6 +118,8 @@ public class InternationalTripGeneration {
 
         return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), true,
                 0, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+
+        //TODO assign nights!!!
 
 
 

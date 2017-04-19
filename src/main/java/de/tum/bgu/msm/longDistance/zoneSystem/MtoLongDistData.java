@@ -42,6 +42,11 @@ public class MtoLongDistData {
     public static final List<String> tripStates = Arrays.asList("away","daytrip","inout");
 
 
+    TableDataSet externalCanadaTable;
+    TableDataSet externalUsTable;
+    TableDataSet externalOverseasTable;
+
+
     public MtoLongDistData(ResourceBundle rb) {
 
         this.rb = rb;
@@ -117,9 +122,7 @@ public class MtoLongDistData {
         boolean externalUs = ResourceUtil.getBooleanProperty(rb, "ext.us", false);
         boolean externalOverseas = ResourceUtil.getBooleanProperty(rb, "ext.os", false);
 
-        TableDataSet externalCanadaTable;
-        TableDataSet externalUsTable;
-        TableDataSet externalOverseasTable;
+
         int[] externalZonesCanada;
         int[] externalZonesUs;
         int[] externalZonesOverseas;
@@ -156,7 +159,7 @@ public class MtoLongDistData {
             for (int externalZone : externalZonesOverseas){
                 //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
                 Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
-                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, -1);
+                        (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, (int)externalOverseasTable.getIndexedValueAt(externalZone, "CombinedZone"));
                 externalZonesArray.add(zone);
             }
         }

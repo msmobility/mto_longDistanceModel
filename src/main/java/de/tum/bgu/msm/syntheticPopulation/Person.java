@@ -66,7 +66,7 @@ public class Person {
         this.isRetired = age > 64 ? true : false;
         this.isFemale = gender == 'F' ? true : false;
         this.isHighSchool = education == 2 ? true : false;
-        this.isPostSecondary = education > 2 & education < 6 ? true : false;
+        this.isPostSecondary = education > 2 && education < 6 ? true : false;
         this.isUniversity = education > 5 ? true : false;
         this.isEmployed = workStatus < 3? true : false;
 

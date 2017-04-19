@@ -5,14 +5,15 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Created by carlloga on 4/12/2017.
@@ -23,8 +24,12 @@ public class IntOutboundDestinationChoice {
     private TableDataSet destCombinedZones;
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
-    private int[] alternatives;
+    private int[] alternativesUS;
+    private int[] alternativesOS;
+
     String[] tripPurposeArray;
+
+    Map<Integer, Zone> externalOsMap = new HashMap<>();
 
 
     public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
@@ -39,7 +44,20 @@ public class IntOutboundDestinationChoice {
 
         //load combined zones distance skim
         readSkim(rb);
-        alternatives = destCombinedZones.getColumnAsInt("combinedZone");
+        alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
+
+        ldData.getExternalZoneList().forEach(zone -> {
+            if (zone.getZoneType() == ZoneType.EXTOVERSEAS){
+                externalOsMap.put(zone.getCombinedZoneId(), zone);
+            }
+        });
+        alternativesOS = new int [externalOsMap.size()];
+
+        int index = 0;
+        for (Integer id : externalOsMap.keySet()) {
+            alternativesOS[index] = id;
+            index++;
+        }
 
     }
 
@@ -52,15 +70,22 @@ public class IntOutboundDestinationChoice {
 
         if (selectUs(trip, tripPurpose)){
 
-            double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateUsZoneUtility(trip, tripPurpose, a))).toArray();
+            double[] expUtilities = Arrays.stream(alternativesUS).mapToDouble(a -> Math.exp(calculateUsZoneUtility(trip, tripPurpose, a))).toArray();
             double probability_denominator = Arrays.stream(expUtilities).sum();
 
             double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
-            destination =  new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+            destination =  new EnumeratedIntegerDistribution(alternativesUS, probabilities).sample();
 
         } else {
-            destination = -1;
+
+            double[] expUtilitiesOs = Arrays.stream(alternativesOS).mapToDouble(a -> calculateOsZoneUtility(a)).toArray();
+
+            double probability_denominator = Arrays.stream(expUtilitiesOs).sum();
+
+            double[] probabilities = Arrays.stream(expUtilitiesOs).map(u -> u/probability_denominator).toArray();
+
+            destination =  new EnumeratedIntegerDistribution(alternativesOS, probabilities).sample();
         }
 
         return destination;
@@ -86,11 +111,13 @@ public class IntOutboundDestinationChoice {
 
     public boolean selectUs(LongDistanceTrip trip, String tripPurpose){
 
+        //binary choice model for US/OS (per purpose)
+
         double exp_utility = Math.exp(coefficients.getStringIndexedValueAt("isUs", tripPurpose));
 
         double probability = exp_utility / (1 + exp_utility);
 
-        if (trip.getLongDistanceNights() == 0 ){
+        if (trip.getLongDistanceTripState() == 1){
             //daytrips are always to US
             return true;
         } else{
@@ -119,6 +146,13 @@ public class IntOutboundDestinationChoice {
 
         return b_population * population +
                 b_dist * Math.exp(alpha_dist * dist);
+    }
+
+
+    public double calculateOsZoneUtility(int destination){
+
+        return externalOsMap.get(destination).getPopulation();
+
     }
 
 }

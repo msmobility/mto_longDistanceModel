@@ -17,7 +17,7 @@ import java.util.ResourceBundle;
 /**
  * Created by carlloga on 4/12/2017.
  */
-public class USInboundDestinationChoice {
+public class IntInboundDestinationChoice {
 
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
@@ -27,7 +27,7 @@ public class USInboundDestinationChoice {
     String[] tripPurposeArray;
 
 
-    public USInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
+    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
@@ -44,11 +44,11 @@ public class USInboundDestinationChoice {
     }
 
 
-    public int selectDestination(LongDistanceTrip trip) {
+    public int selectDestinationFromUs(LongDistanceTrip trip) {
 
         String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
 
-        double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateCanZoneUtility(trip, tripPurpose, a))).toArray();
+        double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateCanZoneUtilityFromUs(trip, tripPurpose, a))).toArray();
 
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
@@ -57,6 +57,19 @@ public class USInboundDestinationChoice {
         return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
     }
 
+
+    public int selectDestinationFromOs (LongDistanceTrip trip){
+
+        //String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+
+        double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> calculateCanZoneUtilityFromOs(a)).toArray();
+
+        double probability_denominator = Arrays.stream(expUtilities).sum();
+
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+
+        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+    }
 
 
     public void readSkim(ResourceBundle rb) {
@@ -76,7 +89,7 @@ public class USInboundDestinationChoice {
     }
 
 
-    public double calculateCanZoneUtility(LongDistanceTrip trip, String tripPurpose, int destination){
+    public double calculateCanZoneUtilityFromUs (LongDistanceTrip trip, String tripPurpose, int destination){
 
 //read coefficients
 
@@ -92,6 +105,15 @@ public class USInboundDestinationChoice {
 
         return b_population * population +
                 b_dist * Math.exp(alpha_dist * dist);
+
+
+    }
+
+    public double calculateCanZoneUtilityFromOs (int destination){
+
+//read coefficients
+
+        return destCombinedZones.getIndexedValueAt(destination,"population");
 
 
     }

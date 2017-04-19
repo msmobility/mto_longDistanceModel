@@ -78,17 +78,17 @@ public class ExtCanToIntTripGeneration {
         nonHh = 0;
         String column = "adults." + tripPurpose;
         double randomChoice = Math.random();
-        while (adultsHh < 9 & randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
+        while (adultsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
         randomChoice = Math.random();
-        while (kidsHh < 9 & randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
+        while (kidsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
         randomChoice = Math.random();
-        while (nonHh < 9 & randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
+        while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
 

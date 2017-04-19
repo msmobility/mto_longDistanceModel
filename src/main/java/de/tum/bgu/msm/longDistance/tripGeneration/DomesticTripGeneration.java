@@ -77,7 +77,7 @@ public class DomesticTripGeneration {
                 float[][] tgProbabilities = new float[3][3];
 
 
-                if (!pers.isAway() & !pers.isDaytrip() & !pers.isInOutTrip() & pers.getAge() > 17) {
+                if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
 
                     //pers.travelProbabilities = new float[3][3];
                     //float[] personDescription = readPersonSocioDemographics(pers);
@@ -278,7 +278,7 @@ public class DomesticTripGeneration {
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;
         double randomChoice4 = Math.random();
-        while (tripDuration < 30 & randomChoice4 < probability[0] / (probability[0] + probability[2])) {
+        while (tripDuration < 30 && randomChoice4 < probability[0] / (probability[0] + probability[2])) {
             randomChoice4 = Math.random();
             tripDuration++;
         }
@@ -293,7 +293,7 @@ public class DomesticTripGeneration {
         double randomChoice2 = Math.random();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
-            if (pers2 != pers & !pers2.isAway() & !pers2.isDaytrip() & !pers2.isInOutTrip() & pers2.getAge() > 17) {
+            if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() > 17) {
                 String column = tripPurpose + "." + Math.min(pers.getAdultsHh(), 5);
                 double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
                 if (randomChoice2 < probability2) {
@@ -314,7 +314,7 @@ public class DomesticTripGeneration {
         double randomChoice2 = Math.random();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
-            if (pers2 != pers & !pers2.isAway() & !pers2.isDaytrip() & !pers2.isInOutTrip() & pers2.getAge() < 18) {
+            if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() < 18) {
                 String column = "kids." + tripPurpose + "." + Math.min(pers.getKidsHh(), 5);
                 double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
                 if (randomChoice2 < probability2) {
@@ -335,7 +335,7 @@ public class DomesticTripGeneration {
         double randomChoice3 = Math.random();
         int k = 0;
         String column = tripPurpose + ".nonHh";
-        while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) & k < 10)
+        while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) && k < 10)
             k++;
         return k;
     }
