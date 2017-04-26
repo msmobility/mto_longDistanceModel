@@ -94,6 +94,20 @@ public class DomesticDestinationChoice {
 
     }
 
+    public ZoneType getDestinationZoneType(int destinationZoneId){
+        //method to give the destination zone type from a destination
+
+        if (combinedZones.getIndexedStringValueAt(destinationZoneId,"loc").equals("ontario")){
+            return ZoneType.ONTARIO;
+        } else {
+            return ZoneType.EXTCANADA;
+        }
+
+
+
+
+    }
+
     private double calculateUtility(LongDistanceTrip trip, String tripPurpose, int destination) {
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 

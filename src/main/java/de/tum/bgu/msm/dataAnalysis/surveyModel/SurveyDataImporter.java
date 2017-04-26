@@ -634,7 +634,8 @@ public class SurveyDataImporter {
     private int convertMode(int oldCode) {
         try {
             int newCode = (int) itsModeConversion.getIndexedValueAt(oldCode, 2);
-            return newCode;
+            //TODO modified to get oldCode
+            return oldCode;
         } catch (Exception e) {
             return oldCode;
         }

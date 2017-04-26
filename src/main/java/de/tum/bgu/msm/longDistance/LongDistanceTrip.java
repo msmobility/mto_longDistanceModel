@@ -40,6 +40,7 @@ public class LongDistanceTrip {
     private Zone origZone;
     private int destinationCombinedZoneId = -1;
     private int travelMode=-1;
+    private ZoneType destZoneType;
 
 
     //ArrayList<Long> destinations;
@@ -75,7 +76,6 @@ public class LongDistanceTrip {
         origZone = zoneLookup.get(origZoneId);
 
         if (assignDestination) this.destinationCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
-
 
         //included for mode choice
         this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
@@ -139,12 +139,18 @@ public class LongDistanceTrip {
         this.travelMode = travelMode;
     }
 
+    public ZoneType getDestZoneType() {
+        return destZoneType;
+    }
 
+    public void setDestZoneType(ZoneType destZoneType) {
+        this.destZoneType = destZoneType;
+    }
 
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty"
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty, destZoneType"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -170,6 +176,7 @@ public class LongDistanceTrip {
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
+                    + "," + tr.getDestZoneType()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -189,11 +196,12 @@ public class LongDistanceTrip {
                     + "," + tr.getLongDistanceOrigZone().getZoneType()
                     + "," + tr.getDestZoneId()
                     + "," + tr.getMode()
-/*                    + "," + tr.getLongDistanceNights()
+                    + "," + tr.getLongDistanceNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
-                    + ",-1,,-1,-1,-1,-1,-1"*/
+                    + "," + tr.getDestZoneType()
+                    //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
         }

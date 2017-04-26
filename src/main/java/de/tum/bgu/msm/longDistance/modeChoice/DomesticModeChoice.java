@@ -34,7 +34,7 @@ public class DomesticModeChoice {
     private Matrix[] transferMatrix = new Matrix[4];
     private Matrix[] frequencyMatrix = new Matrix[4];
 
-    private TableDataSet modeChoiceCoefficients;
+    private TableDataSet mcOntarioCoefficients;
     private TableDataSet combinedZones;
     String[] tripPurposeArray;
     String[] tripStateArray;
@@ -47,8 +47,8 @@ public class DomesticModeChoice {
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
-        modeChoiceCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
-        modeChoiceCoefficients.buildStringIndex(1);
+        mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
+        mcOntarioCoefficients.buildStringIndex(1);
 
         //taken from destination choice
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
@@ -103,11 +103,11 @@ public class DomesticModeChoice {
         }
     }
 
-    public int selectMode(LongDistanceTrip trip) {
+    public int selectModeFromOntario(LongDistanceTrip trip) {
 
         double[] expUtilities = Arrays.stream(modes)
                 //calculate exp(Ui) for each destination
-                .mapToDouble(m -> Math.exp(calculateUtility(trip, m))).toArray();
+                .mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m))).toArray();
 
 
         double probability_denominator = Arrays.stream(expUtilities).sum();
@@ -124,7 +124,32 @@ public class DomesticModeChoice {
 
     }
 
-    public double calculateUtility(LongDistanceTrip trip, int m) {
+    public int selectModeFromExtCanada(LongDistanceTrip trip) {
+
+//        double[] expUtilities = Arrays.stream(modes)
+//                //calculate exp(Ui) for each destination
+//                .mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m))).toArray();
+//
+//
+//        double probability_denominator = Arrays.stream(expUtilities).sum();
+//        //todo if there is no access by any mode for the selected OD pair, just go by car
+//        if (probability_denominator == 0){
+//            expUtilities[0] = 1;
+//        }
+//
+//        //calculate the probability for each trip, based on the destination utilities
+//        //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+
+        //choose one destination, weighted at random by the probabilities
+//        return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
+//
+        return 1;
+    }
+
+
+
+
+    public double calculateUtilityFromOntario(LongDistanceTrip trip, int m) {
 
 
         double utility;
@@ -157,7 +182,7 @@ public class DomesticModeChoice {
         double price = priceMatrix[m].getValueAt(origin, destination);
         double frequency = frequencyMatrix[m].getValueAt(origin, destination);
 
-        double vot= modeChoiceCoefficients.getStringIndexedValueAt("vot", column);
+        double vot= mcOntarioCoefficients.getStringIndexedValueAt("vot", column);
 
 //        //todo scenario testing - remove for final version
 //        if (origin >18 & origin < 28 & destination == 103 & m == 1){
@@ -191,20 +216,20 @@ public class DomesticModeChoice {
         double educationUniv = p.getEducation()>5? 1 : 0 ;
 
         //getCoefficients
-        double b_intercept = modeChoiceCoefficients.getStringIndexedValueAt("intercept", column);
-        double b_frequency= modeChoiceCoefficients.getStringIndexedValueAt("frequency", column);
-        double b_price= modeChoiceCoefficients.getStringIndexedValueAt("price", column);
-        double b_time= modeChoiceCoefficients.getStringIndexedValueAt("time", column);
-        double b_incomeLow= modeChoiceCoefficients.getStringIndexedValueAt("income_low", column);
-        double b_incomeHigh= modeChoiceCoefficients.getStringIndexedValueAt("income_high", column);
-        double b_young= modeChoiceCoefficients.getStringIndexedValueAt("young", column);
-        double b_interMetro= modeChoiceCoefficients.getStringIndexedValueAt("inter_metro", column);
-        double b_ruralRural= modeChoiceCoefficients.getStringIndexedValueAt("rural_rural", column);
-        double b_male= modeChoiceCoefficients.getStringIndexedValueAt("male", column);
-        double b_educationUniv= modeChoiceCoefficients.getStringIndexedValueAt("education_univ", column);
-        double b_overnight= modeChoiceCoefficients.getStringIndexedValueAt("overnight", column);
-        double b_party= modeChoiceCoefficients.getStringIndexedValueAt("party", column);
-        double b_impedance= modeChoiceCoefficients.getStringIndexedValueAt("impedance", column);
+        double b_intercept = mcOntarioCoefficients.getStringIndexedValueAt("intercept", column);
+        double b_frequency= mcOntarioCoefficients.getStringIndexedValueAt("frequency", column);
+        double b_price= mcOntarioCoefficients.getStringIndexedValueAt("price", column);
+        double b_time= mcOntarioCoefficients.getStringIndexedValueAt("time", column);
+        double b_incomeLow= mcOntarioCoefficients.getStringIndexedValueAt("income_low", column);
+        double b_incomeHigh= mcOntarioCoefficients.getStringIndexedValueAt("income_high", column);
+        double b_young= mcOntarioCoefficients.getStringIndexedValueAt("young", column);
+        double b_interMetro= mcOntarioCoefficients.getStringIndexedValueAt("inter_metro", column);
+        double b_ruralRural= mcOntarioCoefficients.getStringIndexedValueAt("rural_rural", column);
+        double b_male= mcOntarioCoefficients.getStringIndexedValueAt("male", column);
+        double b_educationUniv= mcOntarioCoefficients.getStringIndexedValueAt("education_univ", column);
+        double b_overnight= mcOntarioCoefficients.getStringIndexedValueAt("overnight", column);
+        double b_party= mcOntarioCoefficients.getStringIndexedValueAt("party", column);
+        double b_impedance= mcOntarioCoefficients.getStringIndexedValueAt("impedance", column);
 
         utility = b_intercept + b_frequency*frequency +
                 b_price * price +

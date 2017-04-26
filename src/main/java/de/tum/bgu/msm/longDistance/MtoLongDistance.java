@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.InternationalModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -39,6 +40,7 @@ public class MtoLongDistance {
     private IntInboundDestinationChoice dcInBoundModel;
 
     private DomesticModeChoice mcDomesticModel;
+    private InternationalModeChoice mcInternationalModel;
 
     private SyntheticPopulation syntheticPopulationReader;
 
@@ -55,6 +57,7 @@ public class MtoLongDistance {
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData);
 
         mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
+        mcInternationalModel = new InternationalModeChoice(rb, mtoLongDistData, mcDomesticModel);
 
     }
 
@@ -91,7 +94,6 @@ public class MtoLongDistance {
 
         if (ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false)) {
             runDestinationChoice(allTrips);
-
         }
 
 //        //todo filter trips from selected OD pairs for mode choice scenario
@@ -105,7 +107,6 @@ public class MtoLongDistance {
 
 
         if (ResourceUtil.getBooleanProperty(rb, "run.mode.choice", false)) {
-//
             runModeChoice(allTrips);
         }
 
@@ -127,18 +128,23 @@ public class MtoLongDistance {
             if (!t.isLongDistanceInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setDestination(destZoneId);
+                t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
             } else {
                 if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA){
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setDestination(destZoneId);
+                    t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
+
                 } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS){
-                    // visitor trips with an international origin and destination within CANADA
+                    // us visitors with destination in CANADA
                     int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
                     t.setDestination(destZoneId);
+                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 } else {
-                    //visitors from OS
+                    //os visitors to Canada
                     int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
                     t.setDestination(destZoneId);
+                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 }
             }
 
@@ -149,9 +155,30 @@ public class MtoLongDistance {
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
-            if (!t.isLongDistanceInternational() && t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
-                int mode = mcDomesticModel.selectMode(t);
-                t.setMode(mode);
+            if (!t.isLongDistanceInternational()) {
+                if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)){
+                    //domestic mode choice for synthetic persons in Ontario
+                    int mode = mcDomesticModel.selectModeFromOntario(t);
+                    t.setMode(mode);
+                } else {
+                    //domestic mode choice (no person-based) for trips starting in EXTCCANADAZones
+                }
+
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)){
+                if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                    //international from Canada to US
+                } else {
+                    //international from Canada to OS
+                    t.setMode(1); //always by air
+                }
+
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)){
+                //international visitors from US
+
+
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)){
+                //international visitors from US
+                t.setMode(1); //always by air
             }
 
         });

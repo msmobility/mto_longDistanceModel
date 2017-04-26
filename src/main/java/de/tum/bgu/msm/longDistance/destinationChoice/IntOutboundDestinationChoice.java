@@ -44,6 +44,7 @@ public class IntOutboundDestinationChoice {
 
         //load combined zones distance skim
         readSkim(rb);
+
         alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
 
         ldData.getExternalZoneList().forEach(zone -> {
@@ -90,6 +91,16 @@ public class IntOutboundDestinationChoice {
 
         return destination;
     }
+
+    public ZoneType getDestinationZoneType(int destinationZoneId){
+        //method to give the destination zone type from a destination
+
+        if (externalOsMap.keySet().contains(destinationZoneId)){
+            return ZoneType.EXTOVERSEAS;
+        } else {
+            return ZoneType.EXTUS;
+        }
+     }
 
 
 
