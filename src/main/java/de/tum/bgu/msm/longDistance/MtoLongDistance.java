@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
@@ -50,7 +51,7 @@ public class MtoLongDistance {
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         mtoLongDistData.populateZones(syntheticPopulationReader);
-        tripGenModel = new TripGenerationModel(rb, mtoLongDistData);
+        tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
 
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData);
@@ -64,7 +65,7 @@ public class MtoLongDistance {
     public void runLongDistanceModel() {
 
         if (ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false)) {
-            allTrips = tripGenModel.runTripGeneration(syntheticPopulationReader);
+            allTrips = tripGenModel.runTripGeneration();
             //currently only internal zone list
 
         } else {
@@ -115,6 +116,13 @@ public class MtoLongDistance {
             syntheticPopulationReader.writeSyntheticPopulation();
             //writePopByZone();
             writeTrips(allTrips);
+        }
+
+
+        if (ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false)) {
+
+            AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
+            accAna.calculateAccessibilityForAnalysis();
         }
 
 

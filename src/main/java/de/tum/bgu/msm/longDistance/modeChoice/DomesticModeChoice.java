@@ -62,7 +62,7 @@ public class DomesticModeChoice {
 
     public void readSkimByMode(ResourceBundle rb) {
         // read skim file
-        logger.info("  Reading skims files");
+        logger.info("  Reading skims files for mode choice");
 
 
         String travelTimeFileName = rb.getString("travel.time.combined" );

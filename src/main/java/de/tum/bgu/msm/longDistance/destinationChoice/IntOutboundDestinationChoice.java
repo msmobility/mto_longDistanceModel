@@ -106,10 +106,12 @@ public class IntOutboundDestinationChoice {
 
     public void readSkim(ResourceBundle rb) {
         // read skim file
-        logger.info("  Reading skims files");
+
 
         String matrixName = "skim.int.out.file";
         String hwyFileName = rb.getString(matrixName);
+        logger.info("  Reading skims file" + hwyFileName);
+
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();

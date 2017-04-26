@@ -33,9 +33,13 @@ public class DomesticTripGeneration {
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
 
+    private SyntheticPopulation synPop;
 
-    public DomesticTripGeneration(ResourceBundle rb) {
+
+
+    public DomesticTripGeneration(ResourceBundle rb, SyntheticPopulation synPop) {
         this.rb = rb;
+        this.synPop = synPop;
 
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
         tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
@@ -43,14 +47,14 @@ public class DomesticTripGeneration {
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
         String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
-        ;
+
         travelPartyProbabilities = Util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.ldd = ldd;
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runTripGeneration(SyntheticPopulation syntheticPopulation) {
+    public ArrayList<LongDistanceTrip> runTripGeneration() {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         //domestic trip generation
@@ -64,7 +68,7 @@ public class DomesticTripGeneration {
         double[] probabilities = new double[4];
 
 
-        for (Household hhold : syntheticPopulation.getHouseholds()) {
+        for (Household hhold : synPop.getHouseholds()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
@@ -117,8 +121,11 @@ public class DomesticTripGeneration {
                             tripCount++;
                         }
                     }
+                    //assign probabilities to all the non-travellers
+                    pers.setTravelProbabilities(tgProbabilities);
                 }
-                pers.setTravelProbabilities(tgProbabilities);
+
+
 
             }
 
@@ -357,7 +364,6 @@ public class DomesticTripGeneration {
                 pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
 
     }
-
 
 }
 

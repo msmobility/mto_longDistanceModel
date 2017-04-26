@@ -22,8 +22,12 @@ public class InternationalTripGeneration {
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
+    private double[][] sumProbabilities;
+    private int[] personIds;
+    private double[][][] probabilityMatrix;
 
     public InternationalTripGeneration(ResourceBundle rb) {
+
         this.rb = rb;
     }
 
@@ -44,11 +48,12 @@ public class InternationalTripGeneration {
         TableDataSet tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
-        double[][] sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
-        int[] personIds = new int[syntheticPopulation.getPersons().size()];
-        double[][][] probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][syntheticPopulation.getPersons().size()];
+        //initialize probMatrices
+        sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
+        personIds = new int[syntheticPopulation.getPersons().size()];
+        probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][syntheticPopulation.getPersons().size()];
 
-        //recalculate the probabilities adapted to the new accessibility values
+        //copy the probabilities into arrays
         IntStream.range(0, syntheticPopulation.getPersons().size()).parallel().forEach(p -> {
             Person pers = syntheticPopulation.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
@@ -57,22 +62,32 @@ public class InternationalTripGeneration {
                     for (String tripState : tripStates) {
                         int j = tripStates.indexOf(tripState);
                         int i = tripPurposes.indexOf(tripPurpose);
+                        //todo this change in probability due to accessibility is discontinued
                         //get the probabilities from tripGeneration (domestic trips) and adapt them to the number of trips by accessibility to US
                         //a calibration factor of 0.20 increases in a 20% the probability of travelling at the zone TO BE CALIBRATED
-                        double calibrationFactor = 2;
-                        probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
+                        //double calibrationFactor = 2;
+                        //probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j] * (1 + pers.getHousehold().getZone().getAccessibility() / 100 * calibrationFactor);
+                        if (pers.isAway() || pers.isDaytrip() || pers.isInOutTrip()){
+                            probabilityMatrix[i][j][p] = 0f;
+                        } else {
+                            probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j];
+                        }
                         sumProbabilities[i][j] += probabilityMatrix[i][j][p];
                     }
                 }
             }
         });
 
-        logger.info("Int Trip: sum of probabilities done");
         for (String tripPurpose : tripPurposes) {
             for (String tripState : tripStates) {
                 int tripCount = 0;
                 // added more places to get more chances of assigning all trips, if not, there are some individuals that are travelling already
                 int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*personIds.length);
+
+                //select n ids in listOfIds and probabilities of size N
+                //double[] probabilityVector = probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
+                //logger.info(probabilityVector.length);
+
                 double[] randomChoice = new double[(int)(numberOfTrips*1.2) ];
                 for (int k = 0; k < randomChoice.length; k++) {
                     randomChoice[k] = Math.random();
@@ -87,6 +102,7 @@ public class InternationalTripGeneration {
                         p++;
                         cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] / sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
                     }
+
                     Person pers = syntheticPopulation.getPersonFromId(personIds[p]);
                     if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
                         switch (tripState) {
@@ -121,7 +137,9 @@ public class InternationalTripGeneration {
 
         //TODO assign nights!!!
 
-
-
     }
+
+
+
+
 }

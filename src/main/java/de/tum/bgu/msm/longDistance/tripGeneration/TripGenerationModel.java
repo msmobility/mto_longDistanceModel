@@ -21,37 +21,23 @@ public class TripGenerationModel {
     private ResourceBundle rb;
     private MtoLongDistData mtoLongDistData;
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
+    private SyntheticPopulation synPop;
 
-    public TripGenerationModel(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
+    public TripGenerationModel(ResourceBundle rb, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
         this.rb = rb;
         this.mtoLongDistData = mtoLongDistData;
+        this.synPop = synPop;
 
     }
 
-    public ArrayList<LongDistanceTrip> runTripGeneration(SyntheticPopulation syntheticPopulation) {
-        // main method to run long-distance model
-
-        //read synthetic population
+    public ArrayList<LongDistanceTrip> runTripGeneration() {
 
         ArrayList<Zone> zoneList = mtoLongDistData.getZoneList();
 
-
-        //initialize parameters for accessibility
+        //initialize parameters
         List<String> fromZones;
         List<String> toZones;
         //calculate accessibility (not used in the model, only for external analysis)
-        if (ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false)) {
-            //read skims
-            //md.readSkim("auto");
-            mtoLongDistData.readSkim("transit");
-            //input parameters for accessibility calculations from mto properties
-            float alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
-            float betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");
-            fromZones = ResourceUtil.getListWithUserDefinedSeparator(rb, "orig.zone.type", ",");
-            toZones = ResourceUtil.getListWithUserDefinedSeparator(rb, "dest.zone.type", ",");
-            mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alphaAuto, betaAuto);
-            mtoLongDistData.writeOutAccessibilities(zoneList);
-        }
 
         ArrayList<LongDistanceTrip> trips_domestic;
         ArrayList<LongDistanceTrip> trips_international;
@@ -63,23 +49,29 @@ public class TripGenerationModel {
         mtoLongDistData.readSkim("auto");
 
         //generate domestic trips
-        //recalculate accessibility to Canada
+        //accessibility in Canada to Canada Trips - short-distance accessibility (copy the next 6 lines into constuctor for domestic tg)
         fromZones = Arrays.asList("ONTARIO");
+        float alpha = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
+        float beta = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
         toZones = Arrays.asList("ONTARIO", "EXTCANADA");
-        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float) -0.1);
-        logger.info("Accessibility for domestic trips from Ontario calculated");
-        DomesticTripGeneration tgdomestic = new DomesticTripGeneration(rb);
-        trips_domestic = tgdomestic.runTripGeneration(syntheticPopulation);
+        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alpha , beta);
+        logger.info("Accessibility for domestic trips from Ontario calculated using alpha, beta = " + alpha + "," + beta);
+
+        DomesticTripGeneration tgdomestic = new DomesticTripGeneration(rb, synPop);
+        trips_domestic = tgdomestic.runTripGeneration();
         logger.info("Domestic Trips from Ontario generated");
 
         //generate international trips (must be done after domestic)
         //recalculate accessibility to external international zones
-        toZones = Arrays.asList("EXTUS", "EXTOVERSEAS");
-        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, (float) 1, (float) -0.01);
-        logger.info("Accessibility for international trips from Ontario calculated");
+        //todo int accessibility is not being used now
+        /*toZones = Arrays.asList("EXTUS", "EXTOVERSEAS");
+        alpha = (float) ResourceUtil.getDoubleProperty(rb, "int.access.alpha");
+        beta = (float) ResourceUtil.getDoubleProperty(rb, "int.access.beta");
+        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alpha, beta);
+        logger.info("Accessibility for international trips from Ontario calculated using using alpha, beta = " + alpha + "," + beta);*/
         //calculate trips
         InternationalTripGeneration tginternational = new InternationalTripGeneration(rb);
-        trips_international = tginternational.runInternationalTripGeneration(syntheticPopulation);
+        trips_international = tginternational.runInternationalTripGeneration(synPop);
         logger.info("International trips from Ontario generated");
 
         //generate visitors
