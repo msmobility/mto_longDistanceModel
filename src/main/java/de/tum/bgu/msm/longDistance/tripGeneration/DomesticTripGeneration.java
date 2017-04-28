@@ -61,14 +61,14 @@ public class DomesticTripGeneration {
         //read the coefficients and probabilities of increasing travel parties
 
         // initialize the trip count to zero
-        int tripCount = 0;
+        //int tripCount = 0;
 
         double[] expUtilities = new double[4];
         expUtilities[3] = 1;
-        double[] probabilities = new double[4];
+        //double[] probabilities;
 
-
-        for (Household hhold : synPop.getHouseholds()) {
+        synPop.getHouseholds().forEach(hhold -> {
+        //for (Household hhold : synPop.getHouseholds()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
@@ -94,7 +94,7 @@ public class DomesticTripGeneration {
                         }
 
                         double denominator = Arrays.stream(expUtilities).sum();
-                        probabilities = Arrays.stream(expUtilities).map(u -> u / denominator).toArray();
+                        double[] probabilities = Arrays.stream(expUtilities).map(u -> u / denominator).toArray();
 
                         //TODO maybe this is only needed for non traveller and this way international trip generation is faster
                         for (String tripState : tripStates) {
@@ -116,9 +116,9 @@ public class DomesticTripGeneration {
                         }
 
                         if (tripStateAsInt < 3) {
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateAsInt), probabilities, tripCount, travelPartyProbabilities);
+                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateAsInt), probabilities, 0, travelPartyProbabilities);
                             trips.add(trip);
-                            tripCount++;
+                            //tripCount++;
                         }
                     }
                     //assign probabilities to all the non-travellers
@@ -131,7 +131,8 @@ public class DomesticTripGeneration {
 
 
             //logger.info(tripCount + " of " + persCount);
-        }
+        //}
+        });
         return trips;
     }
 

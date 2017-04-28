@@ -55,7 +55,7 @@ public class TripGenerationModel {
         float beta = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
         toZones = Arrays.asList("ONTARIO", "EXTCANADA");
         mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alpha , beta);
-        logger.info("Accessibility for domestic trips from Ontario calculated using alpha, beta = " + alpha + "," + beta);
+
 
         DomesticTripGeneration tgdomestic = new DomesticTripGeneration(rb, synPop);
         trips_domestic = tgdomestic.runTripGeneration();
@@ -67,11 +67,10 @@ public class TripGenerationModel {
         /*toZones = Arrays.asList("EXTUS", "EXTOVERSEAS");
         alpha = (float) ResourceUtil.getDoubleProperty(rb, "int.access.alpha");
         beta = (float) ResourceUtil.getDoubleProperty(rb, "int.access.beta");
-        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alpha, beta);
-        logger.info("Accessibility for international trips from Ontario calculated using using alpha, beta = " + alpha + "," + beta);*/
+        mtoLongDistData.calculateAccessibility(zoneList, fromZones, toZones, alpha, beta);*/
         //calculate trips
-        InternationalTripGeneration tginternational = new InternationalTripGeneration(rb);
-        trips_international = tginternational.runInternationalTripGeneration(synPop);
+        InternationalTripGeneration tginternational = new InternationalTripGeneration(rb, synPop);
+        trips_international = tginternational.runInternationalTripGeneration();
         logger.info("International trips from Ontario generated");
 
         //generate visitors

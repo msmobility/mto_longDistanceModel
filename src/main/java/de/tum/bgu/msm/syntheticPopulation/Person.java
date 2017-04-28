@@ -84,7 +84,7 @@ public class Person {
     }
 
 
-    //add gets for inputs for trip generation by Carlos Llorca on 7/4/16
+
     public int getPersonId() {return id;}
 
     public char getGender() {
