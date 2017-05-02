@@ -51,6 +51,7 @@ public class DomesticTripGeneration {
         travelPartyProbabilities = Util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.ldd = ldd;
+
     }
 
     //method to run the trip generation
@@ -68,7 +69,7 @@ public class DomesticTripGeneration {
         //double[] probabilities;
 
         synPop.getHouseholds().forEach(hhold -> {
-        //for (Household hhold : synPop.getHouseholds()) {
+            //for (Household hhold : synPop.getHouseholds()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
@@ -76,10 +77,8 @@ public class DomesticTripGeneration {
 
             for (Person pers : membersList) {
 
-
                 //array to store 3 x 3 trip probabilities for later use in international
                 float[][] tgProbabilities = new float[3][3];
-
 
                 if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
 
@@ -126,12 +125,10 @@ public class DomesticTripGeneration {
                 }
 
 
-
             }
 
-
             //logger.info(tripCount + " of " + persCount);
-        //}
+            //}
         });
         return trips;
     }

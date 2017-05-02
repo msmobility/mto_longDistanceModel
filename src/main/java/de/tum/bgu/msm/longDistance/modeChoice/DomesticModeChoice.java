@@ -173,9 +173,11 @@ public class DomesticModeChoice {
         double interMetro =  combinedZones.getIndexedValueAt(origin,"alt_is_metro")
                 * combinedZones.getIndexedValueAt(destination,"alt_is_metro");
         double ruralRural = 0;
-        if (combinedZones.getIndexedValueAt(origin,"alt_is_metro") ==0 | combinedZones.getIndexedValueAt(destination,"alt_is_metro") ==0){
+        if (combinedZones.getIndexedValueAt(origin,"alt_is_metro") == 0 && combinedZones.getIndexedValueAt(destination,"alt_is_metro") == 0){
             ruralRural = 1;
         }
+
+
 
 
         double time = travelTimeMatrix[m].getValueAt(origin, destination);
@@ -186,7 +188,15 @@ public class DomesticModeChoice {
 
 //        //todo scenario testing - remove for final version
 //        if (origin >18 & origin < 28 & destination == 103 & m == 1){
-//            price = price * 2;
+//            //price = price * 2;
+//
+//        }
+
+
+
+//        if (origin >18 & origin < 28 & destination == 103){
+//            //price = price * 2;
+//            logger.info("mode" +  modeNames[m] + "intermetro: " + interMetro + " ruralRural: " + ruralRural + "travelTime" + time);
 //        }
 
 

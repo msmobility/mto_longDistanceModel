@@ -50,13 +50,14 @@ public class MtoLongDistData {
     public MtoLongDistData(ResourceBundle rb) {
 
         this.rb = rb;
+
         this.internalZones = readInternalZones();
         this.externalZones = readExternalZones();
         this.zoneList = new ArrayList<>();
         this.zoneList.addAll(internalZones);
         this.zoneList.addAll(externalZones);
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
-        ;
+
     }
 
     public static List<String> getTripPurposes() {
@@ -158,8 +159,10 @@ public class MtoLongDistData {
             externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
             for (int externalZone : externalZonesOverseas){
                 //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
+                long staticAttraction = (long) externalOverseasTable.getIndexedValueAt(externalZone, "staticAttraction");
                 Zone zone = new Zone (externalZone, (int)externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
                         (int)externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, (int)externalOverseasTable.getIndexedValueAt(externalZone, "CombinedZone"));
+                zone.setStaticAttraction(staticAttraction);
                 externalZonesArray.add(zone);
             }
         }

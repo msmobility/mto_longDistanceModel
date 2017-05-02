@@ -11,6 +11,7 @@ public class Zone {
     private ZoneType zoneType;
     private double accessibility;
     private int combinedZoneId;
+    private long staticAttraction;
 
 
     public Zone(int id, int population, int employment, ZoneType zoneType, int combinedZoneId) {
@@ -67,6 +68,14 @@ public class Zone {
 
     public int getCombinedZoneId() {
         return combinedZoneId;
+    }
+
+    public long getStaticAttraction() {
+        return staticAttraction;
+    }
+
+    public void setStaticAttraction(long staticAttraction) {
+        this.staticAttraction = staticAttraction;
     }
 }
 

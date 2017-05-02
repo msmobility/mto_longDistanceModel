@@ -164,7 +164,7 @@ public class IntOutboundDestinationChoice {
 
     public double calculateOsZoneUtility(int destination){
 
-        return externalOsMap.get(destination).getPopulation();
+        return externalOsMap.get(destination).getStaticAttraction();
 
     }
 

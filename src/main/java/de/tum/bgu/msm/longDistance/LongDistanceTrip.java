@@ -39,6 +39,7 @@ public class LongDistanceTrip {
     private int nonHhTravelPartySize;
     private Zone origZone;
     private int destinationCombinedZoneId = -1;
+    private Zone destZone;
     private int travelMode=-1;
     private ZoneType destZoneType;
 
@@ -147,10 +148,18 @@ public class LongDistanceTrip {
         this.destZoneType = destZoneType;
     }
 
+    public Zone getDestZone() {
+        return destZone;
+    }
+
+    public void setDestZone(Zone destZone) {
+        this.destZone = destZone;
+    }
+
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty, destZoneType"
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty, destZoneType, destZone"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -177,6 +186,7 @@ public class LongDistanceTrip {
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
                     + "," + tr.getDestZoneType()
+                    + "," + tr.getDestZone().getId()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -201,6 +211,7 @@ public class LongDistanceTrip {
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getNonHhTravelPartySize()
                     + "," + tr.getDestZoneType()
+                    + "," + tr.getDestZone().getId()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 

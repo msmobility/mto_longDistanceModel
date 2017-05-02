@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.InternationalModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDissagregator;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
@@ -110,6 +111,15 @@ public class MtoLongDistance {
         if (ResourceUtil.getBooleanProperty(rb, "run.mode.choice", false)) {
             runModeChoice(allTrips);
         }
+
+
+        ZoneDissagregator zd = new ZoneDissagregator(rb, mtoLongDistData.getZoneList());
+        logger.info("Starting disaggregation");
+        allTrips.parallelStream().forEach(t  -> {
+            zd.dissagregateDestination(t);
+        });
+
+        logger.info("Finished disaggregation");
 
 
         if (ResourceUtil.getBooleanProperty(rb, "write.trips", false)) {
