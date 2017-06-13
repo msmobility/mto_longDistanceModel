@@ -214,6 +214,8 @@ public class SurveyDataImporter {
                 int origState = Integer.parseInt(stringState.substring(5,7));
                 String entryPort = survey.read(recString, "CDNENC");
 
+                int mode = survey.readInt(recString, "TRNEN");
+
                 int date = survey.readInt(recString, "DATEN");
                 int travelParty = survey.readInt(recString, "TPSZE");
                 int purpose = convertPurpose(survey.readInt(recString, "RSN"));
@@ -242,7 +244,7 @@ public class SurveyDataImporter {
                         "-999" +"," +
                         entryRoute +"," +
                         travelParty +"," +
-                        "-999" +"," +
+                        mode +"," +
                         entryPort + "," +
                         purpose + "," +
                         destPR[0] + "," +
@@ -271,7 +273,7 @@ public class SurveyDataImporter {
                                 "-999" + "," +
                                 entryRoute + "," +
                                 travelParty + "," +
-                                "-999" + "," +
+                                mode + "," +
                                 entryPort + "," +
                                 purpose + "," +
                                 destPR[i] + "," +
@@ -299,7 +301,7 @@ public class SurveyDataImporter {
         String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file")+ "OSVis";
         PrintWriter out = Util.openFileForSequentialWriting(its_out_location + year + ".csv", false);
         //System.out.println(fileName);
-        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,mode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
+        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,entryMode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
         Survey survey = dataDictionary.getSurvey("ITS", year, "OSVisitors");
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));
@@ -313,6 +315,8 @@ public class SurveyDataImporter {
                 int date = survey.readInt(recString, "DATEN");
                 int travelParty = survey.readInt(recString, "TPSZE");
                 int purpose = convertPurpose(survey.readInt(recString, "RSN"));
+
+
 
                 int entryRoute = survey.readInt(recString, "RTEN");
                 float weight = survey.readFloat(recString, "PERSFAC");
@@ -338,7 +342,7 @@ public class SurveyDataImporter {
                         "-999" +"," +
                         entryRoute +"," +
                         travelParty +"," +
-                        "-999" +"," +
+                        -999 +"," +
                         entryPort + "," +
                         purpose + "," +
                         destPR[0] + "," +
@@ -366,7 +370,7 @@ public class SurveyDataImporter {
                                 "-999" + "," +
                                 entryRoute + "," +
                                 travelParty + "," +
-                                "-999" + "," +
+                                -999 + "," +
                                 entryPort + "," +
                                 purpose + "," +
                                 destPR[i] + "," +
@@ -397,7 +401,7 @@ public class SurveyDataImporter {
         int recCount = 0;
         String its_out_location = rb.getString("output.folder") + "/" + rb.getString("its.out.file")+ "Vis";
         PrintWriter out = Util.openFileForSequentialWriting(its_out_location + year + ".csv", false);
-        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,mode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
+        out.println("recCount,year,date,country,state,sGRCode,entryRoute,travelParty,entryMode,entryPort,purpose,destPR,destCD,destCMA,destTR,nights,weight,fileType,stopSeq");
         Survey survey = dataDictionary.getSurvey("ITS", year, "Visitors");
         try {
             BufferedReader in = new BufferedReader(new FileReader(fileName));

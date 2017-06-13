@@ -186,9 +186,10 @@ public class DomesticModeChoice {
 
         double vot= mcOntarioCoefficients.getStringIndexedValueAt("vot", column);
 
-//        //todo scenario testing - remove for final version
-//        if (origin >18 & origin < 28 & destination == 103 & m == 1){
-//            //price = price * 2;
+//        todo scenario testing - remove for final version
+//        if (origin >18 & origin < 28 & destination == 103 & m == 2){
+//            //"a high speed train between toronto a montreal that reduces time to the half
+//            time = time / 2;
 //
 //        }
 
