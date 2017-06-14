@@ -7,7 +7,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.InternationalModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.IntOutboundModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDissagregator;
@@ -42,7 +42,7 @@ public class MtoLongDistance {
     private IntInboundDestinationChoice dcInBoundModel;
 
     private DomesticModeChoice mcDomesticModel;
-    private InternationalModeChoice mcInternationalModel;
+    private IntOutboundModeChoice intOutboundModeChoice;
 
     private SyntheticPopulation syntheticPopulationReader;
 
@@ -54,12 +54,13 @@ public class MtoLongDistance {
         mtoLongDistData.populateZones(syntheticPopulationReader);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
 
+        //mode choices are before to allow getting logsums in destination choice
+        mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
+        intOutboundModeChoice = new IntOutboundModeChoice(rb, mtoLongDistData, mcDomesticModel);
+
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData);
-        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData);
-
-        mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
-        mcInternationalModel = new InternationalModeChoice(rb, mtoLongDistData, mcDomesticModel);
+        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intOutboundModeChoice);
 
     }
 
@@ -185,6 +186,8 @@ public class MtoLongDistance {
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)){
                 if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from Canada to US
+                    int mode = intOutboundModeChoice.selectMode(t);
+                    t.setMode(mode);
                 } else {
                     //international from Canada to OS
                     t.setMode(1); //always by air
@@ -192,7 +195,9 @@ public class MtoLongDistance {
 
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)){
                 //international visitors from US
-
+                // todo change for specific inBound model
+                int mode = intOutboundModeChoice.selectMode(t);
+                t.setMode(mode);
 
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)){
                 //international visitors from US
@@ -230,6 +235,8 @@ public class MtoLongDistance {
         }
         pw.close();
     }
+
+
 
 
 }

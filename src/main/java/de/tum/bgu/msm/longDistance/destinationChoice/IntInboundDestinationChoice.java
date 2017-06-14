@@ -4,6 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.modeChoice.IntOutboundModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -25,9 +26,10 @@ public class IntInboundDestinationChoice {
     private Matrix autoTravelTime;
     private int[] alternatives;
     String[] tripPurposeArray;
+    private IntOutboundModeChoice intOutboundModeChoice;
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
+    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntOutboundModeChoice intMcModel){
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
@@ -41,6 +43,8 @@ public class IntInboundDestinationChoice {
         //load combined zones distance skim
         readSkim(rb);
         alternatives = destCombinedZones.getColumnAsInt("alt");
+
+        intOutboundModeChoice = intMcModel;
     }
 
 
@@ -97,6 +101,15 @@ public class IntInboundDestinationChoice {
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
         double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
         double alpha_dist = coefficients.getStringIndexedValueAt("alpha_dist", tripPurpose);
+
+        //get the logsum
+        double logsum = 0;
+                int[] modes = intOutboundModeChoice.getModes();
+        for (int m: modes){
+            logsum += Math.exp(intOutboundModeChoice.calculateUtility(trip, m, destination));
+        }
+        logsum = Math.log(logsum);
+
 
         //read trip data
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);

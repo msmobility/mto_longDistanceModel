@@ -264,7 +264,22 @@ public class DomesticModeChoice {
 
     }
 
+    //getter for int mode choice
 
 
+    public Matrix[] getTravelTimeMatrix() {
+        return travelTimeMatrix;
+    }
 
+    public Matrix[] getPriceMatrix() {
+        return priceMatrix;
+    }
+
+    public Matrix[] getTransferMatrix() {
+        return transferMatrix;
+    }
+
+    public Matrix[] getFrequencyMatrix() {
+        return frequencyMatrix;
+    }
 }
