@@ -56,7 +56,8 @@ public class Mto {
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);
         int min = (int) (endTime - 60 * hours);
-        logger.info("Runtime: " + hours + " hours and " + min + " minutes.");
+        int seconds = (int)(endTime - 60*hours - min)*60;
+        logger.info("Runtime: " + hours + " hours and " + min + " minutes and " + seconds + " seconds." );
     }
 
 
