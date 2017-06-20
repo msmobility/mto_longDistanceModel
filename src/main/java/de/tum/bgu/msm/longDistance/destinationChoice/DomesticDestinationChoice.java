@@ -121,7 +121,7 @@ public class DomesticDestinationChoice {
         //TODO: check if this west-east transformation is suitable
         String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
         String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
-        if (origin_east_west.equals(destination_east_west) && !"ontario".equals(origin_east_west)) return Double.NEGATIVE_INFINITY;
+        //if (origin_east_west.equals(destination_east_west) && !"ontario".equals(origin_east_west)) return Double.NEGATIVE_INFINITY;
 
         double civic = combinedZones.getIndexedValueAt(destination,"population") + combinedZones.getIndexedValueAt(destination,"employment");
         double m_intra = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
@@ -134,6 +134,11 @@ public class DomesticDestinationChoice {
         double fs_medical = combinedZones.getIndexedValueAt(destination,"medical");
         double fs_sightseeing = combinedZones.getIndexedValueAt(destination,"sightseeing");
         double fs_hotel = combinedZones.getIndexedValueAt(destination,"hotel");
+
+        //logsums
+        //use different mode choice models if Ontario or extCanada
+
+
 
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);

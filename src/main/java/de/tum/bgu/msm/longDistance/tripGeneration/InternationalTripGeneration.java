@@ -124,7 +124,7 @@ public class InternationalTripGeneration {
                         }
                     }
                     if (numberOfTrips - tripCount == 0){
-                        logger.info("Number of iterations: " + iteration);
+                        //logger.info("Number of iterations: " + iteration);
                         break;
                     }
                 }
