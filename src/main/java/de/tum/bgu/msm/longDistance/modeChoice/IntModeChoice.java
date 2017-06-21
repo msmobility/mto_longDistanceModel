@@ -86,7 +86,7 @@ public class IntModeChoice {
 
     }
 
-    private double calculateUtilityToCanada(LongDistanceTrip trip, int m, int destination) {
+    public double calculateUtilityToCanada(LongDistanceTrip trip, int m, int destination) {
 
         double utility;
         String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
@@ -110,7 +110,7 @@ public class IntModeChoice {
         double price = priceMatrix[m].getValueAt(origin, destination);
         double frequency = frequencyMatrix[m].getValueAt(origin, destination);
 
-        double vot= mcIntOutboundCoefficients.getStringIndexedValueAt("vot", column);
+        double vot= mcIntInboundCoefficients.getStringIndexedValueAt("vot", column);
 
 //        todo scenario testing - remove for final version
 //        if (origin >18 & origin < 28 & destination == 103 & m == 2){
@@ -149,13 +149,14 @@ public class IntModeChoice {
         double b_overnight= mcIntInboundCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party= mcIntInboundCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance= mcIntInboundCoefficients.getStringIndexedValueAt("impedance", column);
+        double beta_time = mcIntInboundCoefficients.getStringIndexedValueAt("beta_time", column);
 
         utility = b_intercept + b_frequency*frequency +
                 b_price * price +
                 b_time * time +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * impedance;
+                b_impedance * Math.exp(beta_time*impedance);
 
 
         if (time < 0 ) utility = Double.NEGATIVE_INFINITY;
@@ -227,13 +228,14 @@ public class IntModeChoice {
         double b_overnight= mcIntOutboundCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party= mcIntOutboundCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance= mcIntOutboundCoefficients.getStringIndexedValueAt("impedance", column);
+        double beta_time = mcIntOutboundCoefficients.getStringIndexedValueAt("beta_time", column);
 
         utility = b_intercept + b_frequency*frequency +
                 b_price * price +
                 b_time * time +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * impedance;
+                b_impedance * Math.exp(beta_time*impedance);
 
 
         if (time < 0 ) utility = Double.NEGATIVE_INFINITY;

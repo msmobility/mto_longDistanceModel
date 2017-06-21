@@ -25,16 +25,18 @@ public class IntInboundDestinationChoice {
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
     private int[] alternatives;
-    String[] tripPurposeArray;
+    private String[] tripPurposeArray;
+    private String[] tripStateArray;
     private IntModeChoice intModeChoice;
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel){
+    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel) {
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
+        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //load alternatives
         destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
@@ -56,13 +58,13 @@ public class IntInboundDestinationChoice {
 
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
-        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
         return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
     }
 
 
-    public int selectDestinationFromOs (LongDistanceTrip trip){
+    public int selectDestinationFromOs(LongDistanceTrip trip) {
 
         //String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
 
@@ -70,7 +72,8 @@ public class IntInboundDestinationChoice {
 
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
-        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
         return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
     }
@@ -94,44 +97,75 @@ public class IntInboundDestinationChoice {
     }
 
 
-    public double calculateCanZoneUtilityFromUs (LongDistanceTrip trip, String tripPurpose, int destination){
+    public double calculateCanZoneUtilityFromUs(LongDistanceTrip trip, String tripPurpose, int destination) {
 
 //read coefficients
+        String tripState = tripStateArray[trip.getLongDistanceTripState()];
 
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
         double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
         double alpha_dist = coefficients.getStringIndexedValueAt("alpha_dist", tripPurpose);
+        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
+        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
+        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose);
+        double b_altIsMetro = coefficients.getStringIndexedValueAt("altIsMetro", tripPurpose);
+        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
 
         //get the logsum
         double logsum = 0;
-                int[] modes = intModeChoice.getModes();
-        for (int m: modes){
-            logsum += Math.exp(intModeChoice.calculateUtilityFromCanada(trip, m, destination));
+        int[] modes = intModeChoice.getModes();
+        for (int m : modes) {
+            logsum += Math.exp(intModeChoice.calculateUtilityToCanada(trip, m, destination));
         }
-        logsum = Math.log(logsum);
+        if(logsum ==0){
+            return Double.NEGATIVE_INFINITY;
+            //todo how to deal with trips that logsum == 0 --> means that no mode is available
+            //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
+        } else {
+            logsum = Math.log(logsum);
+        }
 
+
+        int overnight = 1;
+        if (tripState.equals("daytrip")) {
+            overnight = 0;
+        }
 
         //read trip data
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         //read destination data
-        double population =  destCombinedZones.getIndexedValueAt(destination,"population");
+        double population = destCombinedZones.getIndexedValueAt(destination, "population");
+        double employment = destCombinedZones.getIndexedValueAt(destination, "employment");
 
+        double civic = population + employment;
+
+        double hotel = destCombinedZones.getIndexedValueAt(destination, "hotel");
+        double skiing = destCombinedZones.getIndexedValueAt(destination, "skiing");
+        int altIsMetro = (int) destCombinedZones.getIndexedValueAt(destination, "alt_is_metro");
+
+
+        //calculate utility
         return b_population * population +
-                b_dist * Math.exp(alpha_dist * dist);
-
+                b_dist * Math.exp(alpha_dist * dist) +
+                b_dtLogsum * (1 - overnight) * logsum +
+                b_onLogsum * overnight * logsum +
+                b_civic * civic +
+                b_skiing * skiing +
+                b_altIsMetro * altIsMetro +
+                b_hotel * hotel;
 
     }
 
-    public double calculateCanZoneUtilityFromOs (int destination){
+    public double calculateCanZoneUtilityFromOs(int destination) {
 
 //read coefficients
 
-        return destCombinedZones.getIndexedValueAt(destination,"population");
+        return destCombinedZones.getIndexedValueAt(destination, "population");
 
 
     }
-
 
 
 }

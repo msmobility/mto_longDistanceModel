@@ -59,7 +59,7 @@ public class MtoLongDistance {
         intModeChoice = new IntModeChoice(rb, mtoLongDistData, mcDomesticModel);
 
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
-        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData);
+        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice);  //this one has input for logsums
 
     }

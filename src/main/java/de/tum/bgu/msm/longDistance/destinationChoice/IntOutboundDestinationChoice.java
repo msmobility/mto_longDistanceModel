@@ -4,9 +4,11 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import javafx.beans.binding.BooleanExpression;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -27,16 +29,19 @@ public class IntOutboundDestinationChoice {
     private int[] alternativesUS;
     private int[] alternativesOS;
 
-    String[] tripPurposeArray;
+    private IntModeChoice intModeChoice;
+    private String[] tripPurposeArray;
+    private String[] tripStateArray;
 
     Map<Integer, Zone> externalOsMap = new HashMap<>();
 
 
-    public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData){
+    public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intModeChoice){
 
         coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
+        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //load alternatives
         destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
@@ -59,6 +64,8 @@ public class IntOutboundDestinationChoice {
             alternativesOS[index] = id;
             index++;
         }
+
+        this.intModeChoice = intModeChoice;
 
     }
 
@@ -147,18 +154,38 @@ public class IntOutboundDestinationChoice {
 
         //read coefficients
 
+        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
-        double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
-        double alpha_dist = coefficients.getStringIndexedValueAt("alpha_dist", tripPurpose);
+        double dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
+        double onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
 
         //read trip data
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
+        double logsum = 0;
+        int[] modes = intModeChoice.getModes();
+        for (int m: modes){
+            logsum += Math.exp(intModeChoice.calculateUtilityFromCanada(trip, m, destination));
+        }
+        if(logsum ==0){
+            return Double.NEGATIVE_INFINITY;
+            //todo how to deal with trips that logsum == 0 --> means that no mode is available
+            //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
+        } else {
+            logsum = Math.log(logsum);
+        }
+
         //read destination data
         double population =  destCombinedZones.getIndexedValueAt(destination, "population");
+        int overnight = 1;
+        if (tripState.equals("daytrip")){
+            overnight = 0;
+        }
 
         return b_population * population +
-                b_dist * Math.exp(alpha_dist * dist);
+                dtLogsum * (1-overnight)*logsum +
+                onLogsum * overnight * logsum;
     }
 
 
