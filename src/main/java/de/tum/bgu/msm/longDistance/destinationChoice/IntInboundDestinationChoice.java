@@ -139,7 +139,7 @@ public class IntInboundDestinationChoice {
         double population = destCombinedZones.getIndexedValueAt(destination, "population");
         double employment = destCombinedZones.getIndexedValueAt(destination, "employment");
 
-        double civic = population + employment;
+        double civic = Math.log(population + employment);
 
         double hotel = destCombinedZones.getIndexedValueAt(destination, "hotel");
         double skiing = destCombinedZones.getIndexedValueAt(destination, "skiing");

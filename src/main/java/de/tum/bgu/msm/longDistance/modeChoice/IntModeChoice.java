@@ -71,11 +71,11 @@ public class IntModeChoice {
 
 
 
-        double probability_denominator = Arrays.stream(expUtilities).sum();
-        //todo if there is no access by any mode for the selected OD pair, just go by car
-        if (probability_denominator == 0){
+        //double probability_denominator = Arrays.stream(expUtilities).sum();
+        //todo if there is no access by any mode for the selected OD pair, just go by car -- not needed for Int trips??
+        /*if (probability_denominator == 0){
             expUtilities[0] = 1;
-        }
+        }*/
 
         //calculate the probability for each trip, based on the destination utilities
         //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
