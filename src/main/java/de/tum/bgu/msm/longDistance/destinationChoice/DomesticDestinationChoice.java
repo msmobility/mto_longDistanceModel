@@ -4,20 +4,16 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
-import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
-import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Joe on 26/10/2016.
@@ -27,7 +23,7 @@ public class DomesticDestinationChoice {
     public static final int CHOICE_SET_SIZE = 117;
     private TableDataSet combinedZones;
     private TableDataSet coefficients;
-    private Matrix autoTravelTime;
+    private Matrix autoDist;
     private int[] alternatives;
     String[] tripPurposeArray;
 
@@ -58,10 +54,10 @@ public class DomesticDestinationChoice {
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
         OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.combinedzones.distance"));
-        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
+        autoDist = Util.convertOmxToMatrix(timeOmxSkimAutos);
         OmxLookup omxLookUp = hSkim.getLookup(rb.getString("skim.combinedzones.lookup"));
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
-        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
+        autoDist.setExternalNumbersZeroBased(externalNumbers);
     }
 
     //given a trip, calculate the utility of each destination
@@ -112,7 +108,7 @@ public class DomesticDestinationChoice {
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
         int origin = trip.getOrigZone().getCombinedZoneId();
-        float distance = autoTravelTime.getValueAt(origin, destination);
+        float distance = autoDist.getValueAt(origin, destination);
 
         //if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
         //if (distance < 40) return Double.NEGATIVE_INFINITY;
@@ -191,6 +187,8 @@ public class DomesticDestinationChoice {
     }
 
 
-
+    public Matrix getAutoDist() {
+        return autoDist;
+    }
 }
 
