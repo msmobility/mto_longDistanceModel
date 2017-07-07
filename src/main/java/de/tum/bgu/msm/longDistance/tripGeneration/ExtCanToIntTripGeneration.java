@@ -18,26 +18,31 @@ import java.util.ResourceBundle;
  */
 public class ExtCanToIntTripGeneration {
 
+    private TableDataSet externalCanIntRates;
+    private TableDataSet travelPartyProbabilities;
+
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
 
     public ExtCanToIntTripGeneration(ResourceBundle rb) {
+
         this.rb = rb;
+        String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
+        externalCanIntRates = Util.readCSVfile(externalCanIntRatesName);
+        externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
+
+        String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
+        travelPartyProbabilities = Util.readCSVfile(visitorPartyProbabilitiesFilename);
+        travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
     }
 
     //method to run the trip generation
     public ArrayList<LongDistanceTrip> runExtCanInternationalTripGeneration(ArrayList<Zone> externalZoneList) {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
-        String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
-        TableDataSet externalCanIntRates = Util.readCSVfile(externalCanIntRatesName);
-        externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
-        String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
-        TableDataSet travelPartyProbabilities = Util.readCSVfile(visitorPartyProbabilitiesFilename);
-        travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 
         int tripCount = 0;
@@ -94,6 +99,7 @@ public class ExtCanToIntTripGeneration {
 
         return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone, true,
                 0, adultsHh, kidsHh, nonHh);
+        //TODO assign nights!
 
     }
 }

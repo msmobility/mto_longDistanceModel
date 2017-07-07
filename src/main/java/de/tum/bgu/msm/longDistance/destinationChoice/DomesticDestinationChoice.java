@@ -5,6 +5,7 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
@@ -26,8 +27,9 @@ public class DomesticDestinationChoice {
     private Matrix autoDist;
     private int[] alternatives;
     String[] tripPurposeArray;
+    private DomesticModeChoice domesticModeChoice;
 
-    public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData) {
+    public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
@@ -42,6 +44,8 @@ public class DomesticDestinationChoice {
         readSkim(rb);
 
         alternatives = combinedZones.getColumnAsInt("alt");
+
+        this.domesticModeChoice = domesticModeChoice;
     }
 
     public void readSkim(ResourceBundle rb) {
@@ -124,7 +128,7 @@ public class DomesticDestinationChoice {
         double mm_inter = origin != destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro")
                 * combinedZones.getIndexedValueAt(destination,"alt_is_metro") : 0;
         double r_intra = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
-        double fs_niagara = destination == 30 ? combinedZones.getIndexedValueAt(destination,"sightseeing") : 0;
+        double fs_niagara = destination == 30 ? 1 : 0;
         double fs_outdoors = combinedZones.getIndexedValueAt(destination,"outdoors");
         double fs_skiing = combinedZones.getIndexedValueAt(destination,"skiing");
         double fs_medical = combinedZones.getIndexedValueAt(destination,"medical");
@@ -132,7 +136,23 @@ public class DomesticDestinationChoice {
         double fs_hotel = combinedZones.getIndexedValueAt(destination,"hotel");
 
         //logsums
-        //use different mode choice models if Ontario or extCanada
+        //use non person based mode choice model
+        //get the logsum
+        double logsum = 0;
+        int[] modes = domesticModeChoice.getModes();
+        for (int m : modes) {
+            logsum += Math.exp(domesticModeChoice.calculateUtilityFromExtCanada(trip, m, destination));
+        }
+        if(logsum ==0){
+            return Double.NEGATIVE_INFINITY;
+            //todo how to deal with trips that logsum == 0 --> means that no mode is available
+            //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
+        } else {
+            logsum = Math.log(logsum);
+        }
+
+        double dtLogsum = trip.getLongDistanceTripState()==1? logsum: 0;
+        double onLogsum = trip.getLongDistanceTripState()!=1? logsum: 0;
 
 
 
@@ -144,24 +164,28 @@ public class DomesticDestinationChoice {
         double b_distance_exp = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
         double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
 
-        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        double b_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose);
 
-        double b_m_intra = coefficients.getStringIndexedValueAt("mm_intra_no_business", tripPurpose);
-        double b_mm_inter = coefficients.getStringIndexedValueAt("mm_inter_no_visit", tripPurpose);
-        double b_r_intra = coefficients.getStringIndexedValueAt("r_intra", tripPurpose);
+        double b_m_intra = coefficients.getStringIndexedValueAt("intrametro", tripPurpose);
+        double b_mm_inter = coefficients.getStringIndexedValueAt("intermetro", tripPurpose);
+        double b_r_intra = coefficients.getStringIndexedValueAt("intrarural", tripPurpose);
         double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
 
-        double b_outdoors = coefficients.getStringIndexedValueAt("summer_log_outdoors", tripPurpose);
-        double b_skiing = coefficients.getStringIndexedValueAt("winter_log_skiing", tripPurpose);
+        double b_outdoors = coefficients.getStringIndexedValueAt("log_outdoors", tripPurpose);
+        double b_skiing = coefficients.getStringIndexedValueAt("log_skiing", tripPurpose);
 
-        double b_medical = coefficients.getStringIndexedValueAt("visit_log_medical", tripPurpose);
+        double b_medical = coefficients.getStringIndexedValueAt("log_medical", tripPurpose);
         double b_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
         double b_sightseeing = coefficients.getStringIndexedValueAt("log_sightseeing", tripPurpose);
+
+        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
+        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
+
 
         //log conversions
         double log_distance = distance > 0 ? Math.log(distance) : 0;
         civic = civic > 0 ? Math.log(civic) : 0;
-        fs_niagara = fs_niagara > 0 ? Math.log(fs_niagara) : 0;
+        //fs_niagara = fs_niagara > 0 ? Math.log(fs_niagara) : 0;
         fs_outdoors = fs_outdoors > 0 ? Math.log(fs_outdoors) : 0;
         fs_skiing = fs_skiing > 0 ? Math.log(fs_skiing) : 0;
         fs_medical = fs_medical > 0 ? Math.log(fs_medical) : 0;
@@ -171,7 +195,8 @@ public class DomesticDestinationChoice {
         double u =
                 b_distance_exp * Math.exp(-alpha * distance)
                 + b_distance_log * log_distance
-
+                + b_dtLogsum*dtLogsum
+                + b_onLogsum*onLogsum
                 + b_civic * civic
                 + b_mm_inter * mm_inter
                 + b_m_intra * m_intra

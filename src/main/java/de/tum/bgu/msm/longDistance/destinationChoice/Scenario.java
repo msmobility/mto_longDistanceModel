@@ -5,6 +5,7 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -29,6 +30,7 @@ public class Scenario {
     MtoLongDistData mtoLongDistData;
     ResourceBundle rb;
     private DomesticDestinationChoice dcModel;
+    private DomesticModeChoice mcModel;
     Logger logger = Logger.getLogger(Scenario.class);
     ArrayList<LongDistanceTrip> allTrips;
 
@@ -36,7 +38,8 @@ public class Scenario {
 
         this.rb = rb;
         mtoLongDistData = new MtoLongDistData(rb);
-        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
+        mcModel = new DomesticModeChoice(rb, mtoLongDistData);
+        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcModel );
 
     }
 

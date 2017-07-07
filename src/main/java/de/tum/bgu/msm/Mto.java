@@ -62,8 +62,7 @@ public class Mto {
 
 
     private void runDataAnalysis() {
-        // main method to run data analysis
-
+        // main method to run TRSC and ITS survey data analysis
         MtoSurveyData data = SurveyDataImporter.importData(rb);
         MtoAnalyzeData ld = new MtoAnalyzeData(rb, data);
         ld.runAnalyses();

@@ -193,6 +193,7 @@ public class DomesticModeChoice {
         double b_overnight = mcExtCanadaCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party = mcExtCanadaCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("impedance", column);
+        double alpha_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("alpha", column);
 
         utility = b_intercept + b_frequency * frequency +
                 b_price * price +
@@ -206,7 +207,7 @@ public class DomesticModeChoice {
 //                b_educationUniv * educationUniv +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * impedance;
+                b_impedance * Math.exp(alpha_impedance*impedance);
 
 
         if (time < 0) utility = Double.NEGATIVE_INFINITY;
@@ -287,7 +288,7 @@ public class DomesticModeChoice {
         double incomeHigh = p.getIncome() >= 100000 ? 1 : 0;
 
         double young = p.getAge() < 25 ? 1 : 0;
-        double male = p.getGender() == 'M' ? 1 : 0;
+        double female = p.getGender() == 'F' ? 1 : 0;
 
         double educationUniv = p.getEducation() > 5 ? 1 : 0;
 
@@ -301,11 +302,12 @@ public class DomesticModeChoice {
         double b_young = mcOntarioCoefficients.getStringIndexedValueAt("young", column);
         double b_interMetro = mcOntarioCoefficients.getStringIndexedValueAt("inter_metro", column);
         double b_ruralRural = mcOntarioCoefficients.getStringIndexedValueAt("rural_rural", column);
-        double b_male = mcOntarioCoefficients.getStringIndexedValueAt("male", column);
+        double b_female = mcOntarioCoefficients.getStringIndexedValueAt("female", column);
         double b_educationUniv = mcOntarioCoefficients.getStringIndexedValueAt("education_univ", column);
         double b_overnight = mcOntarioCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party = mcOntarioCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance = mcOntarioCoefficients.getStringIndexedValueAt("impedance", column);
+        double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
         utility = b_intercept + b_frequency * frequency +
                 b_price * price +
@@ -315,11 +317,11 @@ public class DomesticModeChoice {
                 b_young * young +
                 b_interMetro * interMetro +
                 b_ruralRural * ruralRural +
-                b_male * male +
+                b_female * female +
                 b_educationUniv * educationUniv +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * impedance;
+                b_impedance * Math.exp(alpha_impedance*impedance);
 
 
         if (time < 0) utility = Double.NEGATIVE_INFINITY;
@@ -327,6 +329,10 @@ public class DomesticModeChoice {
 
         return utility;
 
+    }
+
+    public int[] getModes() {
+        return modes;
     }
 
     //getter for int mode choice

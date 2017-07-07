@@ -9,8 +9,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoic
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDissagregator;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDisaggregator;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
@@ -29,11 +28,14 @@ import java.util.*;
  */
 
 public class MtoLongDistance {
+
     static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
 
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
+
     private MtoLongDistData mtoLongDistData;
+    private SyntheticPopulation syntheticPopulationReader;
 
     private TripGenerationModel tripGenModel;
 
@@ -44,43 +46,48 @@ public class MtoLongDistance {
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
 
-    private SyntheticPopulation syntheticPopulationReader;
+    private ZoneDisaggregator zd;
 
     public MtoLongDistance(ResourceBundle rb) {
 
         this.rb = rb;
+
+        //sp and zone system
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         mtoLongDistData.populateZones(syntheticPopulationReader);
+
+        //tg model
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
 
-        //mode choices are before to allow getting logsums in destination choice
+        //mode choice models
         mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
         intModeChoice = new IntModeChoice(rb, mtoLongDistData, mcDomesticModel);
 
-        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData);
+        //destination choice models
+        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcDomesticModel);
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
-        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice);  //this one has input for logsums
+        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
+
+        //disaggregation model
+        zd = new ZoneDisaggregator(rb, mtoLongDistData.getZoneList());
 
     }
 
     public void runLongDistanceModel() {
 
-        if (ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false)) {
-            allTrips = tripGenModel.runTripGeneration();
-            //currently only internal zone list
+        boolean runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
+        boolean runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
 
-        } else {
-            if (ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false)) {
-
+        //developing tools to skip TG and/or DC if needed
+        if (!runTG) {
+            if (runDC) {
                 //load saved trips without destination
                 logger.info("Loading generated trips");
                 TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.in.file"));
-
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, false);
                     allTrips.add(ldt);
-
                 }
             } else {
                 //load saved trip with destinations
@@ -95,37 +102,16 @@ public class MtoLongDistance {
             }
         }
 
-        if (ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false)) {
-            runDestinationChoice(allTrips);
-        }
+        if (runTG) allTrips = tripGenModel.runTripGeneration();
 
-//        //todo filter trips from selected OD pairs for mode choice scenario
-//        ArrayList<LongDistanceTrip> selectedTrips = new ArrayList<>();
-//        for (LongDistanceTrip tr : allTrips){
-//            if (tr.getDestZoneId()==103 & tr.getOrigZone().getCombinedZoneId()> 18 & tr.getOrigZone().getCombinedZoneId()< 28) {
-//                    selectedTrips.add(tr);
-//            }
-//        }
-//        ArrayList<LongDistanceTrip> allTrips = selectedTrips;
+        if (runDC) runDestinationChoice(allTrips);
 
+        runModeChoice(allTrips);
 
-        if (ResourceUtil.getBooleanProperty(rb, "run.mode.choice", false)) {
-            runModeChoice(allTrips);
-        }
-
-
-        ZoneDissagregator zd = new ZoneDissagregator(rb, mtoLongDistData.getZoneList());
-        logger.info("Starting disaggregation");
-        allTrips.parallelStream().forEach(t -> {
-            zd.dissagregateDestination(t);
-        });
-
-        logger.info("Finished disaggregation");
-
+        runDisaggregation(allTrips);
 
         if (ResourceUtil.getBooleanProperty(rb, "write.trips", false)) {
             syntheticPopulationReader.writeSyntheticPopulation();
-            //writePopByZone();
             writeTrips(allTrips);
         }
 
@@ -139,8 +125,7 @@ public class MtoLongDistance {
 
     }
 
-    //destination Choice
-    //if run trip gen is false, then load trips from file
+
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
@@ -151,6 +136,7 @@ public class MtoLongDistance {
                 t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
             } else {
                 if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
+                    // residents to international
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setDestination(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
@@ -174,15 +160,14 @@ public class MtoLongDistance {
 
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
+        trips.parallelStream().forEach(t -> {
             if (!t.isLongDistanceInternational()) {
-
                 //domestic mode choice for synthetic persons in Ontario
                 int mode = mcDomesticModel.selectModeDomestic(t);
                 t.setMode(mode);
-
-                //todo simplify the next lines
+                // international mode choice
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
+                //residents
                 if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from Canada to US
                     int mode = intModeChoice.selectMode(t);
@@ -191,12 +176,11 @@ public class MtoLongDistance {
                     //international from Canada to OS
                     t.setMode(1); //always by air
                 }
-
+                //visitors
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
                 //international visitors from US
                 int mode = intModeChoice.selectMode(t);
                 t.setMode(mode);
-
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
                 //international visitors from US
                 t.setMode(1); //always by air
@@ -205,6 +189,13 @@ public class MtoLongDistance {
         });
     }
 
+    public void runDisaggregation(ArrayList<LongDistanceTrip> trips){
+        logger.info("Starting disaggregation");
+        allTrips.parallelStream().forEach(t -> {
+            zd.disaggregateDestination(t);
+        });
+        logger.info("Finished disaggregation");
+    }
 
     public void writeTrips(ArrayList<LongDistanceTrip> trips) {
         logger.info("Writing out data for trip generation (trips)");
@@ -225,14 +216,14 @@ public class MtoLongDistance {
         pw.close();
     }
 
-    public void writePopByZone() {
-        PrintWriter pw = Util.openFileForSequentialWriting(rb.getString("zone.out.file"), false);
-        pw.println("zone,hh,pp");
-        for (Zone zone : mtoLongDistData.getInternalZoneList()) {
-            pw.println(zone.getId() + "," + zone.getHouseholds() + "," + zone.getPopulation());
-        }
-        pw.close();
-    }
+//    public void writePopByZone() {
+//        PrintWriter pw = Util.openFileForSequentialWriting(rb.getString("zone.out.file"), false);
+//        pw.println("zone,hh,pp");
+//        for (Zone zone : mtoLongDistData.getInternalZoneList()) {
+//            pw.println(zone.getId() + "," + zone.getHouseholds() + "," + zone.getPopulation());
+//        }
+//        pw.close();
+//    }
 
 
 }

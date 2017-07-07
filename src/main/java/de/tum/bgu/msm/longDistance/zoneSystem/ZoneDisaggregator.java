@@ -12,13 +12,13 @@ import java.util.ResourceBundle;
 /**
  * Created by carlloga on 02-05-17.
  */
-public class ZoneDissagregator {
+public class ZoneDisaggregator {
 
     private ResourceBundle rb;
     private ArrayList<Zone> zoneList;
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
 
-    public ZoneDissagregator(ResourceBundle rb, ArrayList<Zone> zoneList){
+    public ZoneDisaggregator(ResourceBundle rb, ArrayList<Zone> zoneList){
         this.rb = rb;
         this.zoneList = zoneList;
         combinedZoneMap = new HashMap<>();
@@ -37,7 +37,7 @@ public class ZoneDissagregator {
 
     }
 
-    public void dissagregateDestination(LongDistanceTrip trip){
+    public void disaggregateDestination(LongDistanceTrip trip){
 
         Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestZoneId());
 

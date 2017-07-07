@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 
 import com.pb.common.datafile.TableDataSet;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
@@ -25,7 +26,7 @@ public class DomesticTripGeneration {
     private List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private List<String> tripStates = MtoLongDistData.getTripStates();
 
-    private MtoLongDistData ldd;
+    private MtoLongDistData mtoLongDistData;
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
@@ -37,7 +38,7 @@ public class DomesticTripGeneration {
 
 
 
-    public DomesticTripGeneration(ResourceBundle rb, SyntheticPopulation synPop) {
+    public DomesticTripGeneration(ResourceBundle rb, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.rb = rb;
         this.synPop = synPop;
 
@@ -50,7 +51,19 @@ public class DomesticTripGeneration {
 
         travelPartyProbabilities = Util.readCSVfile(travelPartyProbabilitiesFilename);
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
-        this.ldd = ldd;
+        this.mtoLongDistData = mtoLongDistData;
+
+        mtoLongDistData.readSkim("auto");
+
+        List<String> fromZones;
+        List<String> toZones;
+
+        //accessibility in Canada to Canada Trips - assing short-distance accessibility to zones
+        fromZones = Arrays.asList("ONTARIO");
+        float alpha = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
+        float beta = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
+        toZones = Arrays.asList("ONTARIO", "EXTCANADA");
+        mtoLongDistData.calculateAccessibility(mtoLongDistData.getZoneList(), fromZones, toZones, alpha , beta);
 
     }
 
@@ -58,15 +71,10 @@ public class DomesticTripGeneration {
     public ArrayList<LongDistanceTrip> runTripGeneration() {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
-        //domestic trip generation
-        //read the coefficients and probabilities of increasing travel parties
-
-        // initialize the trip count to zero
-        //int tripCount = 0;
-
+        //initialize utility vectors
         double[] expUtilities = new double[4];
-        expUtilities[3] = 1;
-        //double[] probabilities;
+        expUtilities[3] = 1; //base case - or do not travel
+
 
         synPop.getHouseholds().forEach(hhold -> {
             //for (Household hhold : synPop.getHouseholds()) {
@@ -76,14 +84,9 @@ public class DomesticTripGeneration {
             Collections.shuffle(membersList);
 
             for (Person pers : membersList) {
-
                 //array to store 3 x 3 trip probabilities for later use in international
                 float[][] tgProbabilities = new float[3][3];
-
                 if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
-
-                    //pers.travelProbabilities = new float[3][3];
-                    //float[] personDescription = readPersonSocioDemographics(pers);
 
                     for (String tripPurpose : tripPurposes) {
 
@@ -95,40 +98,38 @@ public class DomesticTripGeneration {
                         double denominator = Arrays.stream(expUtilities).sum();
                         double[] probabilities = Arrays.stream(expUtilities).map(u -> u / denominator).toArray();
 
-                        //TODO maybe this is only needed for non traveller and this way international trip generation is faster
+                        //store the probability for later int trips
                         for (String tripState : tripStates) {
                             tgProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probabilities[tripStates.indexOf(tripState)];
                         }
                         //select the trip state
                         double randomNumber1 = Math.random();
-                        int tripStateAsInt = 3;
+                        int tripStateChoice = 3;
 
                         if (randomNumber1 < probabilities[0]) {
-                            tripStateAsInt = 0;
+                            tripStateChoice = 0;
                             pers.setAway(true);
                         } else if (randomNumber1 < probabilities[1] + probabilities[0]) {
-                            tripStateAsInt = 1;
+                            tripStateChoice = 1;
                             pers.setDaytrip(true);
                         } else if (randomNumber1 < probabilities[2] + probabilities[1] + probabilities[0]) {
-                            tripStateAsInt = 2;
+                            tripStateChoice = 2;
                             pers.setInOutTrip(true);
                         }
 
-                        if (tripStateAsInt < 3) {
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateAsInt), probabilities, 0, travelPartyProbabilities);
+                        if (tripStateChoice < 3) {
+                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateChoice), probabilities,  travelPartyProbabilities);
                             trips.add(trip);
                             //tripCount++;
                         }
                     }
-                    //assign probabilities to all the non-travellers
+                    //assign probabilities to the person
                     pers.setTravelProbabilities(tgProbabilities);
                 }
 
 
             }
 
-            //logger.info(tripCount + " of " + persCount);
-            //}
         });
         return trips;
     }
@@ -137,9 +138,7 @@ public class DomesticTripGeneration {
 
         double accessibility = pers.getHousehold().getZone().getAccessibility();
 
-        int winter = 0;
-        //variable is winter
-        if (Mto.getWinter()) winter = 1;
+        int winter = Mto.getWinter()? 1:0;
 
         //read coefficients
         String coefficientColumn = tripState + "." + tripPurpose;
@@ -178,7 +177,7 @@ public class DomesticTripGeneration {
 
     }
 
-
+    //this method is no longer used
     public static float[] readPersonSocioDemographics(Person pers) {
         float personDescription[] = new float[15];
         //change size to 15 if "winter" is added
@@ -262,6 +261,7 @@ public class DomesticTripGeneration {
         return personDescription;
     }
 
+    //this method is no longer used
     public static double estimateMlogitUtility(float[] personDescription, String tripPurpose, String tripState, TableDataSet tripGenerationCoefficients) {
         double utility = 0;
         // set sum of utilities of the 4 alternatives
@@ -278,6 +278,25 @@ public class DomesticTripGeneration {
             utility += tripGenerationCoefficients.getIndexedValueAt(var + 1, coefficientColumn) * personDescription[var];
         }
         return utility;
+    }
+
+
+    private LongDistanceTrip createLongDistanceTrip(Person pers, String tripPurpose, String tripState, double probability[], TableDataSet travelPartyProbabilities) {
+
+        ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> hhTravelParty = new ArrayList<>();
+        hhTravelParty.addAll(adultsHhTravelParty);
+        hhTravelParty.addAll(kidsHhTravelParty);
+        int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        int tripDuration;
+        if (pers.isDaytrip()) tripDuration = 0;
+        else {
+            tripDuration = estimateTripDuration(probability);
+        }
+        return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
+                pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+
     }
 
     public static int estimateTripDuration(double[] probability) {
@@ -345,23 +364,6 @@ public class DomesticTripGeneration {
         return k;
     }
 
-    private LongDistanceTrip createLongDistanceTrip(Person pers, String tripPurpose, String tripState, double probability[], int tripCount, TableDataSet travelPartyProbabilities) {
-
-        ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> hhTravelParty = new ArrayList<>();
-        hhTravelParty.addAll(adultsHhTravelParty);
-        hhTravelParty.addAll(kidsHhTravelParty);
-        int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
-        int tripDuration;
-        if (pers.isDaytrip()) tripDuration = 0;
-        else {
-            tripDuration = estimateTripDuration(probability);
-        }
-        return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
-                pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
-
-    }
 
 }
 
