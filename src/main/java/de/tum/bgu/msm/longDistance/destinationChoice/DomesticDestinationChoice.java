@@ -166,17 +166,17 @@ public class DomesticDestinationChoice {
             case 2:
                 //tripPurpose = "leisure";
                 b_calibration_dt = 2.02;
-                b_calibration_on = 2.02;
+                b_calibration_on = b_calibration_dt;
                 break;
             case 0:
                 //tripPurpose = "visit";
                 b_calibration_dt = 2.09;
-                b_calibration_on = 2.09;
+                b_calibration_on = b_calibration_dt;
                 break;
             case 1:
                 //tripPurpose = "business";
                 b_calibration_dt = 1.52;
-                b_calibration_on = 1.52;
+                b_calibration_on = b_calibration_dt;
                 break;
         }
 
