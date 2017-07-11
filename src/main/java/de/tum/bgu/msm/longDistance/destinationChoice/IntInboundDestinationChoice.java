@@ -112,6 +112,28 @@ public class IntInboundDestinationChoice {
         double b_altIsMetro = coefficients.getStringIndexedValueAt("altIsMetro", tripPurpose);
         double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
 
+        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
+        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
+
+        //todo manual test of calibration parameters
+        switch (trip.getLongDistanceTripPurpose()) {
+            case 2:
+                //tripPurpose = "leisure";
+                k_dtLogsum = 1;
+                k_onLogsum = k_dtLogsum;
+                break;
+            case 0:
+                //tripPurpose = "visit";
+                k_dtLogsum = 1;
+                k_onLogsum = k_dtLogsum;
+                break;
+            case 1:
+                //tripPurpose = "business";
+                k_dtLogsum = 1;
+                k_onLogsum = k_dtLogsum;
+                break;
+        }
+
         //get the logsum
         double logsum = 0;
         int[] modes = intModeChoice.getModes();
@@ -149,8 +171,8 @@ public class IntInboundDestinationChoice {
         //calculate utility
         return b_population * population +
                 b_dist * Math.exp(alpha_dist * dist) +
-                b_dtLogsum * (1 - overnight) * logsum +
-                b_onLogsum * overnight * logsum +
+                b_dtLogsum * (1 - overnight) * logsum * k_dtLogsum +
+                b_onLogsum * overnight * logsum * k_onLogsum +
                 b_civic * civic +
                 b_skiing * skiing +
                 b_altIsMetro * altIsMetro +
@@ -166,6 +188,5 @@ public class IntInboundDestinationChoice {
 
 
     }
-
 
 }

@@ -161,7 +161,27 @@ public class DomesticDestinationChoice {
 
         double k = coefficients.getStringIndexedValueAt("k", tripPurpose); //calibration coefficient
 
-        double b_distance_exp = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
+        double b_calibration_dt = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
+        double b_calibration_on = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
+        //todo manual calibration - only test version
+        switch (trip.getLongDistanceTripPurpose()) {
+            case 2:
+                //tripPurpose = "leisure";
+                b_calibration_dt = 2.02;
+                b_calibration_on = 2.02;
+                break;
+            case 0:
+                //tripPurpose = "visit";
+                b_calibration_dt = 2.09;
+                b_calibration_on = 2.09;
+                break;
+            case 1:
+                //tripPurpose = "business";
+                b_calibration_dt = 1.52;
+                b_calibration_on = 1.52;
+                break;
+        }
+
         double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
 
         double b_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose);
@@ -193,10 +213,10 @@ public class DomesticDestinationChoice {
         fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
 
         double u =
-                b_distance_exp * Math.exp(-alpha * distance)
+                Math.exp(-alpha * distance)
                 + b_distance_log * log_distance
-                + b_dtLogsum*dtLogsum
-                + b_onLogsum*onLogsum
+                + b_dtLogsum * dtLogsum * b_calibration_dt
+                + b_onLogsum * onLogsum * b_calibration_on
                 + b_civic * civic
                 + b_mm_inter * mm_inter
                 + b_m_intra * m_intra
@@ -204,6 +224,8 @@ public class DomesticDestinationChoice {
                 + b_niagara * fs_niagara
                 + b_outdoors * (trip.isSummer() ? 1 : 0)* fs_outdoors
                 + b_skiing * (!trip.isSummer() ? 1 : 0) *  fs_skiing
+                       // + b_outdoors * fs_outdoors
+                       // + b_skiing * fs_skiing
                 + b_medical * fs_medical
                 + b_hotel * fs_hotel
                 + b_sightseeing * fs_sightseeing;

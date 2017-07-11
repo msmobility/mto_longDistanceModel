@@ -293,6 +293,7 @@ public class DomesticModeChoice {
         double educationUniv = p.getEducation() > 5 ? 1 : 0;
 
         //getCoefficients
+        double k_calibration = mcOntarioCoefficients.getStringIndexedValueAt("k_calibration", column);
         double b_intercept = mcOntarioCoefficients.getStringIndexedValueAt("intercept", column);
         double b_frequency = mcOntarioCoefficients.getStringIndexedValueAt("frequency", column);
         double b_price = mcOntarioCoefficients.getStringIndexedValueAt("price", column);
@@ -309,7 +310,8 @@ public class DomesticModeChoice {
         double b_impedance = mcOntarioCoefficients.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
-        utility = b_intercept + b_frequency * frequency +
+        utility = b_intercept  +  k_calibration +
+                b_frequency * frequency +
                 b_price * price +
                 b_time * time +
                 b_incomeLow * incomeLow +

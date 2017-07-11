@@ -29,6 +29,8 @@ public class IntOutboundDestinationChoice {
     private int[] alternativesUS;
     private int[] alternativesOS;
 
+    private TableDataSet origCombinedZones;
+
     private IntModeChoice intModeChoice;
     private String[] tripPurposeArray;
     private String[] tripStateArray;
@@ -46,6 +48,10 @@ public class IntOutboundDestinationChoice {
         //load alternatives
         destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
         destCombinedZones.buildIndex(1);
+
+        //load alternatives (origins, to read accessibility to US of the zone)
+        origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        origCombinedZones.buildIndex(1);
 
         //load combined zones distance skim
         readSkim(rb);
@@ -131,11 +137,23 @@ public class IntOutboundDestinationChoice {
 
     public boolean selectUs(LongDistanceTrip trip, String tripPurpose){
 
+        double utility;
         //binary choice model for US/OS (per purpose)
+        if(trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+            //trips from Ontario = use accessibility to get the probability
+            double b_intercept =coefficients.getStringIndexedValueAt("isUs", tripPurpose);
+            double b_usAccess = coefficients.getStringIndexedValueAt("isUsAcc", tripPurpose);
 
-        double exp_utility = Math.exp(coefficients.getStringIndexedValueAt("isUs", tripPurpose));
+            double usAccess = origCombinedZones.getIndexedValueAt(trip.getOrigZone().getCombinedZoneId(), "usAccess");
 
-        double probability = exp_utility / (1 + exp_utility);
+            utility = Math.exp(b_intercept + b_usAccess * usAccess);
+        } else {
+            //if from external canada do not have accessibility to us in the choice model
+            double b_intercept = coefficients.getStringIndexedValueAt("isUsExternal", tripPurpose);
+            utility = Math.exp(b_intercept);
+        }
+
+        double probability = utility / (1 + utility);
 
         if (trip.getLongDistanceTripState() == 1){
             //daytrips are always to US
@@ -157,8 +175,31 @@ public class IntOutboundDestinationChoice {
         String tripState = tripStateArray[trip.getLongDistanceTripState()];
 
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
+        double b_log_population = coefficients.getStringIndexedValueAt("log_population", tripPurpose);
         double dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
         double onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
+
+        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
+        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
+
+        //todo manual test of calibration parameters
+        switch (trip.getLongDistanceTripPurpose()) {
+            case 2:
+                //tripPurpose = "leisure";
+                k_dtLogsum = 0.95 /1.5;
+                k_onLogsum = k_dtLogsum;
+                break;
+            case 0:
+                //tripPurpose = "visit";
+                k_dtLogsum = 1.24 * 1.5;
+                k_onLogsum = k_dtLogsum;
+                break;
+            case 1:
+                //tripPurpose = "business";
+                k_dtLogsum = 1.28*1.5;
+                k_onLogsum = k_dtLogsum;
+                break;
+        }
 
         //read trip data
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
@@ -178,14 +219,19 @@ public class IntOutboundDestinationChoice {
 
         //read destination data
         double population =  destCombinedZones.getIndexedValueAt(destination, "population");
+
+        double log_population = population >0?  Math.log(destCombinedZones.getIndexedValueAt(destination, "population")):0;
+
+
         int overnight = 1;
         if (tripState.equals("daytrip")){
             overnight = 0;
         }
 
         return b_population * population +
-                dtLogsum * (1-overnight)*logsum +
-                onLogsum * overnight * logsum;
+                b_log_population * log_population +
+                dtLogsum * (1-overnight)*logsum * k_dtLogsum +
+                onLogsum * overnight * logsum * k_onLogsum;
     }
 
 

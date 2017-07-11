@@ -140,12 +140,14 @@ public class MtoLongDistance {
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setDestination(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
+                    if(t.getDestZoneType().equals(ZoneType.EXTUS)) t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
 
                 } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
                     // us visitors with destination in CANADA
                     int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
                     t.setDestination(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
+                    t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
                 } else {
                     //os visitors to Canada
                     int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
