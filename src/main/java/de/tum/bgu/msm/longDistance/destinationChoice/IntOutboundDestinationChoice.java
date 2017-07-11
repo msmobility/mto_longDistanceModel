@@ -186,17 +186,17 @@ public class IntOutboundDestinationChoice {
         switch (trip.getLongDistanceTripPurpose()) {
             case 2:
                 //tripPurpose = "leisure";
-                k_dtLogsum = 0.95 /1.5;
+                k_dtLogsum = 0.78;
                 k_onLogsum = k_dtLogsum;
                 break;
             case 0:
                 //tripPurpose = "visit";
-                k_dtLogsum = 1.24 * 1.5;
+                k_dtLogsum = 1.42;
                 k_onLogsum = k_dtLogsum;
                 break;
             case 1:
                 //tripPurpose = "business";
-                k_dtLogsum = 1.28*1.5;
+                k_dtLogsum = 1.82;
                 k_onLogsum = k_dtLogsum;
                 break;
         }

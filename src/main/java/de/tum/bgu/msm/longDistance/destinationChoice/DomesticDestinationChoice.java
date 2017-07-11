@@ -154,8 +154,6 @@ public class DomesticDestinationChoice {
         double dtLogsum = trip.getLongDistanceTripState()==1? logsum: 0;
         double onLogsum = trip.getLongDistanceTripState()!=1? logsum: 0;
 
-
-
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
 
