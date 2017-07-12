@@ -102,9 +102,14 @@ public class MtoLongDistance {
             }
         }
 
+        boolean calibration = true;
+
         if (runTG) allTrips = tripGenModel.runTripGeneration();
 
-        if (runDC) runDestinationChoice(allTrips);
+        if (calibration) calibrateDestinationChoice(allTrips);
+
+        if (runDC && !calibration) runDestinationChoice(allTrips);
+
 
         runModeChoice(allTrips);
 
@@ -121,7 +126,6 @@ public class MtoLongDistance {
             AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
             accAna.calculateAccessibilityForAnalysis();
         }
-
 
     }
 
@@ -226,6 +230,28 @@ public class MtoLongDistance {
 //        }
 //        pw.close();
 //    }
+
+    public void calibrateDestinationChoice (ArrayList <LongDistanceTrip> allTrips){
+
+        runDestinationChoice(allTrips);
+        int maxIterDc = 10;
+        double[][] calibrationMatrix = new double[3][3];
+
+        for (int iteration = 0; iteration < maxIterDc; iteration ++) {
+
+            Calibration c = new Calibration();
+            calibrationMatrix = c.calculateCalibrationMatrix(allTrips);
+            dcModel.updatedomDcCalibrationV(calibrationMatrix[0]);
+            runDestinationChoice(allTrips);
+
+
+        }
+
+        logger.info("k_domestic_dc visit = " + calibrationMatrix[0][0]);
+        logger.info("k_domestic_dc business = " + calibrationMatrix[0][1]);
+        logger.info("k_domestic_dc leisure = " + calibrationMatrix[0][2]);
+
+    }
 
 
 }

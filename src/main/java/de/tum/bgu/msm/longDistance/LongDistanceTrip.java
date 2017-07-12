@@ -45,6 +45,8 @@ public class LongDistanceTrip {
     private float travelDistanceLevel2 = -1;
 
 
+
+
     //ArrayList<Long> destinations;
 
     public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, boolean summer, int nights,
@@ -164,6 +166,8 @@ public class LongDistanceTrip {
     public void setTravelDistanceLevel2(float travelDistanceLevel2) {
         this.travelDistanceLevel2 = travelDistanceLevel2;
     }
+
+
 
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +

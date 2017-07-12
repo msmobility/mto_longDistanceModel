@@ -29,6 +29,8 @@ public class DomesticDestinationChoice {
     String[] tripPurposeArray;
     private DomesticModeChoice domesticModeChoice;
 
+    private double[] domDcCalibrationV;
+
     public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
         //coef format
         // table format: coeff | visit | leisure | business
@@ -46,6 +48,8 @@ public class DomesticDestinationChoice {
         alternatives = combinedZones.getColumnAsInt("alt");
 
         this.domesticModeChoice = domesticModeChoice;
+
+        this.domDcCalibrationV = new double[] {1,1,1};
     }
 
     public void readSkim(ResourceBundle rb) {
@@ -162,7 +166,7 @@ public class DomesticDestinationChoice {
         double b_calibration_dt = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
         double b_calibration_on = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
         //todo manual calibration - only test version
-        switch (trip.getLongDistanceTripPurpose()) {
+       /* switch (trip.getLongDistanceTripPurpose()) {
             case 2:
                 //tripPurpose = "leisure";
                 b_calibration_dt = 2.02;
@@ -176,6 +180,24 @@ public class DomesticDestinationChoice {
             case 1:
                 //tripPurpose = "business";
                 b_calibration_dt = 1.52;
+                b_calibration_on = b_calibration_dt;
+                break;
+        }*/
+
+        switch (trip.getLongDistanceTripPurpose()) {
+            case 2:
+                //tripPurpose = "leisure";
+                b_calibration_dt = domDcCalibrationV[2];
+                b_calibration_on = b_calibration_dt;
+                break;
+            case 0:
+                //tripPurpose = "visit";
+                b_calibration_dt = domDcCalibrationV[0];
+                b_calibration_on = b_calibration_dt;
+                break;
+            case 1:
+                //tripPurpose = "business";
+                b_calibration_dt = domDcCalibrationV[1];
                 b_calibration_on = b_calibration_dt;
                 break;
         }
@@ -231,6 +253,15 @@ public class DomesticDestinationChoice {
         return u;
     }
 
+    public double[] getDomDcCalibrationV() {
+        return domDcCalibrationV;
+    }
+
+    public void updatedomDcCalibrationV(double[] b_calibrationVector) {
+        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
+        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
+        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
+    }
 
     public Matrix getAutoDist() {
         return autoDist;
