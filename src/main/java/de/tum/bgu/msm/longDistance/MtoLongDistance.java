@@ -111,7 +111,9 @@ public class MtoLongDistance {
         if (runDC && !calibration) runDestinationChoice(allTrips);
 
 
-        runModeChoice(allTrips);
+        if (calibration) calibrateModeChoice(allTrips);
+
+        if (!calibration) runModeChoice(allTrips);
 
         runDisaggregation(allTrips);
 
@@ -144,7 +146,8 @@ public class MtoLongDistance {
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setDestination(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                    if(t.getDestZoneType().equals(ZoneType.EXTUS)) t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
+                    if (t.getDestZoneType().equals(ZoneType.EXTUS))
+                        t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
 
                 } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
                     // us visitors with destination in CANADA
@@ -195,7 +198,7 @@ public class MtoLongDistance {
         });
     }
 
-    public void runDisaggregation(ArrayList<LongDistanceTrip> trips){
+    public void runDisaggregation(ArrayList<LongDistanceTrip> trips) {
         logger.info("Starting disaggregation");
         allTrips.parallelStream().forEach(t -> {
             zd.disaggregateDestination(t);
@@ -231,27 +234,102 @@ public class MtoLongDistance {
 //        pw.close();
 //    }
 
-    public void calibrateDestinationChoice (ArrayList <LongDistanceTrip> allTrips){
+    public void calibrateDestinationChoice(ArrayList<LongDistanceTrip> allTrips) {
 
         runDestinationChoice(allTrips);
-        int maxIterDc = 10;
+        int maxIterDc = 5;
         double[][] calibrationMatrix = new double[3][3];
+        Calibration c = new Calibration();
 
-        for (int iteration = 0; iteration < maxIterDc; iteration ++) {
 
-            Calibration c = new Calibration();
+        for (int iteration = 0; iteration < maxIterDc; iteration++) {
+            logger.info("Calibration of destination choice: Iteration = " + iteration);
             calibrationMatrix = c.calculateCalibrationMatrix(allTrips);
             dcModel.updatedomDcCalibrationV(calibrationMatrix[0]);
+            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrix[1]);
+            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrix[2]);
             runDestinationChoice(allTrips);
-
 
         }
 
-        logger.info("k_domestic_dc visit = " + calibrationMatrix[0][0]);
-        logger.info("k_domestic_dc business = " + calibrationMatrix[0][1]);
-        logger.info("k_domestic_dc leisure = " + calibrationMatrix[0][2]);
-
+        logger.info("---------------------------------------------------------");
+        logger.info("-----------------RESULTS DC------------------------------");
+        logger.info("k_domestic_dc visit = " + dcModel.getDomDcCalibrationV()[0]);
+        logger.info("k_domestic_dc business = " + dcModel.getDomDcCalibrationV()[1]);
+        logger.info("k_domestic_dc leisure = " + dcModel.getDomDcCalibrationV()[2]);
+        logger.info("k_int_out_dc visit = " + dcOutboundModel.getCalibrationV()[0]);
+        logger.info("k_int_out_dc business = " + dcOutboundModel.getCalibrationV()[1]);
+        logger.info("k_int_out_dc leisure = " + dcOutboundModel.getCalibrationV()[2]);
+        logger.info("k_int_in_dc visit = " + dcInBoundModel.getCalibrationV()[0]);
+        logger.info("k_int_in_dc business = " + dcInBoundModel.getCalibrationV()[1]);
+        logger.info("k_int_in_dc leisure = " + dcInBoundModel.getCalibrationV()[2]);
+        logger.info("---------------------------------------------------------");
     }
+
+    public void calibrateModeChoice(ArrayList<LongDistanceTrip> allTrips) {
+
+        runModeChoice(allTrips);
+
+
+        int maxIterMc = 5;
+        double[][][] calibrationMatrix = new double[3][3][4];
+        Calibration c = new Calibration();
+
+
+        for (int iteration = 0; iteration < maxIterMc; iteration++) {
+            logger.info("Calibration of mode choice: Iteration = " + iteration);
+            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips);
+            mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
+            intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
+            intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);
+            runDestinationChoice(allTrips);
+
+        }
+
+        logger.info("---------------------------------------------------------");
+        logger.info("-----------------RESULTS MC------------------------------");
+        logger.info("k_domestic_dc visit: auto=" + mcDomesticModel.getCalibrationMatrix()[0][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrix()[0][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrix()[0][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrix()[0][3]);
+        logger.info("k_domestic_dc business: auto=" + mcDomesticModel.getCalibrationMatrix()[1][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrix()[1][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrix()[1][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrix()[1][3]);
+        logger.info("k_domestic_dc leisure: auto=" + mcDomesticModel.getCalibrationMatrix()[2][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrix()[2][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrix()[2][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrix()[2][3]);
+
+        logger.info("k_domestic_dc visit: auto=" + intModeChoice.getCalibrationMatrixOutbound()[0][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[0][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[0][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[0][3]);
+        logger.info("k_domestic_dc business: auto=" + intModeChoice.getCalibrationMatrixOutbound()[1][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[1][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[1][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[1][3]);
+        logger.info("k_domestic_dc leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[2][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[2][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[2][3]);
+
+        logger.info("k_domestic_dc visit: auto=" + intModeChoice.getCalibrationMatrixInbound()[0][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixInbound()[0][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[0][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[0][3]);
+        logger.info("k_domestic_dc business: auto=" + intModeChoice.getCalibrationMatrixInbound()[1][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixInbound()[1][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[1][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[1][3]);
+        logger.info("k_domestic_dc leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
+                ",air=" + intModeChoice.getCalibrationMatrixInbound()[2][1] +
+                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[2][2] +
+                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[2][3]);
+        logger.info("---------------------------------------------------------");
+    }
+
+
 
 
 }

@@ -42,6 +42,8 @@ public class DomesticModeChoice {
     String[] tripPurposeArray;
     String[] tripStateArray;
 
+    private double[][] calibrationMatrix;
+
 
     public DomesticModeChoice(ResourceBundle rb, MtoLongDistData ldData) {
         this.rb = rb;
@@ -61,6 +63,10 @@ public class DomesticModeChoice {
         combinedZones.buildIndex(1);
 
         readSkimByMode(rb);
+
+        calibrationMatrix = new double[tripPurposeArray.length][modes.length];
+
+
     }
 
     //constructor with read coefficients and matrices
@@ -207,7 +213,7 @@ public class DomesticModeChoice {
 //                b_educationUniv * educationUniv +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * Math.exp(alpha_impedance*impedance);
+                b_impedance * Math.exp(alpha_impedance * impedance);
 
 
         if (time < 0) utility = Double.NEGATIVE_INFINITY;
@@ -310,7 +316,10 @@ public class DomesticModeChoice {
         double b_impedance = mcOntarioCoefficients.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
-        utility = b_intercept  +  k_calibration +
+        //todo this updates calibration factor from during-runtime calibration matrix
+        k_calibration = calibrationMatrix[trip.getLongDistanceTripPurpose()][m];
+
+        utility = b_intercept + k_calibration +
                 b_frequency * frequency +
                 b_price * price +
                 b_time * time +
@@ -323,7 +332,7 @@ public class DomesticModeChoice {
                 b_educationUniv * educationUniv +
                 b_overnight * overnight +
                 b_party * party +
-                b_impedance * Math.exp(alpha_impedance*impedance);
+                b_impedance * Math.exp(alpha_impedance * impedance);
 
 
         if (time < 0) utility = Double.NEGATIVE_INFINITY;
@@ -354,5 +363,17 @@ public class DomesticModeChoice {
 
     public Matrix[] getFrequencyMatrix() {
         return frequencyMatrix;
+    }
+
+    public void updateCalibrationDomestic(double[][] calibrationMatrix) {
+        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
+            for (int mode = 0; mode < modes.length; mode++) {
+                this.calibrationMatrix[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrix[purp][mode];
+            }
+        }
+    }
+
+    public double[][] getCalibrationMatrix() {
+        return calibrationMatrix;
     }
 }

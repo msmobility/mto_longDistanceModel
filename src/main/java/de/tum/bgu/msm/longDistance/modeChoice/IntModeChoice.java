@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.Calibration;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -34,6 +35,9 @@ public class IntModeChoice {
     private TableDataSet mcIntOutboundCoefficients;
     private TableDataSet mcIntInboundCoefficients;
 
+    private double[][] calibrationMatrixOutbound;
+    private double[][] calibrationMatrixInbound;
+
 
 
 
@@ -53,6 +57,10 @@ public class IntModeChoice {
         priceMatrix = dmChoice.getPriceMatrix();
         transferMatrix = dmChoice.getTransferMatrix();
         frequencyMatrix = dmChoice.getFrequencyMatrix();
+
+        calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
+        calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
+
     }
 
     public int selectMode(LongDistanceTrip trip){
@@ -104,6 +112,7 @@ public class IntModeChoice {
         int origin = trip.getOrigZone().getCombinedZoneId();
 
 
+
         //zone-related variables
 
         double time = travelTimeMatrix[m].getValueAt(origin, destination);
@@ -150,8 +159,13 @@ public class IntModeChoice {
         double b_party= mcIntInboundCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance= mcIntInboundCoefficients.getStringIndexedValueAt("impedance", column);
         double beta_time = mcIntInboundCoefficients.getStringIndexedValueAt("beta_time", column);
+        double k_calibration = mcIntInboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
-        utility = b_intercept + b_frequency*frequency +
+        //todo calibration during runtime
+        k_calibration = calibrationMatrixInbound[trip.getLongDistanceTripPurpose()][m];
+
+                utility = b_intercept + k_calibration +
+                        b_frequency*frequency +
                 b_price * price +
                 b_time * time +
                 b_overnight * overnight +
@@ -230,7 +244,13 @@ public class IntModeChoice {
         double b_impedance= mcIntOutboundCoefficients.getStringIndexedValueAt("impedance", column);
         double beta_time = mcIntOutboundCoefficients.getStringIndexedValueAt("beta_time", column);
 
-        utility = b_intercept + b_frequency*frequency +
+        double k_calibration = mcIntOutboundCoefficients.getStringIndexedValueAt("k_calibration", column);
+
+        //todo calibration during runtime
+        k_calibration = calibrationMatrixOutbound[trip.getLongDistanceTripPurpose()][m];
+
+        utility = b_intercept + k_calibration +
+                b_frequency*frequency +
                 b_price * price +
                 b_time * time +
                 b_overnight * overnight +
@@ -247,5 +267,29 @@ public class IntModeChoice {
 
     public int[] getModes() {
         return modes;
+    }
+
+    public void updateCalibrationOutbound(double[][] calibrationMatrix) {
+        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
+            for (int mode = 0; mode < modes.length; mode++) {
+                this.calibrationMatrixOutbound[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixOutbound[purp][mode];
+            }
+        }
+    }
+
+    public void updateCalibrationInbound(double[][] calibrationMatrix) {
+        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
+            for (int mode = 0; mode < modes.length; mode++) {
+                this.calibrationMatrixInbound[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixInbound[purp][mode];
+            }
+        }
+    }
+
+    public double[][] getCalibrationMatrixOutbound() {
+        return calibrationMatrixOutbound;
+    }
+
+    public double[][] getCalibrationMatrixInbound() {
+        return calibrationMatrixInbound;
     }
 }

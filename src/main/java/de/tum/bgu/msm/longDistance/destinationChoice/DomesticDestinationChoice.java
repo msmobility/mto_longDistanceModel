@@ -259,8 +259,8 @@ public class DomesticDestinationChoice {
 
     public void updatedomDcCalibrationV(double[] b_calibrationVector) {
         this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
-        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
-        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
+        this.domDcCalibrationV[1] = this.domDcCalibrationV[1]*b_calibrationVector[1];
+        this.domDcCalibrationV[2] = this.domDcCalibrationV[2]*b_calibrationVector[2];
     }
 
     public Matrix getAutoDist() {

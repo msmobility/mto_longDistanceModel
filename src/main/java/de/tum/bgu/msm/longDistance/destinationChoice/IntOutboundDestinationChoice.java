@@ -37,6 +37,8 @@ public class IntOutboundDestinationChoice {
 
     Map<Integer, Zone> externalOsMap = new HashMap<>();
 
+    private double[] calibrationV;
+
 
     public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intModeChoice){
 
@@ -72,6 +74,8 @@ public class IntOutboundDestinationChoice {
         }
 
         this.intModeChoice = intModeChoice;
+
+        this.calibrationV = new double[] {1,1,1};
 
     }
 
@@ -186,17 +190,17 @@ public class IntOutboundDestinationChoice {
         switch (trip.getLongDistanceTripPurpose()) {
             case 2:
                 //tripPurpose = "leisure";
-                k_dtLogsum = 0.78;
+                k_dtLogsum = calibrationV[2];
                 k_onLogsum = k_dtLogsum;
                 break;
             case 0:
                 //tripPurpose = "visit";
-                k_dtLogsum = 1.42;
+                k_dtLogsum = calibrationV[0];
                 k_onLogsum = k_dtLogsum;
                 break;
             case 1:
                 //tripPurpose = "business";
-                k_dtLogsum = 1.82;
+                k_dtLogsum = calibrationV[1];
                 k_onLogsum = k_dtLogsum;
                 break;
         }
@@ -241,4 +245,13 @@ public class IntOutboundDestinationChoice {
 
     }
 
+    public void updateIntOutboundCalibrationV(double[] b_calibrationVector) {
+        this.calibrationV[0] = this.calibrationV[0]*b_calibrationVector[0];
+        this.calibrationV[1] = this.calibrationV[1]*b_calibrationVector[1];
+        this.calibrationV[2] = this.calibrationV[2]*b_calibrationVector[2];
+    }
+
+    public double[] getCalibrationV() {
+        return calibrationV;
+    }
 }

@@ -28,6 +28,7 @@ public class IntInboundDestinationChoice {
     private String[] tripPurposeArray;
     private String[] tripStateArray;
     private IntModeChoice intModeChoice;
+    private double[] calibrationV;
 
 
     public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel) {
@@ -47,6 +48,8 @@ public class IntInboundDestinationChoice {
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
         intModeChoice = intMcModel;
+
+        this.calibrationV = new double[] {1,1,1};
     }
 
 
@@ -119,17 +122,17 @@ public class IntInboundDestinationChoice {
         switch (trip.getLongDistanceTripPurpose()) {
             case 2:
                 //tripPurpose = "leisure";
-                k_dtLogsum = 1;
+                k_dtLogsum = calibrationV[2];
                 k_onLogsum = k_dtLogsum;
                 break;
             case 0:
                 //tripPurpose = "visit";
-                k_dtLogsum = 1;
+                k_dtLogsum = calibrationV[0];
                 k_onLogsum = k_dtLogsum;
                 break;
             case 1:
                 //tripPurpose = "business";
-                k_dtLogsum = 1;
+                k_dtLogsum = calibrationV[1];
                 k_onLogsum = k_dtLogsum;
                 break;
         }
@@ -189,4 +192,13 @@ public class IntInboundDestinationChoice {
 
     }
 
+    public void updateIntInboundCalibrationV(double[] b_calibrationVector) {
+        this.calibrationV[0] = this.calibrationV[0]*b_calibrationVector[0];
+        this.calibrationV[1] = this.calibrationV[1]*b_calibrationVector[1];
+        this.calibrationV[2] = this.calibrationV[2]*b_calibrationVector[2];
+    }
+
+    public double[] getCalibrationV() {
+        return calibrationV;
+    }
 }
