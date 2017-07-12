@@ -15,7 +15,7 @@ public class JsonUtilMto {
 
     private org.json.simple.parser.JSONParser parser;
     private JSONObject jsonProperties;
-    private String jsonFile;
+
 
     public JsonUtilMto (String jsonFile){
         try {
@@ -34,7 +34,7 @@ public class JsonUtilMto {
 
     }
 
-    public boolean getBooleanProperty(String key){
+    public boolean bool(String key){
 
             String[] keys = key.split("[.]");
 
@@ -48,7 +48,8 @@ public class JsonUtilMto {
 
     }
 
-    public String getStringProperty(String key){
+
+    public String stri(String key){
 
         String[] keys = key.split("[.]");
 
@@ -59,6 +60,32 @@ public class JsonUtilMto {
         }
 
         return  (String) property.get(keys[keys.length-1]);
+    }
+
+    public double dble(String key){
+
+        String[] keys = key.split("[.]");
+
+        JSONObject property = jsonProperties;
+
+        for (int i = 0; i < keys.length - 1; i++){
+            property = (JSONObject) property.get(keys[i]);
+        }
+
+        return  (double) property.get(keys[keys.length-1]);
+    }
+
+    public long lon(String key){
+
+        String[] keys = key.split("[.]");
+
+        JSONObject property = jsonProperties;
+
+        for (int i = 0; i < keys.length - 1; i++){
+            property = (JSONObject) property.get(keys[i]);
+        }
+
+        return  (long) property.get(keys[keys.length-1]);
     }
 
 

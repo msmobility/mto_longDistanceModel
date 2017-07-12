@@ -282,47 +282,48 @@ public class MtoLongDistance {
             mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
             intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
             intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);
-            runDestinationChoice(allTrips);
+            runModeChoice(allTrips);
 
         }
 
         logger.info("---------------------------------------------------------");
         logger.info("-----------------RESULTS MC------------------------------");
-        logger.info("k_domestic_dc visit: auto=" + mcDomesticModel.getCalibrationMatrix()[0][0] +
+        String type = "k_domestic_mc_";
+        logger.info(type + "visit: auto=" + mcDomesticModel.getCalibrationMatrix()[0][0] +
                 ",air=" + mcDomesticModel.getCalibrationMatrix()[0][1] +
                 ",rail=" + mcDomesticModel.getCalibrationMatrix()[0][2] +
                 ",bus=" + mcDomesticModel.getCalibrationMatrix()[0][3]);
-        logger.info("k_domestic_dc business: auto=" + mcDomesticModel.getCalibrationMatrix()[1][0] +
+        logger.info(type + "business: auto=" + mcDomesticModel.getCalibrationMatrix()[1][0] +
                 ",air=" + mcDomesticModel.getCalibrationMatrix()[1][1] +
                 ",rail=" + mcDomesticModel.getCalibrationMatrix()[1][2] +
                 ",bus=" + mcDomesticModel.getCalibrationMatrix()[1][3]);
-        logger.info("k_domestic_dc leisure: auto=" + mcDomesticModel.getCalibrationMatrix()[2][0] +
+        logger.info(type + "leisure: auto=" + mcDomesticModel.getCalibrationMatrix()[2][0] +
                 ",air=" + mcDomesticModel.getCalibrationMatrix()[2][1] +
                 ",rail=" + mcDomesticModel.getCalibrationMatrix()[2][2] +
                 ",bus=" + mcDomesticModel.getCalibrationMatrix()[2][3]);
-
-        logger.info("k_domestic_dc visit: auto=" + intModeChoice.getCalibrationMatrixOutbound()[0][0] +
+        type = "k_int_out_mc_";
+        logger.info(type + "visit: auto=" + intModeChoice.getCalibrationMatrixOutbound()[0][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixOutbound()[0][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[0][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[0][3]);
-        logger.info("k_domestic_dc business: auto=" + intModeChoice.getCalibrationMatrixOutbound()[1][0] +
+        logger.info(type + "business: auto=" + intModeChoice.getCalibrationMatrixOutbound()[1][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixOutbound()[1][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[1][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[1][3]);
-        logger.info("k_domestic_dc leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
+        logger.info(type + "leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixOutbound()[2][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[2][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[2][3]);
-
-        logger.info("k_domestic_dc visit: auto=" + intModeChoice.getCalibrationMatrixInbound()[0][0] +
+        type = "k_int_in_mc";
+        logger.info(type + "visit: auto=" + intModeChoice.getCalibrationMatrixInbound()[0][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixInbound()[0][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixInbound()[0][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixInbound()[0][3]);
-        logger.info("k_domestic_dc business: auto=" + intModeChoice.getCalibrationMatrixInbound()[1][0] +
+        logger.info(type + "business: auto=" + intModeChoice.getCalibrationMatrixInbound()[1][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixInbound()[1][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixInbound()[1][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixInbound()[1][3]);
-        logger.info("k_domestic_dc leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
+        logger.info(type + "leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
                 ",air=" + intModeChoice.getCalibrationMatrixInbound()[2][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixInbound()[2][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixInbound()[2][3]);
