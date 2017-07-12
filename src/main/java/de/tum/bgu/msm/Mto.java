@@ -5,9 +5,18 @@ import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.MtoAnalyzeData;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
+
 import org.apache.log4j.Logger;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ResourceBundle;
 
 /**
@@ -46,6 +55,12 @@ public class Mto {
         }
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = Util.mtoInitialization(args[0]);
+
+        //todo test version of getting json properties
+        JsonUtilMto jr = new JsonUtilMto("./file.json");
+        System.out.println(jr.getBooleanProperty("run.full_model"));
+        System.out.println(jr.getStringProperty("zone_files.external.us"));
+
         year = Integer.parseInt(args[1]);
         winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
 
