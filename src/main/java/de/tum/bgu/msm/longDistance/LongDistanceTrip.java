@@ -80,7 +80,7 @@ public class LongDistanceTrip {
         origZone = zoneLookup.get(origZoneId);
 
         if (assignDestination) this.destinationCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
-
+        if (assignDestination) this.destZoneType = ZoneType.getZoneType(tripsDomesticTable.getStringValueAt(row, "destZoneType"));
 
         //included for mode choice
         this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
@@ -173,7 +173,7 @@ public class LongDistanceTrip {
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty, destZoneType, destZone, travelDistanceLvl2"
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType, destZone, travelDistanceLvl2"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;

@@ -24,23 +24,23 @@ public class Calibration {
                 //trip that starts in Ontario
                 if (!t.isLongDistanceInternational()) {
                     //domestic from Ontario - row 0
-                    if (t.getTravelDistanceLevel2()<2000){
-                        averageDistances[0][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2()*getTripWeight(t);
-                        counts[0][t.getLongDistanceTripPurpose()]+= getTripWeight(t);
+                    if (t.getTravelDistanceLevel2() < 2000) {
+                        averageDistances[0][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[0][t.getLongDistanceTripPurpose()] += getTripWeight(t);
                     }
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
-                    if (t.getTravelDistanceLevel2()<4000){
-                        averageDistances[1][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2()*getTripWeight(t);
-                        counts[1][t.getLongDistanceTripPurpose()]+= getTripWeight(t);
+                    if (t.getTravelDistanceLevel2() < 4000) {
+                        averageDistances[1][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[1][t.getLongDistanceTripPurpose()] += getTripWeight(t);
                     }
                 }
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 //international from US to ontario + row 2
-                if (t.getTravelDistanceLevel2()<4000) {
-                    averageDistances[2][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2()*getTripWeight(t);
-                    counts[2][t.getLongDistanceTripPurpose()]+= getTripWeight(t);
+                if (t.getTravelDistanceLevel2() < 4000) {
+                    averageDistances[2][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                    counts[2][t.getLongDistanceTripPurpose()] += getTripWeight(t);
                 }
             }
         }
@@ -87,16 +87,16 @@ public class Calibration {
             if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
                 if (!t.isLongDistanceInternational()) {
                     //domestic from Ontario - row 0
-                    countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()]+= getTripWeight(t);
+                    countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
-                    countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()]+= getTripWeight(t);
+                    countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
                 }
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 //international from US to ontario + row 2
-                countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()]+= getTripWeight(t);
+                countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
 
             }
@@ -106,20 +106,18 @@ public class Calibration {
             for (int j = 0; j < 3; j++) {
                 double total = countsByMode[i][j][0] + countsByMode[i][j][1] + countsByMode[i][j][2] + countsByMode[i][j][3];
                 if (total > 0) {
-                    for (int m=0; m<4; m++){
-                        modalShares[i][j][m] = countsByMode[i][j][m]/total;
+                    for (int m = 0; m < 4; m++) {
+                        modalShares[i][j][m] = countsByMode[i][j][m] / total;
                     }
                 }
             }
         }
 
 
-
-
         return modalShares;
     }
 
-    public double [][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips){
+    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
 
         double[][][] calibrationMatrix = new double[3][3][4];
 
@@ -127,18 +125,20 @@ public class Calibration {
 
         double[][][] surveyShares = new double[3][3][4];
 
+        double expansionFactor = 1;
+
         //todo hard coded for calibration
         //domestic
         int type = 0;
-        surveyShares[type][0][0] =  0.92; // visit - auto
-        surveyShares[type][0][1] =  0.01; // visit - air
-        surveyShares[type][0][2] =  0.03; // visit - rail
-        surveyShares[type][0][3] =  0.04; // visit - bus
+        surveyShares[type][0][0] = 0.92; // visit - auto
+        surveyShares[type][0][1] = 0.01; // visit - air
+        surveyShares[type][0][2] = 0.03; // visit - rail
+        surveyShares[type][0][3] = 0.04; // visit - bus
 
-        surveyShares[type][1][0] =  0.84; // business
-        surveyShares[type][1][1] =   0.09; // business
-        surveyShares[type][1][2] =   0.05; // business
-        surveyShares[type][1][3] =   0.03; // business
+        surveyShares[type][1][0] = 0.84; // business
+        surveyShares[type][1][1] = 0.09; // business
+        surveyShares[type][1][2] = 0.05; // business
+        surveyShares[type][1][3] = 0.03; // business
 
         surveyShares[type][2][0] = 0.96; // leisure
         surveyShares[type][2][1] = 0.01; // leisure
@@ -147,20 +147,20 @@ public class Calibration {
 
         //int outbound
         type = 1;
-        surveyShares[type][0][0] =  0.76; // visit - auto
-        surveyShares[type][0][1] =  0.23; // visit - air
-        surveyShares[type][0][2] =  0.00; // visit - rail
-        surveyShares[type][0][3] =  0.01; // visit - bus
+        surveyShares[type][0][0] = 0.76; // visit - auto
+        surveyShares[type][0][1] = 0.23; // visit - air
+        surveyShares[type][0][2] = 0.00; // visit - rail
+        surveyShares[type][0][3] = 0.01; // visit - bus
 
-        surveyShares[type][1][0] =  0.74; // business
-        surveyShares[type][1][1] =  0.25; // business
-        surveyShares[type][1][2] =  0.00; // business
-        surveyShares[type][1][3] =  0.01; // business
+        surveyShares[type][1][0] = 0.74; // business
+        surveyShares[type][1][1] = 0.25; // business
+        surveyShares[type][1][2] = 0.00; // business
+        surveyShares[type][1][3] = 0.01; // business
 
-        surveyShares[type][2][0] =  0.87; // leisure
-        surveyShares[type][2][1] =  0.10; // leisure
-        surveyShares[type][2][2] =  0.00; // leisure
-        surveyShares[type][2][3] =  0.01; // leisure
+        surveyShares[type][2][0] = 0.87; // leisure
+        surveyShares[type][2][1] = 0.10; // leisure
+        surveyShares[type][2][2] = 0.00; // leisure
+        surveyShares[type][2][3] = 0.01; // leisure
 
         //int inbound
         type = 2;
@@ -168,7 +168,8 @@ public class Calibration {
         surveyShares[type][0][1] = 0.24; // visit - air
         surveyShares[type][0][2] = 0.00; // visit - rail
         surveyShares[type][0][3] = 0.01; // visit - bus
-        surveyShares[type][1][0] = 0.39 ; // business
+
+        surveyShares[type][1][0] = 0.39; // business
         surveyShares[type][1][1] = 0.60; // business
         surveyShares[type][1][2] = 0.00; // business
         surveyShares[type][1][3] = 0.01; // business
@@ -180,26 +181,36 @@ public class Calibration {
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                    for (int m=0; m<4; m++){
-                        if (modalShares[i][j][m] > 0){
-                            calibrationMatrix[i][j][m] = (modalShares[i][j][m] - surveyShares[i][j][m])/modalShares[i][j][m];
-                        } else {
-                            calibrationMatrix[i][j][m] = 0;
-                    }
-
+                for (int m = 0; m < 4; m++) {
+                    calibrationMatrix[i][j][m] = (-modalShares[i][j][m] + surveyShares[i][j][m]) * expansionFactor;
                 }
             }
         }
 
+        type = 0;
+        System.out.println("domestic");
+        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
+
+        type = 1;
+        System.out.println("international_outbound");
+        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
+
         type = 2;
-        System.out.println("visit: " + calibrationMatrix[type][0][0] + " - business: " + calibrationMatrix[type][0][1] + " - leisure: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("international_inbound");
+        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
 
         return calibrationMatrix;
 
     }
 
 
-    public double getTripWeight(LongDistanceTrip t){
+    public double getTripWeight(LongDistanceTrip t) {
         double weight = 0;
         switch (t.getLongDistanceTripState()) {
             case 0:

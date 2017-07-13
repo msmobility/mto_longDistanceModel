@@ -96,8 +96,8 @@ public class MtoLongDistance {
 
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, true);
-                    //ldt.setDestZoneType(dcModel.getDestinationZoneType(ldt.getDestZoneId()));
-                    //this option doesn't work now
+
+
                     allTrips.add(ldt);
 
 
