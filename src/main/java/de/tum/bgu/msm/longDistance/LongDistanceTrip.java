@@ -81,6 +81,7 @@ public class LongDistanceTrip {
 
         if (assignDestination) this.destinationCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
 
+
         //included for mode choice
         this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
         this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");

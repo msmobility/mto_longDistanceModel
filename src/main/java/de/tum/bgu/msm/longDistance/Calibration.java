@@ -94,7 +94,7 @@ public class Calibration {
                     countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()]+= getTripWeight(t);
 
                 }
-            } else if (t.getOrigZone().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 //international from US to ontario + row 2
                 countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()]+= getTripWeight(t);
 
@@ -104,7 +104,7 @@ public class Calibration {
         double[][][] modalShares = new double[3][3][4];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                double total = countsByMode[i][j][0] + countsByMode[i][j][0] + countsByMode[i][j][0] + countsByMode[i][j][0];
+                double total = countsByMode[i][j][0] + countsByMode[i][j][1] + countsByMode[i][j][2] + countsByMode[i][j][3];
                 if (total > 0) {
                     for (int m=0; m<4; m++){
                         modalShares[i][j][m] = countsByMode[i][j][m]/total;
@@ -112,6 +112,8 @@ public class Calibration {
                 }
             }
         }
+
+
 
 
         return modalShares;
@@ -188,6 +190,9 @@ public class Calibration {
                 }
             }
         }
+
+        type = 2;
+        System.out.println("visit: " + calibrationMatrix[type][0][0] + " - business: " + calibrationMatrix[type][0][1] + " - leisure: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
 
         return calibrationMatrix;
 

@@ -96,7 +96,11 @@ public class MtoLongDistance {
 
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, true);
+                    //ldt.setDestZoneType(dcModel.getDestinationZoneType(ldt.getDestZoneId()));
+                    //this option doesn't work now
                     allTrips.add(ldt);
+
+
                 }
 
             }
@@ -106,7 +110,7 @@ public class MtoLongDistance {
 
         if (runTG) allTrips = tripGenModel.runTripGeneration();
 
-        if (calibration) calibrateDestinationChoice(allTrips);
+        if (runDC & calibration) calibrateDestinationChoice(allTrips);
 
         if (runDC && !calibration) runDestinationChoice(allTrips);
 
@@ -237,7 +241,7 @@ public class MtoLongDistance {
     public void calibrateDestinationChoice(ArrayList<LongDistanceTrip> allTrips) {
 
         runDestinationChoice(allTrips);
-        int maxIterDc = 5;
+        int maxIterDc = 10;
         double[][] calibrationMatrix = new double[3][3];
         Calibration c = new Calibration();
 
@@ -271,7 +275,7 @@ public class MtoLongDistance {
         runModeChoice(allTrips);
 
 
-        int maxIterMc = 5;
+        int maxIterMc = 10;
         double[][][] calibrationMatrix = new double[3][3][4];
         Calibration c = new Calibration();
 
