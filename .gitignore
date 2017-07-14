@@ -4,9 +4,9 @@
 .settings/
 
 # Intellij
-.idea
-*.iml
-*.iws
+.idea/libraries
+#*.iml
+#*.iws
 
 # Mac
 .DS_Store
