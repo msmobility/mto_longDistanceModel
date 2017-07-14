@@ -20,8 +20,8 @@ public class Calibration {
         double[][] counts = new double[3][3];
 
         for (LongDistanceTrip t : allTrips) {
-            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
-                //trip that starts in Ontario
+            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+                //trip that starts in Ontario or end in ontario
                 if (!t.isLongDistanceInternational()) {
                     //domestic from Ontario - row 0
                     if (t.getTravelDistanceLevel2() < 2000) {
@@ -35,12 +35,12 @@ public class Calibration {
                         averageDistances[1][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
                         counts[1][t.getLongDistanceTripPurpose()] += getTripWeight(t);
                     }
-                }
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
-                //international from US to ontario + row 2
-                if (t.getTravelDistanceLevel2() < 4000) {
-                    averageDistances[2][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                    counts[2][t.getLongDistanceTripPurpose()] += getTripWeight(t);
+                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
+                    //international from US to ontario + row 2
+                    if (t.getTravelDistanceLevel2() < 4000) {
+                        averageDistances[2][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[2][t.getLongDistanceTripPurpose()] += getTripWeight(t);
+                    }
                 }
             }
         }
@@ -51,7 +51,9 @@ public class Calibration {
             }
         }
 
-        //System.out.println("visit: " + averageDistances[2][0] + " - business: " + averageDistances[2][1] + " - leisure: " + averageDistances[2][2]);
+        System.out.println("distance = visit: " + averageDistances[0][0] + " - business: " + averageDistances[0][1] + " - leisure: " + averageDistances[0][2]);
+        System.out.println("distance = visit: " + averageDistances[1][0] + " - business: " + averageDistances[1][1] + " - leisure: " + averageDistances[1][2]);
+        System.out.println("distance = visit: " + averageDistances[2][0] + " - business: " + averageDistances[2][1] + " - leisure: " + averageDistances[2][2]);
         return averageDistances;
 
     }
@@ -65,22 +67,22 @@ public class Calibration {
         double expansionFactor = 1.25;
 
         //todo hard coded for calibration
-        calibrationMatrix[0][0] = averageDistances[0][0] / 133 * expansionFactor; //domestic visit
-        calibrationMatrix[0][1] = averageDistances[0][1] / 175 * expansionFactor; //domestic business
-        calibrationMatrix[0][2] = averageDistances[0][2] / 134 * expansionFactor; //domestic leisure
-        calibrationMatrix[1][0] = averageDistances[1][0] / 642 * expansionFactor;//to us visit
-        calibrationMatrix[1][1] = averageDistances[1][1] / 579 * expansionFactor;//to us business
-        calibrationMatrix[1][2] = averageDistances[1][2] / 515 * expansionFactor;//to us leisure
-        calibrationMatrix[2][0] = averageDistances[2][0] / 697 * expansionFactor;//from us visit
-        calibrationMatrix[2][1] = averageDistances[2][1] / 899 * expansionFactor;//from us business
-        calibrationMatrix[2][2] = averageDistances[2][2] / 516 * expansionFactor;//from us leisure
+        calibrationMatrix[0][0] = (averageDistances[0][0] / 133-1) * expansionFactor + 1; //domestic visit
+        calibrationMatrix[0][1] = (averageDistances[0][1] / 175-1) * expansionFactor + 1; //domestic business
+        calibrationMatrix[0][2] = (averageDistances[0][2] / 134-1) * expansionFactor + 1; //domestic leisure
+        calibrationMatrix[1][0] = (averageDistances[1][0] / 642-1) * expansionFactor + 1;//to us visit
+        calibrationMatrix[1][1] = (averageDistances[1][1] / 579-1) * expansionFactor + 1;//to us business
+        calibrationMatrix[1][2] = (averageDistances[1][2] / 515-1) * expansionFactor + 1;//to us leisure
+        calibrationMatrix[2][0] = (averageDistances[2][0] / 697-1) * expansionFactor + 1;//from us visit
+        calibrationMatrix[2][1] = (averageDistances[2][1] / 899-1) * expansionFactor + 1;//from us business
+        calibrationMatrix[2][2] = (averageDistances[2][2] / 516-1) * expansionFactor + 1;//from us leisure
 
-        System.out.println("deomestic");
-        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("domestic");
+        System.out.println("k: visit: " + calibrationMatrix[0][0] + " - business: " + calibrationMatrix[0][1] + " - leisure: " + calibrationMatrix[0][2]);
         System.out.println("int_out");
-        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("k: visit: " + calibrationMatrix[1][0] + " - business: " + calibrationMatrix[1][1] + " - leisure: " + calibrationMatrix[1][2]);
         System.out.println("int_in");
-        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("k: visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
 
         return calibrationMatrix;
 
@@ -123,7 +125,7 @@ public class Calibration {
         return modalShares;
     }
 
-    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips, int iteration) {
 
         double[][][] calibrationMatrix = new double[3][3][4];
 
@@ -131,7 +133,7 @@ public class Calibration {
 
         double[][][] surveyShares = new double[3][3][4];
 
-        double expansionFactor = 1.25;
+        double expansionFactor = Math.exp(-0.2*iteration);
 
         //todo hard coded for calibration
         //domestic
@@ -195,22 +197,19 @@ public class Calibration {
 
         type = 0;
         System.out.println("domestic");
-        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
-        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
-        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
+        System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
 
         type = 1;
-        System.out.println("international_outbound");
-        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
-        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
-        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
-
+        System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
         type = 2;
         System.out.println("international_inbound");
-        System.out.println("visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
-        System.out.println("business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
-        System.out.println("leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
-
+        System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
         return calibrationMatrix;
 
     }

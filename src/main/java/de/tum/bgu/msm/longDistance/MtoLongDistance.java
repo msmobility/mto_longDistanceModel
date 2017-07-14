@@ -115,7 +115,7 @@ public class MtoLongDistance {
         if (runDC && !dcCalibration) runDestinationChoice(allTrips);
 
 
-        boolean mcCalibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        boolean mcCalibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
         if (mcCalibration) calibrateModeChoice(allTrips);
 
         if (!mcCalibration) runModeChoice(allTrips);
@@ -283,7 +283,7 @@ public class MtoLongDistance {
 
         for (int iteration = 0; iteration < maxIterMc; iteration++) {
             logger.info("Calibration of mode choice: Iteration = " + iteration);
-            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips);
+            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips, iteration);
             mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
             intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
             intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);
