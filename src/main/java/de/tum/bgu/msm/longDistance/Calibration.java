@@ -62,16 +62,18 @@ public class Calibration {
 
         double[][] calibrationMatrix = new double[3][3];
 
+        double expansionFactor = 1.25;
+
         //todo hard coded for calibration
-        calibrationMatrix[0][0] = averageDistances[0][0] / 133; //domestic visit
-        calibrationMatrix[0][1] = averageDistances[0][1] / 175; //domestic business
-        calibrationMatrix[0][2] = averageDistances[0][2] / 134; //domestic leisure
-        calibrationMatrix[1][0] = averageDistances[1][0] / 642;//to us visit
-        calibrationMatrix[1][1] = averageDistances[1][1] / 579;//to us business
-        calibrationMatrix[1][2] = averageDistances[1][2] / 515;//to us leisure
-        calibrationMatrix[2][0] = averageDistances[2][0] / 697;//from us visit
-        calibrationMatrix[2][1] = averageDistances[2][1] / 899;//from us business
-        calibrationMatrix[2][2] = averageDistances[2][2] / 516;//from us leisure
+        calibrationMatrix[0][0] = averageDistances[0][0] / 133 * expansionFactor; //domestic visit
+        calibrationMatrix[0][1] = averageDistances[0][1] / 175 * expansionFactor; //domestic business
+        calibrationMatrix[0][2] = averageDistances[0][2] / 134 * expansionFactor; //domestic leisure
+        calibrationMatrix[1][0] = averageDistances[1][0] / 642 * expansionFactor;//to us visit
+        calibrationMatrix[1][1] = averageDistances[1][1] / 579 * expansionFactor;//to us business
+        calibrationMatrix[1][2] = averageDistances[1][2] / 515 * expansionFactor;//to us leisure
+        calibrationMatrix[2][0] = averageDistances[2][0] / 697 * expansionFactor;//from us visit
+        calibrationMatrix[2][1] = averageDistances[2][1] / 899 * expansionFactor;//from us business
+        calibrationMatrix[2][2] = averageDistances[2][2] / 516 * expansionFactor;//from us leisure
 
         System.out.println("deomestic");
         System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
@@ -129,7 +131,7 @@ public class Calibration {
 
         double[][][] surveyShares = new double[3][3][4];
 
-        double expansionFactor = 1;
+        double expansionFactor = 1.25;
 
         //todo hard coded for calibration
         //domestic
