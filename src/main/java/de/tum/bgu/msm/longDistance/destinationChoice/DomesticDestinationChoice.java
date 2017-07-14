@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
@@ -28,7 +29,7 @@ public class DomesticDestinationChoice {
     private int[] alternatives;
     String[] tripPurposeArray;
     private DomesticModeChoice domesticModeChoice;
-
+    boolean calibration;
     private double[] domDcCalibrationV;
 
     public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
@@ -42,6 +43,8 @@ public class DomesticDestinationChoice {
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
 
+
+
         //load combined zones distance skim
         readSkim(rb);
 
@@ -49,6 +52,7 @@ public class DomesticDestinationChoice {
 
         this.domesticModeChoice = domesticModeChoice;
 
+        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.domDcCalibrationV = new double[] {1,1,1};
     }
 
@@ -163,43 +167,28 @@ public class DomesticDestinationChoice {
 
         double k = coefficients.getStringIndexedValueAt("k", tripPurpose); //calibration coefficient
 
-        double b_calibration_dt = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-        double b_calibration_on = k * coefficients.getStringIndexedValueAt("dist_exp", tripPurpose);
-        //todo manual calibration - only test version
-       /* switch (trip.getLongDistanceTripPurpose()) {
-            case 2:
-                //tripPurpose = "leisure";
-                b_calibration_dt = 2.02;
-                b_calibration_on = b_calibration_dt;
-                break;
-            case 0:
-                //tripPurpose = "visit";
-                b_calibration_dt = 2.09;
-                b_calibration_on = b_calibration_dt;
-                break;
-            case 1:
-                //tripPurpose = "business";
-                b_calibration_dt = 1.52;
-                b_calibration_on = b_calibration_dt;
-                break;
-        }*/
+        double b_calibration_dt = k * coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose);
+        double b_calibration_on = k * coefficients.getStringIndexedValueAt("b_calibration_on", tripPurpose);
 
-        switch (trip.getLongDistanceTripPurpose()) {
-            case 2:
-                //tripPurpose = "leisure";
-                b_calibration_dt = domDcCalibrationV[2];
-                b_calibration_on = b_calibration_dt;
-                break;
-            case 0:
-                //tripPurpose = "visit";
-                b_calibration_dt = domDcCalibrationV[0];
-                b_calibration_on = b_calibration_dt;
-                break;
-            case 1:
-                //tripPurpose = "business";
-                b_calibration_dt = domDcCalibrationV[1];
-                b_calibration_on = b_calibration_dt;
-                break;
+
+        if (calibration) {
+            switch (trip.getLongDistanceTripPurpose()) {
+                case 2:
+                    //tripPurpose = "leisure";
+                    b_calibration_dt = domDcCalibrationV[2];
+                    b_calibration_on = b_calibration_dt;
+                    break;
+                case 0:
+                    //tripPurpose = "visit";
+                    b_calibration_dt = domDcCalibrationV[0];
+                    b_calibration_on = b_calibration_dt;
+                    break;
+                case 1:
+                    //tripPurpose = "business";
+                    b_calibration_dt = domDcCalibrationV[1];
+                    b_calibration_on = b_calibration_dt;
+                    break;
+            }
         }
 
         double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);

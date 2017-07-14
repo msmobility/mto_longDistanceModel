@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
@@ -42,6 +43,7 @@ public class DomesticModeChoice {
     String[] tripPurposeArray;
     String[] tripStateArray;
 
+    private boolean calibration;
     private double[][] calibrationMatrix;
 
 
@@ -64,6 +66,7 @@ public class DomesticModeChoice {
 
         readSkimByMode(rb);
 
+        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
 
 
@@ -317,7 +320,7 @@ public class DomesticModeChoice {
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
         //todo this updates calibration factor from during-runtime calibration matrix
-        k_calibration = calibrationMatrix[trip.getLongDistanceTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrix[trip.getLongDistanceTripPurpose()][m];
 
         utility = b_intercept + k_calibration +
                 b_frequency * frequency +

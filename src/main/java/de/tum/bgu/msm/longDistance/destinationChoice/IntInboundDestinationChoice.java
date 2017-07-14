@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
@@ -28,7 +29,9 @@ public class IntInboundDestinationChoice {
     private String[] tripPurposeArray;
     private String[] tripStateArray;
     private IntModeChoice intModeChoice;
+    boolean calibration;
     private double[] calibrationV;
+
 
 
     public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel) {
@@ -49,6 +52,7 @@ public class IntInboundDestinationChoice {
 
         intModeChoice = intMcModel;
 
+        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.calibrationV = new double[] {1,1,1};
     }
 
@@ -118,23 +122,24 @@ public class IntInboundDestinationChoice {
         double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
 
-        //todo manual test of calibration parameters
-        switch (trip.getLongDistanceTripPurpose()) {
-            case 2:
-                //tripPurpose = "leisure";
-                k_dtLogsum = calibrationV[2];
-                k_onLogsum = k_dtLogsum;
-                break;
-            case 0:
-                //tripPurpose = "visit";
-                k_dtLogsum = calibrationV[0];
-                k_onLogsum = k_dtLogsum;
-                break;
-            case 1:
-                //tripPurpose = "business";
-                k_dtLogsum = calibrationV[1];
-                k_onLogsum = k_dtLogsum;
-                break;
+        if (calibration) {
+            switch (trip.getLongDistanceTripPurpose()) {
+                case 2:
+                    //tripPurpose = "leisure";
+                    k_dtLogsum = calibrationV[2];
+                    k_onLogsum = k_dtLogsum;
+                    break;
+                case 0:
+                    //tripPurpose = "visit";
+                    k_dtLogsum = calibrationV[0];
+                    k_onLogsum = k_dtLogsum;
+                    break;
+                case 1:
+                    //tripPurpose = "business";
+                    k_dtLogsum = calibrationV[1];
+                    k_onLogsum = k_dtLogsum;
+                    break;
+            }
         }
 
         //get the logsum

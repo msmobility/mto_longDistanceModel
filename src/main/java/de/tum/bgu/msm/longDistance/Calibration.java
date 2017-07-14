@@ -73,8 +73,12 @@ public class Calibration {
         calibrationMatrix[2][1] = averageDistances[2][1] / 899;//from us business
         calibrationMatrix[2][2] = averageDistances[2][2] / 516;//from us leisure
 
-
-        //System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("deomestic");
+        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("int_out");
+        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
+        System.out.println("int_in");
+        System.out.println("visit: " + calibrationMatrix[2][0] + " - business: " + calibrationMatrix[2][1] + " - leisure: " + calibrationMatrix[2][2]);
 
         return calibrationMatrix;
 

@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.Calibration;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
@@ -35,6 +36,7 @@ public class IntModeChoice {
     private TableDataSet mcIntOutboundCoefficients;
     private TableDataSet mcIntInboundCoefficients;
 
+    private boolean calibration;
     private double[][] calibrationMatrixOutbound;
     private double[][] calibrationMatrixInbound;
 
@@ -58,6 +60,7 @@ public class IntModeChoice {
         transferMatrix = dmChoice.getTransferMatrix();
         frequencyMatrix = dmChoice.getFrequencyMatrix();
 
+        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 
@@ -162,7 +165,8 @@ public class IntModeChoice {
         double k_calibration = mcIntInboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
         //todo calibration during runtime
-        k_calibration = calibrationMatrixInbound[trip.getLongDistanceTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrixInbound[trip.getLongDistanceTripPurpose()][m];
+
 
                 utility = b_intercept + k_calibration +
                         b_frequency*frequency +
@@ -247,7 +251,7 @@ public class IntModeChoice {
         double k_calibration = mcIntOutboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
         //todo calibration during runtime
-        k_calibration = calibrationMatrixOutbound[trip.getLongDistanceTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrixOutbound[trip.getLongDistanceTripPurpose()][m];
 
         utility = b_intercept + k_calibration +
                 b_frequency*frequency +

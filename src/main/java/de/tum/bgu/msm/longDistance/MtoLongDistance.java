@@ -106,18 +106,19 @@ public class MtoLongDistance {
             }
         }
 
-        boolean calibration = true;
+        boolean dcCalibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
 
         if (runTG) allTrips = tripGenModel.runTripGeneration();
 
-        if (runDC & calibration) calibrateDestinationChoice(allTrips);
+        if (runDC & dcCalibration) calibrateDestinationChoice(allTrips);
 
-        if (runDC && !calibration) runDestinationChoice(allTrips);
+        if (runDC && !dcCalibration) runDestinationChoice(allTrips);
 
 
-        if (calibration) calibrateModeChoice(allTrips);
+        boolean mcCalibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        if (mcCalibration) calibrateModeChoice(allTrips);
 
-        if (!calibration) runModeChoice(allTrips);
+        if (!mcCalibration) runModeChoice(allTrips);
 
         runDisaggregation(allTrips);
 
