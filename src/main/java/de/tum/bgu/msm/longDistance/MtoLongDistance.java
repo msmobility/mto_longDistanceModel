@@ -276,14 +276,14 @@ public class MtoLongDistance {
         runModeChoice(allTrips);
 
 
-        int maxIterMc = 10;
+        int maxIterMc = 20;
         double[][][] calibrationMatrix = new double[3][3][4];
         Calibration c = new Calibration();
 
 
         for (int iteration = 0; iteration < maxIterMc; iteration++) {
             logger.info("Calibration of mode choice: Iteration = " + iteration);
-            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips, iteration);
+            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips, iteration, maxIterMc);
             mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
             intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
             intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);

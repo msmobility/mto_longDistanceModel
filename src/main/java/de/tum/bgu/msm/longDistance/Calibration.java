@@ -92,7 +92,7 @@ public class Calibration {
         double[][][] countsByMode = new double[3][3][4];
 
         for (LongDistanceTrip t : allTrips) {
-            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 if (!t.isLongDistanceInternational()) {
                     //domestic from Ontario - row 0
                     countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
@@ -125,7 +125,7 @@ public class Calibration {
         return modalShares;
     }
 
-    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips, int iteration) {
+    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips, int iteration, int maxIteration) {
 
         double[][][] calibrationMatrix = new double[3][3][4];
 
@@ -133,7 +133,7 @@ public class Calibration {
 
         double[][][] surveyShares = new double[3][3][4];
 
-        double expansionFactor = Math.exp(-0.2*iteration);
+        double expansionFactor = 1.5;
 
         //todo hard coded for calibration
         //domestic
