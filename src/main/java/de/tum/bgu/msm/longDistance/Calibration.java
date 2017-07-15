@@ -101,10 +101,10 @@ public class Calibration {
                     //international from ontario to us - row 1
                     countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
+                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+                    //international from US to ontario + row 2
+                    countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
                 }
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
-                //international from US to ontario + row 2
-                countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
 
             }
@@ -202,6 +202,7 @@ public class Calibration {
         System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
 
         type = 1;
+        System.out.println("international_outbound");
         System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
         System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
         System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
