@@ -52,7 +52,7 @@ public class DomesticDestinationChoice {
 
         this.domesticModeChoice = domesticModeChoice;
 
-        calibration = ResourceUtil.getBooleanProperty(rb,"run.calibration",false);
+        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.domDcCalibrationV = new double[] {1,1,1};
     }
 
@@ -110,9 +110,6 @@ public class DomesticDestinationChoice {
         } else {
             return ZoneType.EXTCANADA;
         }
-
-
-
 
     }
 

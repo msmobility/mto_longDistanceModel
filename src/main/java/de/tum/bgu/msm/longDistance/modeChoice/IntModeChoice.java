@@ -60,7 +60,7 @@ public class IntModeChoice {
         transferMatrix = dmChoice.getTransferMatrix();
         frequencyMatrix = dmChoice.getFrequencyMatrix();
 
-        calibration = ResourceUtil.getBooleanProperty(rb, "run.calibration", false);
+        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 

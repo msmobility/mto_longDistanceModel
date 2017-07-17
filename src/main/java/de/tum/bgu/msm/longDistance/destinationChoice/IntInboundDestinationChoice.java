@@ -52,7 +52,7 @@ public class IntInboundDestinationChoice {
 
         intModeChoice = intMcModel;
 
-        calibration = ResourceUtil.getBooleanProperty(rb,"run.calibration",false);
+        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.calibrationV = new double[] {1,1,1};
     }
 

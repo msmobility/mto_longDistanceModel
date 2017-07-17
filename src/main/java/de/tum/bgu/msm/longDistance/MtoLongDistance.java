@@ -116,9 +116,10 @@ public class MtoLongDistance {
 
         runModeChoice(allTrips);
 
-        boolean calibration = ResourceUtil.getBooleanProperty(rb, "run.calibration", false);;
-        if (calibration){
-            calibrateModel();
+        boolean calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        boolean calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
+        if (calibrationDC && calibrationMC){
+            calibrateModel(calibrationDC, calibrationMC);
         }
 
         runDisaggregation(allTrips);
@@ -243,37 +244,42 @@ public class MtoLongDistance {
 
 
 
-    public void calibrateModel(){
+    public void calibrateModel(boolean dc, boolean mc){
 
         int maxIter = 10;
         double[][][] calibrationMatrixMc = new double[4][3][4];
         double[][] calibrationMatrixDc = new double[3][3];
         Calibration c = new Calibration();
 
-        for (int iteration = 0; iteration < maxIter; iteration++) {
+        if (dc) {
+            for (int iteration = 0; iteration < maxIter; iteration++) {
 
-            logger.info("Calibration of destination choice: Iteration = " + iteration);
-            calibrationMatrixDc = c.calculateCalibrationMatrix(allTrips);
-            dcModel.updatedomDcCalibrationV(calibrationMatrixDc[0]);
-            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc[1]);
-            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
+                logger.info("Calibration of destination choice: Iteration = " + iteration);
+                calibrationMatrixDc = c.calculateCalibrationMatrix(allTrips);
+                dcModel.updatedomDcCalibrationV(calibrationMatrixDc[0]);
+                dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc[1]);
+                dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
 
-            runDestinationChoice(allTrips);
+                runDestinationChoice(allTrips);
+            }
         }
 
-        for (int iteration = 0; iteration < maxIter; iteration++) {
+        if (mc){
+            for (int iteration = 0; iteration < maxIter; iteration++) {
 
-            logger.info("Calibration of mode choice: Iteration = " + iteration);
-            calibrationMatrixMc = c.calculateMCCalibrationFactors(allTrips, iteration, maxIter);
-            mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
-            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
-            intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
-            intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
+                logger.info("Calibration of mode choice: Iteration = " + iteration);
+                calibrationMatrixMc = c.calculateMCCalibrationFactors(allTrips, iteration, maxIter);
+                mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
+                mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
+                intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
+                intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
 
-            runModeChoice(allTrips);
+                //runDestinationChoice(allTrips);
+                runModeChoice(allTrips);
+            }
+
         }
 
-        //with all the final parameters
         runDestinationChoice(allTrips);
         runModeChoice(allTrips);
 
