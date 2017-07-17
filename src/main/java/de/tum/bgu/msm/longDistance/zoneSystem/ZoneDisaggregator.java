@@ -38,11 +38,6 @@ public class ZoneDisaggregator {
 
         }
 
-
-
-
-
-
     }
 
     public void disaggregateDestination(LongDistanceTrip trip){
@@ -61,7 +56,7 @@ public class ZoneDisaggregator {
 
         trip.setDestZone(internalZoneMap.get(new EnumeratedIntegerDistribution(alternatives, expUtilities).sample()));
 
-        mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId());
+        trip.setTravelDistanceLevel1(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
 
     }
 
