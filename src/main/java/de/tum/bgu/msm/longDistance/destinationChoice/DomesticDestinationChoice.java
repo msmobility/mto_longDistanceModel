@@ -52,7 +52,7 @@ public class DomesticDestinationChoice {
 
         this.domesticModeChoice = domesticModeChoice;
 
-        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        calibration = ResourceUtil.getBooleanProperty(rb,"run.calibration",false);
         this.domDcCalibrationV = new double[] {1,1,1};
     }
 
@@ -165,10 +165,10 @@ public class DomesticDestinationChoice {
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
 
-        double k = coefficients.getStringIndexedValueAt("k", tripPurpose); //calibration coefficient
 
-        double b_calibration_dt = k * coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose);
-        double b_calibration_on = k * coefficients.getStringIndexedValueAt("b_calibration_on", tripPurpose);
+
+        double b_calibration_dt = coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose);
+        double b_calibration_on = coefficients.getStringIndexedValueAt("b_calibration_on", tripPurpose);
 
 
         if (calibration) {
@@ -176,17 +176,17 @@ public class DomesticDestinationChoice {
                 case 2:
                     //tripPurpose = "leisure";
                     b_calibration_dt = domDcCalibrationV[2];
-                    b_calibration_on = b_calibration_dt;
+                    b_calibration_on = domDcCalibrationV[2];
                     break;
                 case 0:
                     //tripPurpose = "visit";
                     b_calibration_dt = domDcCalibrationV[0];
-                    b_calibration_on = b_calibration_dt;
+                    b_calibration_on = domDcCalibrationV[0];
                     break;
                 case 1:
                     //tripPurpose = "business";
                     b_calibration_dt = domDcCalibrationV[1];
-                    b_calibration_on = b_calibration_dt;
+                    b_calibration_on = domDcCalibrationV[1];
                     break;
             }
         }

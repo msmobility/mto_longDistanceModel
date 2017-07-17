@@ -77,7 +77,7 @@ public class IntOutboundDestinationChoice {
 
         this.intModeChoice = intModeChoice;
 
-        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        calibration = ResourceUtil.getBooleanProperty(rb,"run.calibration",false);
         this.calibrationV = new double[] {1,1,1};
 
     }

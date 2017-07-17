@@ -70,7 +70,7 @@ public class MtoLongDistance {
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
 
         //disaggregation model
-        zd = new ZoneDisaggregator(rb, mtoLongDistData.getZoneList());
+        zd = new ZoneDisaggregator(rb,mtoLongDistData);
 
     }
 
@@ -106,19 +106,20 @@ public class MtoLongDistance {
             }
         }
 
-        boolean dcCalibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
+
+
+
 
         if (runTG) allTrips = tripGenModel.runTripGeneration();
 
-        if (runDC & dcCalibration) calibrateDestinationChoice(allTrips);
+        if (runDC) runDestinationChoice(allTrips);
 
-        if (runDC && !dcCalibration) runDestinationChoice(allTrips);
+        runModeChoice(allTrips);
 
-
-        boolean mcCalibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
-        if (mcCalibration) calibrateModeChoice(allTrips);
-
-        if (!mcCalibration) runModeChoice(allTrips);
+        boolean calibration = ResourceUtil.getBooleanProperty(rb, "run.calibration", false);;
+        if (calibration){
+            calibrateModel();
+        }
 
         runDisaggregation(allTrips);
 
@@ -239,23 +240,42 @@ public class MtoLongDistance {
 //        pw.close();
 //    }
 
-    public void calibrateDestinationChoice(ArrayList<LongDistanceTrip> allTrips) {
 
-        runDestinationChoice(allTrips);
-        int maxIterDc = 10;
-        double[][] calibrationMatrix = new double[3][3];
+
+
+    public void calibrateModel(){
+
+        int maxIter = 10;
+        double[][][] calibrationMatrixMc = new double[4][3][4];
+        double[][] calibrationMatrixDc = new double[3][3];
         Calibration c = new Calibration();
 
+        for (int iteration = 0; iteration < maxIter; iteration++) {
 
-        for (int iteration = 0; iteration < maxIterDc; iteration++) {
             logger.info("Calibration of destination choice: Iteration = " + iteration);
-            calibrationMatrix = c.calculateCalibrationMatrix(allTrips);
-            dcModel.updatedomDcCalibrationV(calibrationMatrix[0]);
-            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrix[1]);
-            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrix[2]);
-            runDestinationChoice(allTrips);
+            calibrationMatrixDc = c.calculateCalibrationMatrix(allTrips);
+            dcModel.updatedomDcCalibrationV(calibrationMatrixDc[0]);
+            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc[1]);
+            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
 
+            runDestinationChoice(allTrips);
         }
+
+        for (int iteration = 0; iteration < maxIter; iteration++) {
+
+            logger.info("Calibration of mode choice: Iteration = " + iteration);
+            calibrationMatrixMc = c.calculateMCCalibrationFactors(allTrips, iteration, maxIter);
+            mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
+            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
+            intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
+            intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
+
+            runModeChoice(allTrips);
+        }
+
+        //with all the final parameters
+        runDestinationChoice(allTrips);
+        runModeChoice(allTrips);
 
         logger.info("---------------------------------------------------------");
         logger.info("-----------------RESULTS DC------------------------------");
@@ -269,28 +289,6 @@ public class MtoLongDistance {
         logger.info("k_int_in_dc business = " + dcInBoundModel.getCalibrationV()[1]);
         logger.info("k_int_in_dc leisure = " + dcInBoundModel.getCalibrationV()[2]);
         logger.info("---------------------------------------------------------");
-    }
-
-    public void calibrateModeChoice(ArrayList<LongDistanceTrip> allTrips) {
-
-        runModeChoice(allTrips);
-
-
-        int maxIterMc = 20;
-        double[][][] calibrationMatrix = new double[4][3][4];
-        Calibration c = new Calibration();
-
-
-        for (int iteration = 0; iteration < maxIterMc; iteration++) {
-            logger.info("Calibration of mode choice: Iteration = " + iteration);
-            calibrationMatrix = c.calculateMCCalibrationFactors(allTrips, iteration, maxIterMc);
-            mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
-            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrix[3]);
-            intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
-            intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);
-            runModeChoice(allTrips);
-
-        }
 
         logger.info("---------------------------------------------------------");
         logger.info("-----------------RESULTS MC------------------------------");
@@ -350,7 +348,6 @@ public class MtoLongDistance {
                 ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][3]);
         logger.info("---------------------------------------------------------");
     }
-
 
 
 

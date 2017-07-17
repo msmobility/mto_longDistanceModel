@@ -67,7 +67,7 @@ public class DomesticModeChoice {
 
         readSkimByMode(rb);
 
-        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
+        calibration = ResourceUtil.getBooleanProperty(rb, "run.calibration", false);
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
 
