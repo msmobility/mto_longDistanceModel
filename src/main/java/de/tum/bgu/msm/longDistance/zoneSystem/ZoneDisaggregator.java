@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance.zoneSystem;
 
+import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 
@@ -17,12 +18,14 @@ public class ZoneDisaggregator {
     private ResourceBundle rb;
     private ArrayList<Zone> zoneList;
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
+    private MtoLongDistData mtoLongDistData;
 
-    public ZoneDisaggregator(ResourceBundle rb, ArrayList<Zone> zoneList){
+    public ZoneDisaggregator(ResourceBundle rb, MtoLongDistData mtoLongDistData){
         this.rb = rb;
-        this.zoneList = zoneList;
-        combinedZoneMap = new HashMap<>();
+        this.zoneList = mtoLongDistData.getZoneList();
 
+        combinedZoneMap = new HashMap<>();
+        this.mtoLongDistData = mtoLongDistData;
 
         for (Zone z : zoneList) {
             if (combinedZoneMap.containsKey(z.getCombinedZoneId())){ ;
@@ -34,6 +37,11 @@ public class ZoneDisaggregator {
             }
 
         }
+
+
+
+
+
 
     }
 
@@ -52,6 +60,8 @@ public class ZoneDisaggregator {
         }
 
         trip.setDestZone(internalZoneMap.get(new EnumeratedIntegerDistribution(alternatives, expUtilities).sample()));
+
+        mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId());
 
     }
 

@@ -30,6 +30,7 @@ public class MtoLongDistData {
     private static Logger logger = Logger.getLogger(MtoLongDistData.class);
     private ResourceBundle rb;
     private Matrix autoTravelTime;
+    private Matrix autoTravelDistance;
 
     private double autoAccessibility;
 
@@ -71,7 +72,7 @@ public class MtoLongDistData {
     public void readSkim(String mode) {
         // read skim file
         logger.info("  Reading skims files");
-
+//todo change this
         String matrixName = mode + ".skim." + Mto.getYear();
         String hwyFileName = rb.getString(matrixName);
         // Read highway hwySkim
@@ -83,11 +84,37 @@ public class MtoLongDistData {
         OmxLookup omxLookUp = hSkim.getLookup("zone_number");
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
+
+
+        autoTravelDistance = convertSkimToMatrix(rb.getString("dist.skim.file"),rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup"));
+
+    }
+
+    public Matrix convertSkimToMatrix(String fileName, String matrixName, String lookUpName) {
+
+        OmxFile skim = new OmxFile(fileName);
+        skim.openReadOnly();
+        OmxMatrix skimMatrix = skim.getMatrix(matrixName);
+        Matrix matrix  = Util.convertOmxToMatrix(skimMatrix);
+        OmxLookup omxLookUp = skim.getLookup(lookUpName);
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+        matrix.setExternalNumbersZeroBased(externalNumbers);
+
+        return matrix;
     }
 
     public float getAutoTravelTime(int orig, int dest) {
         try {
             return autoTravelTime.getValueAt(orig, dest);
+        } catch (Exception e) {
+            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
+            return -999;
+        }
+    }
+
+    public float getAutoTravelDistance(int orig, int dest) {
+        try {
+            return autoTravelDistance.getValueAt(orig, dest);
         } catch (Exception e) {
             logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
             return -999;

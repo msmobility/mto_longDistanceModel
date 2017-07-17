@@ -43,6 +43,8 @@ public class LongDistanceTrip {
     private int travelMode=-1;
     private ZoneType destZoneType;
     private float travelDistanceLevel2 = -1;
+    private float travelDistanceLevel1 = -1;
+
 
 
 
@@ -168,12 +170,18 @@ public class LongDistanceTrip {
         this.travelDistanceLevel2 = travelDistanceLevel2;
     }
 
+    public float getTravelDistanceLevel1() {
+        return travelDistanceLevel1;
+    }
 
+    public void setTravelDistanceLevel1(float travelDistanceLevel1) {
+        this.travelDistanceLevel1 = travelDistanceLevel1;
+    }
 
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType, destZone, travelDistanceLvl2"
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -202,6 +210,7 @@ public class LongDistanceTrip {
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
+                    + "," + tr.getTravelDistanceLevel1()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -228,6 +237,7 @@ public class LongDistanceTrip {
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
+                    + "," + tr.getTravelDistanceLevel1()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
