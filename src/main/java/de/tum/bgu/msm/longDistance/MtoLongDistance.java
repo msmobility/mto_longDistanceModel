@@ -203,7 +203,7 @@ public class MtoLongDistance {
         });
     }
 
-    public void runDisaggregation(ArrayList<LongDistanceTrip> trips) {
+    public void runDisaggregation(ArrayList<LongDistanceTrip> allTrips) {
         logger.info("Starting disaggregation");
         allTrips.parallelStream().forEach(t -> {
             zd.disaggregateDestination(t);
@@ -277,7 +277,7 @@ public class MtoLongDistance {
 
 
         int maxIterMc = 20;
-        double[][][] calibrationMatrix = new double[3][3][4];
+        double[][][] calibrationMatrix = new double[4][3][4];
         Calibration c = new Calibration();
 
 
@@ -285,6 +285,7 @@ public class MtoLongDistance {
             logger.info("Calibration of mode choice: Iteration = " + iteration);
             calibrationMatrix = c.calculateMCCalibrationFactors(allTrips, iteration, maxIterMc);
             mcDomesticModel.updateCalibrationDomestic(calibrationMatrix[0]);
+            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrix[3]);
             intModeChoice.updateCalibrationOutbound(calibrationMatrix[1]);
             intModeChoice.updateCalibrationInbound(calibrationMatrix[2]);
             runModeChoice(allTrips);
@@ -332,6 +333,21 @@ public class MtoLongDistance {
                 ",air=" + intModeChoice.getCalibrationMatrixInbound()[2][1] +
                 ",rail=" + intModeChoice.getCalibrationMatrixInbound()[2][2] +
                 ",bus=" + intModeChoice.getCalibrationMatrixInbound()[2][3]);
+
+
+        type = "k_domesticVisitors_mc_";
+        logger.info(type + "visit: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][3]);
+        logger.info(type + "business: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][3]);
+        logger.info(type + "leisure: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][0] +
+                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][1] +
+                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][2] +
+                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][3]);
         logger.info("---------------------------------------------------------");
     }
 

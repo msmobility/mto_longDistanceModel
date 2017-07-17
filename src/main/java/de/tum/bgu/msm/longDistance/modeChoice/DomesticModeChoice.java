@@ -45,6 +45,7 @@ public class DomesticModeChoice {
 
     private boolean calibration;
     private double[][] calibrationMatrix;
+    private double[][] calibrationMatrixVisitors;
 
 
     public DomesticModeChoice(ResourceBundle rb, MtoLongDistData ldData) {
@@ -68,7 +69,7 @@ public class DomesticModeChoice {
 
         calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
-
+        calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
 
     }
 
@@ -187,7 +188,7 @@ public class DomesticModeChoice {
                 price = 20;
             }
         }
-
+        double k_calibration = mcExtCanadaCoefficients.getStringIndexedValueAt("k_calibration", column);
         double b_intercept = mcExtCanadaCoefficients.getStringIndexedValueAt("intercept", column);
         double b_frequency = mcExtCanadaCoefficients.getStringIndexedValueAt("frequency", column);
         double b_price = mcExtCanadaCoefficients.getStringIndexedValueAt("price", column);
@@ -204,7 +205,11 @@ public class DomesticModeChoice {
         double b_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("alpha", column);
 
+        //todo this updates calibration factor from during-runtime calibration matrix
+        if (calibration) k_calibration = calibrationMatrixVisitors[trip.getLongDistanceTripPurpose()][m];
+
         utility = b_intercept + b_frequency * frequency +
+                k_calibration +
                 b_price * price +
                 b_time * time +
 //                b_incomeLow * incomeLow +
@@ -262,20 +267,6 @@ public class DomesticModeChoice {
 
         double vot = mcOntarioCoefficients.getStringIndexedValueAt("vot", column);
 
-//        todo scenario testing - remove for final version
-//        if (origin >18 & origin < 28 & destination == 103 & m == 2){
-//            //"a high speed train between toronto a montreal that reduces time to the half
-//            time = time / 2;
-//
-//        }
-
-
-//        if (origin >18 & origin < 28 & destination == 103){
-//            //price = price * 2;
-//            logger.info("mode" +  modeNames[m] + "intermetro: " + interMetro + " ruralRural: " + ruralRural + "travelTime" + time);
-//        }
-
-
         double impedance = 0;
         if (vot != 0) {
             impedance = price / (vot / 60) + time;
@@ -292,7 +283,7 @@ public class DomesticModeChoice {
 
         //person-related variables
         Person p = trip.getTraveller();
-        //todo check income thresholds > or >=?
+
         double incomeLow = p.getIncome() <= 50000 ? 1 : 0;
         double incomeHigh = p.getIncome() >= 100000 ? 1 : 0;
 
@@ -340,7 +331,6 @@ public class DomesticModeChoice {
 
         if (time < 0) utility = Double.NEGATIVE_INFINITY;
 
-
         return utility;
 
     }
@@ -348,9 +338,6 @@ public class DomesticModeChoice {
     public int[] getModes() {
         return modes;
     }
-
-    //getter for int mode choice
-
 
     public Matrix[] getTravelTimeMatrix() {
         return travelTimeMatrix;
@@ -374,6 +361,18 @@ public class DomesticModeChoice {
                 this.calibrationMatrix[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrix[purp][mode];
             }
         }
+    }
+
+    public void updateCalibrationDomesticVisitors(double[][] calibrationMatrix) {
+        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
+            for (int mode = 0; mode < modes.length; mode++) {
+                this.calibrationMatrixVisitors[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixVisitors[purp][mode];
+            }
+        }
+    }
+
+    public double[][] getCalibrationMatrixVisitors() {
+        return calibrationMatrixVisitors;
     }
 
     public double[][] getCalibrationMatrix() {

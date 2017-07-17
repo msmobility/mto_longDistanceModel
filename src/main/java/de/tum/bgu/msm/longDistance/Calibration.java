@@ -89,19 +89,25 @@ public class Calibration {
     }
 
     public double[][][] getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
-        double[][][] countsByMode = new double[3][3][4];
+        double[][][] countsByMode = new double[4][3][4];
 
         for (LongDistanceTrip t : allTrips) {
             if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 if (!t.isLongDistanceInternational()) {
                     //domestic from Ontario - row 0
-                    countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                    if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)){
+                        countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                    } else {
+                        countsByMode[3][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                    }
+
+
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
                     countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
 
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) && t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
                     //international from US to ontario + row 2
                     countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
                 }
@@ -109,8 +115,8 @@ public class Calibration {
 
             }
         }
-        double[][][] modalShares = new double[3][3][4];
-        for (int i = 0; i < 3; i++) {
+        double[][][] modalShares = new double[4][3][4];
+        for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 3; j++) {
                 double total = countsByMode[i][j][0] + countsByMode[i][j][1] + countsByMode[i][j][2] + countsByMode[i][j][3];
                 if (total > 0) {
@@ -127,30 +133,30 @@ public class Calibration {
 
     public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips, int iteration, int maxIteration) {
 
-        double[][][] calibrationMatrix = new double[3][3][4];
+        double[][][] calibrationMatrix = new double[4][3][4];
 
         double[][][] modalShares = getAverageModalShares(allTrips);
 
-        double[][][] surveyShares = new double[3][3][4];
+        double[][][] surveyShares = new double[4][3][4];
 
-        double expansionFactor = 1.5;
+        double expansionFactor = 10;
 
         //todo hard coded for calibration
         //domestic
         int type = 0;
-        surveyShares[type][0][0] = 0.92; // visit - auto
+        surveyShares[type][0][0] = 0.93; // visit - auto
         surveyShares[type][0][1] = 0.01; // visit - air
         surveyShares[type][0][2] = 0.03; // visit - rail
-        surveyShares[type][0][3] = 0.04; // visit - bus
+        surveyShares[type][0][3] = 0.03; // visit - bus
 
-        surveyShares[type][1][0] = 0.84; // business
-        surveyShares[type][1][1] = 0.09; // business
-        surveyShares[type][1][2] = 0.05; // business
-        surveyShares[type][1][3] = 0.03; // business
+        surveyShares[type][1][0] = 0.86; // business
+        surveyShares[type][1][1] = 0.06; // business
+        surveyShares[type][1][2] = 0.03; // business
+        surveyShares[type][1][3] = 0.05; // business
 
         surveyShares[type][2][0] = 0.96; // leisure
-        surveyShares[type][2][1] = 0.01; // leisure
-        surveyShares[type][2][2] = 0.02; // leisure
+        surveyShares[type][2][1] = 0.00; // leisure
+        surveyShares[type][2][2] = 0.03; // leisure
         surveyShares[type][2][3] = 0.01; // leisure
 
         //int outbound
@@ -187,7 +193,23 @@ public class Calibration {
         surveyShares[type][2][2] = 0.00; // leisure
         surveyShares[type][2][3] = 0.09; // leisure
 
-        for (int i = 0; i < 3; i++) {
+        type = 3;
+        surveyShares[type][0][0] = 0.80; // visit - auto
+        surveyShares[type][0][1] = 0.10; // visit - air
+        surveyShares[type][0][2] = 0.05; // visit - rail
+        surveyShares[type][0][3] = 0.03; // visit - bus
+
+        surveyShares[type][1][0] = 0.46; // business
+        surveyShares[type][1][1] = 0.46; // business
+        surveyShares[type][1][2] = 0.03; // business
+        surveyShares[type][1][3] = 0.05; // business
+
+        surveyShares[type][2][0] = 0.84; // leisure
+        surveyShares[type][2][1] = 0.08; // leisure
+        surveyShares[type][2][2] = 0.06; // leisure
+        surveyShares[type][2][3] = 0.02; // leisure
+
+        for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 3; j++) {
                 for (int m = 0; m < 4; m++) {
                     calibrationMatrix[i][j][m] = (-modalShares[i][j][m] + surveyShares[i][j][m]) * expansionFactor;
@@ -208,6 +230,12 @@ public class Calibration {
         System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
         type = 2;
         System.out.println("international_inbound");
+        System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
+        System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
+        System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
+
+        type = 3;
+        System.out.println("domestic visitors ");
         System.out.println("km: visit: - auto " + calibrationMatrix[type][0][0] + " - air: " + calibrationMatrix[type][0][1] + " - rail: " + calibrationMatrix[type][0][2] + " - bus: " + calibrationMatrix[type][0][3]);
         System.out.println("km: business: - auto " + calibrationMatrix[type][1][0] + " - air: " + calibrationMatrix[type][1][1] + " - rail: " + calibrationMatrix[type][1][2] + " - bus: " + calibrationMatrix[type][1][3]);
         System.out.println("km: leisure - auto: " + calibrationMatrix[type][2][0] + " - air: " + calibrationMatrix[type][2][1] + " - rail: " + calibrationMatrix[type][2][2] + " - bus: " + calibrationMatrix[type][2][3]);
