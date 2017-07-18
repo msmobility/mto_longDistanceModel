@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Ontario Provincial Model
@@ -45,7 +46,7 @@ public class MtoLongDistance {
     private IntModeChoice intModeChoice;
     private ZoneDisaggregator zd;
 
-    //SET UP of the models
+    //SET UP the models
     public MtoLongDistance(ResourceBundle rb) {
         this.rb = rb;
         Util.initializeRandomNumber(rb);
@@ -81,7 +82,8 @@ public class MtoLongDistance {
     public void runLongDistanceModel() {
 
         //todo test to avoid parallelization
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
+        //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
+
 
         //RUN models
         boolean runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);

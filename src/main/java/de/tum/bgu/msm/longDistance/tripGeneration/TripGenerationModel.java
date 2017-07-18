@@ -60,11 +60,11 @@ public class TripGenerationModel {
 
         //generate domestic trips
         trips_dom_ontarian = domesticTripGeneration.runTripGeneration();
-        logger.info("  " + trips_dom_ontarian.size() + " domestic Trips from Ontario generated");
+        logger.info("  " + trips_dom_ontarian.size() + " domestic trips from Ontario generated");
 
         //generate international trips (must be done after domestic)
         trips_int_ontarian = internationalTripGeneration.runInternationalTripGeneration();
-        logger.info("  " + trips_int_ontarian.size() + " trips from Ontario generated");
+        logger.info("  " + trips_int_ontarian.size() + " international trips from Ontario generated");
 
         //generate visitors
         trips_visitors = visitorsTripGeneration.runVisitorsTripGeneration(mtoLongDistData.getExternalZoneList());
