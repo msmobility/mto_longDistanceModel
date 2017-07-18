@@ -5,7 +5,6 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.DataDictionary;
 import de.tum.bgu.msm.dataAnalysis.dataDictionary.Survey;
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.tripGeneration.ExtCanToIntTripGeneration;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;

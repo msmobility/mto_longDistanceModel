@@ -27,7 +27,7 @@ public class TripGenerationModel {
     private DomesticTripGeneration domesticTripGeneration;
     private InternationalTripGeneration internationalTripGeneration;
     private VisitorsTripGeneration visitorsTripGeneration;
-    private ExtCanToIntTripGeneration extCanToIntTripGeneration;
+    //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
     public TripGenerationModel(ResourceBundle rb, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
         this.rb = rb;
