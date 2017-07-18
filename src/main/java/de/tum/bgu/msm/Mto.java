@@ -85,6 +85,7 @@ public class Mto {
         // main method to run long-distance model
         logger.info("Started runLongDistModel for the year " + year);
         MtoLongDistance ld = new MtoLongDistance(rb);
+        ld.loadLongDistanceModel();
         ld.runLongDistanceModel();
         logger.info("Module runLongDistModel completed.");
 

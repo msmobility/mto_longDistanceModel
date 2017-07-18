@@ -14,6 +14,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import de.tum.bgu.msm.Util;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
@@ -33,26 +34,22 @@ public class MtoLongDistance {
 
     static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
-
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
-
     private MtoLongDistData mtoLongDistData;
     private SyntheticPopulation syntheticPopulationReader;
-
     private TripGenerationModel tripGenModel;
-
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
     private IntInboundDestinationChoice dcInBoundModel;
-
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
-
     private ZoneDisaggregator zd;
 
+    //SET UP of the models
     public MtoLongDistance(ResourceBundle rb) {
-        //SET UP of the models
         this.rb = rb;
+        Util.initializeRandomNumber(rb);
+
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
@@ -62,14 +59,10 @@ public class MtoLongDistance {
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         zd = new ZoneDisaggregator(rb,mtoLongDistData);
-
-        Util.initializeRandomNumber(rb);
-
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
-    public void runLongDistanceModel() {
-
+    public void loadLongDistanceModel() {
         //LOAD the models
         mtoLongDistData.loadZonalData();
         syntheticPopulationReader.loadSyntheticPopulation();
@@ -81,9 +74,14 @@ public class MtoLongDistance {
         mcDomesticModel.loadDomesticModeChoice();
         intModeChoice.loadIntModeChoice();
         zd.loadZoneDisaggregator();
-
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
+    }
+
+    public void runLongDistanceModel() {
+
+        //todo test to avoid parallelization
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 
         //RUN models
         boolean runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
@@ -106,13 +104,8 @@ public class MtoLongDistance {
 
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, true);
-
-
                     allTrips.add(ldt);
-
-
                 }
-
             }
         }
 

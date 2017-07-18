@@ -112,7 +112,8 @@ public class IntOutboundDestinationChoice {
 
             double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
-            destination = new EnumeratedIntegerDistribution(alternativesUS, probabilities).sample();
+            //destination = new EnumeratedIntegerDistribution(alternativesUS, probabilities).sample();
+            destination =  Util.select(probabilities,alternativesUS);
 
         } else {
 
@@ -122,7 +123,8 @@ public class IntOutboundDestinationChoice {
 
             double[] probabilities = Arrays.stream(expUtilitiesOs).map(u -> u / probability_denominator).toArray();
 
-            destination = new EnumeratedIntegerDistribution(alternativesOS, probabilities).sample();
+            //destination = new EnumeratedIntegerDistribution(alternativesOS, probabilities).sample();
+            destination =  Util.select(probabilities,alternativesOS);
         }
 
         return destination;

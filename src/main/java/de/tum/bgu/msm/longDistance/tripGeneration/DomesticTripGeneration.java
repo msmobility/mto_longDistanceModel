@@ -9,6 +9,8 @@ import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -59,8 +61,6 @@ public class DomesticTripGeneration {
 
     public void loadTripGeneration(){
 
-
-
         List<String> fromZones;
         List<String> toZones;
         //accessibility in Canada to Canada Trips - assing short-distance accessibility to zones
@@ -85,7 +85,7 @@ public class DomesticTripGeneration {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
-            Collections.shuffle(membersList, MtoLongDistance.rand );
+            Collections.shuffle(membersList, MtoLongDistance.rand);
 
             for (Person pers : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international

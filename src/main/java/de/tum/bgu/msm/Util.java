@@ -12,6 +12,8 @@ import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
@@ -165,12 +167,34 @@ public class Util {
 
     public static void initializeRandomNumber(ResourceBundle rb) {
         // initialize random number generator
+
+
         int seed = ResourceUtil.getIntegerProperty(rb, "run.random.seed");
-        if (seed == -1)
+        if (seed == -1) {
             MtoLongDistance.rand = new Random();
-        else
+
+        } else {
             MtoLongDistance.rand = new Random(seed);
+        }
+
     }
+
+    //select method to avoid randomization of enumIntegerDistr object
+    public static int select (double[] probabilities, int[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * MtoLongDistance.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
+
 
 
 

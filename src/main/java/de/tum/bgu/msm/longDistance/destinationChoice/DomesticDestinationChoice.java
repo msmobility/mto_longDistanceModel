@@ -6,6 +6,7 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -13,6 +14,8 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -32,6 +35,8 @@ public class DomesticDestinationChoice {
     private DomesticModeChoice domesticModeChoice;
     boolean calibration;
     private double[] domDcCalibrationV;
+    private RandomGenerator rng;
+
 
     public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
         this.rb = rb;
@@ -42,7 +47,7 @@ public class DomesticDestinationChoice {
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
 
-        //load alternatives - need to calculate distance, lang_barrier, and metro-regional for each OD pair
+        //load alternatives
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
         alternatives = combinedZones.getColumnAsInt("alt");
@@ -52,6 +57,8 @@ public class DomesticDestinationChoice {
         this.domesticModeChoice = domesticModeChoice;
 
         logger.info("Domestic DC set up");
+        //enum integer distribution does not accept Random but Random Generator
+        //rng = RandomGeneratorFactory.createRandomGenerator(MtoLongDistance.rand);
 
     }
 
@@ -109,7 +116,8 @@ public class DomesticDestinationChoice {
         double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+        return Util.select(probabilities,alternatives);
+        //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
 
     }
 

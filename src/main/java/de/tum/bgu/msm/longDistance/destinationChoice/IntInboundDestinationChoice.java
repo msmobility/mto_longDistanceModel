@@ -80,7 +80,8 @@ public class IntInboundDestinationChoice {
 
         double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
-        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+        //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+        return Util.select(probabilities,alternatives);
     }
 
 
@@ -95,7 +96,9 @@ public class IntInboundDestinationChoice {
 
         double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
-        return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+        //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
+
+        return Util.select(probabilities,alternatives);
     }
 
 

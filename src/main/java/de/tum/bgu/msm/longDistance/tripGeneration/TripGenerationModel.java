@@ -44,8 +44,8 @@ public class TripGenerationModel {
     }
 
     public void loadTripGenerationModels(){
-        domesticTripGeneration.loadTripGeneration();
 
+        domesticTripGeneration.loadTripGeneration();
         logger.info("Trip generation loaded");
 
     }
