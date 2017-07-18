@@ -86,7 +86,7 @@ public class DomesticModeChoice {
 
     public void readSkimByMode(ResourceBundle rb) {
         // read skim file
-        logger.info("  Reading skims files for mode choice");
+
 
 
         String travelTimeFileName = rb.getString("travel.time.combined");
@@ -125,6 +125,8 @@ public class DomesticModeChoice {
             frequencyMatrix[m].setExternalNumbersZeroBased(externalNumbers);
 
         }
+
+        logger.info("  skims files for mode choice read");
     }
 
     public int selectModeDomestic(LongDistanceTrip trip) {
