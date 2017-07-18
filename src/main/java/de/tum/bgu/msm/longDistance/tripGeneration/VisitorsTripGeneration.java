@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -115,17 +116,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = Math.random();
+        double randomChoice = MtoLongDistance.rand.nextDouble();
         while (adultsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = Math.random();
+        randomChoice = MtoLongDistance.rand.nextDouble();
         while (kidsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = Math.random();
+        randomChoice = MtoLongDistance.rand.nextDouble();
         while (nonHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
@@ -148,17 +149,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = Math.random();
+        double randomChoice = MtoLongDistance.rand.nextDouble();
         while (adultsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = Math.random();
+        randomChoice = MtoLongDistance.rand.nextDouble();
         while (kidsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = Math.random();
+        randomChoice = MtoLongDistance.rand.nextDouble();
         while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 

@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 import de.tum.bgu.msm.Util;
@@ -72,7 +73,7 @@ public class InternationalTripGeneration {
                     int n = numberOfTrips - tripCount;
                     double[] randomChoice = new double[n];
                     for (int k = 0; k < randomChoice.length; k++) {
-                        randomChoice[k] = Math.random();
+                        randomChoice[k] = MtoLongDistance.rand.nextDouble();
                     }
                     //sort the matrix for faster lookup
                     Arrays.sort(randomChoice);

@@ -5,6 +5,7 @@ import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -180,7 +181,7 @@ public class IntOutboundDestinationChoice {
             //daytrips are always to US
             return true;
         } else {
-            if (Math.random() < probability) {
+            if (MtoLongDistance.rand.nextDouble() < probability) {
                 return true;
             } else {
                 return false;

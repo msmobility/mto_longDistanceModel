@@ -5,6 +5,7 @@ import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -178,7 +179,6 @@ public class DomesticModeChoice {
             ruralRural = 1;
         }
 
-
         double time = travelTimeMatrix[m].getValueAt(origin, destination);
         double price = priceMatrix[m].getValueAt(origin, destination);
         double frequency = frequencyMatrix[m].getValueAt(origin, destination);
@@ -203,19 +203,16 @@ public class DomesticModeChoice {
         double b_frequency = mcExtCanadaCoefficients.getStringIndexedValueAt("frequency", column);
         double b_price = mcExtCanadaCoefficients.getStringIndexedValueAt("price", column);
         double b_time = mcExtCanadaCoefficients.getStringIndexedValueAt("time", column);
-//        double b_incomeLow = mcOntarioCoefficients.getStringIndexedValueAt("income_low", column);
-//        double b_incomeHigh = mcOntarioCoefficients.getStringIndexedValueAt("income_high", column);
-//        double b_young = mcOntarioCoefficients.getStringIndexedValueAt("young", column);
+
         double b_interMetro = mcExtCanadaCoefficients.getStringIndexedValueAt("inter_metro", column);
         double b_ruralRural = mcExtCanadaCoefficients.getStringIndexedValueAt("rural_rural", column);
-//        double b_male = mcOntarioCoefficients.getStringIndexedValueAt("male", column);
-//        double b_educationUniv = mcOntarioCoefficients.getStringIndexedValueAt("education_univ", column);
+
         double b_overnight = mcExtCanadaCoefficients.getStringIndexedValueAt("overnight", column);
         double b_party = mcExtCanadaCoefficients.getStringIndexedValueAt("party", column);
         double b_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("alpha", column);
 
-        //todo this updates calibration factor from during-runtime calibration matrix
+
         if (calibration) k_calibration = calibrationMatrixVisitors[trip.getLongDistanceTripPurpose()][m];
 
         utility = b_intercept + b_frequency * frequency +

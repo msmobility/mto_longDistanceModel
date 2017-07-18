@@ -5,6 +5,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.*;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -84,7 +85,7 @@ public class DomesticTripGeneration {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
-            Collections.shuffle(membersList);
+            Collections.shuffle(membersList, MtoLongDistance.rand );
 
             for (Person pers : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international
@@ -106,7 +107,7 @@ public class DomesticTripGeneration {
                             tgProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probabilities[tripStates.indexOf(tripState)];
                         }
                         //select the trip state
-                        double randomNumber1 = Math.random();
+                        double randomNumber1 = MtoLongDistance.rand.nextDouble();
                         int tripStateChoice = 3;
 
                         if (randomNumber1 < probabilities[0]) {
@@ -304,9 +305,9 @@ public class DomesticTripGeneration {
 
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;
-        double randomChoice4 = Math.random();
+        double randomChoice4 = MtoLongDistance.rand.nextDouble();
         while (tripDuration < 30 && randomChoice4 < probability[0] / (probability[0] + probability[2])) {
-            randomChoice4 = Math.random();
+            randomChoice4 = MtoLongDistance.rand.nextDouble();
             tripDuration++;
         }
         return tripDuration;
@@ -317,7 +318,7 @@ public class DomesticTripGeneration {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
         hhTravelParty.add(0, pers);
-        double randomChoice2 = Math.random();
+        double randomChoice2 = MtoLongDistance.rand.nextDouble();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() > 17) {
@@ -338,7 +339,7 @@ public class DomesticTripGeneration {
     public static ArrayList<Person> addKidsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
-        double randomChoice2 = Math.random();
+        double randomChoice2 = MtoLongDistance.rand.nextDouble();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() < 18) {
@@ -359,7 +360,7 @@ public class DomesticTripGeneration {
     public static int addNonHhTravelPartySize(String tripPurpose, TableDataSet travelPartyProbabilities) {
         // methods selects party size for travel groups that are composed of non-household members
         // note that additional travelers on this trip are not specified in the synthetic population (simplified approach)
-        double randomChoice3 = Math.random();
+        double randomChoice3 = MtoLongDistance.rand.nextDouble();
         int k = 0;
         String column = tripPurpose + ".nonHh";
         while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) && k < 10)
