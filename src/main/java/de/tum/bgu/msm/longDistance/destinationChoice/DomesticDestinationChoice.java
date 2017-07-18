@@ -21,6 +21,7 @@ import java.util.*;
  * Created by Joe on 26/10/2016.
  */
 public class DomesticDestinationChoice {
+    private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     public static final int CHOICE_SET_SIZE = 117;
     private TableDataSet combinedZones;
@@ -33,6 +34,8 @@ public class DomesticDestinationChoice {
     private double[] domDcCalibrationV;
 
     public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
+        this.rb = rb;
+
         //coef format
         // table format: coeff | visit | leisure | business
         coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
@@ -42,18 +45,21 @@ public class DomesticDestinationChoice {
         //load alternatives - need to calculate distance, lang_barrier, and metro-regional for each OD pair
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
-
-
-
-        //load combined zones distance skim
-        readSkim(rb);
-
         alternatives = combinedZones.getColumnAsInt("alt");
-
-        this.domesticModeChoice = domesticModeChoice;
 
         calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.domDcCalibrationV = new double[] {1,1,1};
+        this.domesticModeChoice = domesticModeChoice;
+
+        logger.info("Domestic DC set up");
+
+    }
+
+    public void loadDomesticDestinationChoice(){
+        //load combined zones distance skim
+        readSkim(rb);
+        logger.info("Domestic DC loaded");
+
     }
 
     public void readSkim(ResourceBundle rb) {
@@ -61,7 +67,7 @@ public class DomesticDestinationChoice {
 
         String matrixName = "auto.skim.combinedzones.2013";
         String hwyFileName = rb.getString(matrixName);
-        logger.info("  Reading skims file" + hwyFileName);
+
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
         hSkim.openReadOnly();
@@ -70,7 +76,12 @@ public class DomesticDestinationChoice {
         OmxLookup omxLookUp = hSkim.getLookup(rb.getString("skim.combinedzones.lookup"));
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         autoDist.setExternalNumbersZeroBased(externalNumbers);
+
+        logger.info("  Skim matrix was read: " + hwyFileName);
+
     }
+
+
 
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {

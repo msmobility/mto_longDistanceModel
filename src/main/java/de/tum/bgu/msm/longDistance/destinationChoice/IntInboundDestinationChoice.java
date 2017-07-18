@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import com.sun.org.apache.regexp.internal.RE;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
@@ -21,6 +22,7 @@ import java.util.ResourceBundle;
  */
 public class IntInboundDestinationChoice {
 
+    private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
     private TableDataSet coefficients;
@@ -28,15 +30,17 @@ public class IntInboundDestinationChoice {
     private int[] alternatives;
     private String[] tripPurposeArray;
     private String[] tripStateArray;
+    private DomesticDestinationChoice dcModel;
     private IntModeChoice intModeChoice;
     boolean calibration;
     private double[] calibrationV;
 
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel) {
+    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
         //coef format
         // table format: coeff | visit | leisure | business
+        this.rb = rb;
         coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
@@ -45,16 +49,25 @@ public class IntInboundDestinationChoice {
         //load alternatives
         destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         destCombinedZones.buildIndex(1);
-
-        //load combined zones distance skim
-        readSkim(rb);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
-        intModeChoice = intMcModel;
-
+        this.dcModel = dcModel;
+        this.intModeChoice = intMcModel;
         calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         this.calibrationV = new double[] {1,1,1};
+
+        logger.info("International DC (inbound) set up");
+
     }
+
+    public void loadIntInboundDestinationChoice(){
+        //load combined zones distance skim
+        autoTravelTime = dcModel.getAutoDist();
+
+        logger.info("International DC (inbound) loaded");
+
+    }
+
 
 
     public int selectDestinationFromUs(LongDistanceTrip trip) {

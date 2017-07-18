@@ -53,18 +53,21 @@ public class DomesticTripGeneration {
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.mtoLongDistData = mtoLongDistData;
 
-        mtoLongDistData.readSkim("auto");
+    }
+
+
+    public void loadTripGeneration(){
+
+
 
         List<String> fromZones;
         List<String> toZones;
-
         //accessibility in Canada to Canada Trips - assing short-distance accessibility to zones
         fromZones = Arrays.asList("ONTARIO");
         float alpha = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
         float beta = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
         toZones = Arrays.asList("ONTARIO", "EXTCANADA");
         mtoLongDistData.calculateAccessibility(mtoLongDistData.getZoneList(), fromZones, toZones, alpha , beta);
-
     }
 
     //method to run the trip generation

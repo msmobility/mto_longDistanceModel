@@ -6,9 +6,11 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.Calibration;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.ResourceBundle;
@@ -17,6 +19,8 @@ import java.util.ResourceBundle;
  * Created by carlloga on 4/26/2017.
  */
 public class IntModeChoice {
+
+    private static Logger logger = Logger.getLogger(IntModeChoice.class);
 
     ResourceBundle rb;
 
@@ -40,6 +44,8 @@ public class IntModeChoice {
     private double[][] calibrationMatrixOutbound;
     private double[][] calibrationMatrixInbound;
 
+    private DomesticModeChoice dmChoice;
+
 
 
 
@@ -55,15 +61,24 @@ public class IntModeChoice {
         mcIntInboundCoefficients = Util.readCSVfile(rb.getString("mc.int.inbound.coefs"));
         mcIntInboundCoefficients.buildStringIndex(1);
 
-        travelTimeMatrix = dmChoice.getTravelTimeMatrix();
-        priceMatrix = dmChoice.getPriceMatrix();
-        transferMatrix = dmChoice.getTransferMatrix();
-        frequencyMatrix = dmChoice.getFrequencyMatrix();
+        this.dmChoice = dmChoice;
 
         calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 
+        logger.info("International MC set up");
+
+    }
+
+
+    public void loadIntModeChoice(){
+        travelTimeMatrix = dmChoice.getTravelTimeMatrix();
+        priceMatrix = dmChoice.getPriceMatrix();
+        transferMatrix = dmChoice.getTransferMatrix();
+        frequencyMatrix = dmChoice.getFrequencyMatrix();
+
+        logger.info("International MC loaded");
     }
 
     public int selectMode(LongDistanceTrip trip){
@@ -123,20 +138,6 @@ public class IntModeChoice {
         double frequency = frequencyMatrix[m].getValueAt(origin, destination);
 
         double vot= mcIntInboundCoefficients.getStringIndexedValueAt("vot", column);
-
-//        todo scenario testing - remove for final version
-//        if (origin >18 & origin < 28 & destination == 103 & m == 2){
-//            //"a high speed train between toronto a montreal that reduces time to the half
-//            time = time / 2;
-//
-//        }
-
-
-
-//        if (origin >18 & origin < 28 & destination == 103){
-//            //price = price * 2;
-//            logger.info("mode" +  modeNames[m] + "intermetro: " + interMetro + " ruralRural: " + ruralRural + "travelTime" + time);
-//        }
 
 
         double impedance = 0;

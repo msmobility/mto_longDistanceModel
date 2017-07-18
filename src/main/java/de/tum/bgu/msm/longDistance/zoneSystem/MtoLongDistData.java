@@ -37,20 +37,27 @@ public class MtoLongDistData {
     private ArrayList<Zone> zoneList;
     private ArrayList<Zone> internalZones;
     private ArrayList<Zone> externalZones;
-    private final Map<Integer, Zone> zoneLookup;
+    private Map<Integer, Zone> zoneLookup;
 
     public static final List<String> tripPurposes = Arrays.asList("visit","business","leisure");
     public static final List<String> tripStates = Arrays.asList("away","daytrip","inout");
 
+    String[] autoFileMatrixLookup = new String[3];
+    String[] distanceFileMatrixLookup = new String[3];
 
-    TableDataSet externalCanadaTable;
-    TableDataSet externalUsTable;
-    TableDataSet externalOverseasTable;
+    private TableDataSet externalCanadaTable;
+    private TableDataSet externalUsTable;
+    private TableDataSet externalOverseasTable;
 
 
     public MtoLongDistData(ResourceBundle rb) {
-
         this.rb = rb;
+        logger.info("Zonal data manager set up");
+    }
+
+
+    public void loadZonalData(){
+
 
         this.internalZones = readInternalZones();
         this.externalZones = readExternalZones();
@@ -59,33 +66,34 @@ public class MtoLongDistData {
         this.zoneList.addAll(externalZones);
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
 
+        readSkims();
+        logger.info("Zonal data loaded");
     }
 
     public static List<String> getTripPurposes() {
         return tripPurposes;
     }
-
     public static List<String> getTripStates() {
         return tripStates;
     }
 
-    public void readSkim(String mode) {
-        // read skim file
-        logger.info("  Reading skims files");
-//todo change this
-        String matrixName = mode + ".skim." + Mto.getYear();
-        String hwyFileName = rb.getString(matrixName);
-        // Read highway hwySkim
-        logger.info("Opening omx file: " + hwyFileName);
-        OmxFile hSkim = new OmxFile(hwyFileName);
-        hSkim.openReadOnly();
-        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
-        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup("zone_number");
-        int[] externalNumbers = (int[]) omxLookUp.getLookup();
-        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
+    public void readSkims() {
+//        // read skim file
+//        logger.info("  Reading skims files");
+////todo change this
+//        String matrixName = mode + ".skim." + Mto.getYear();
+//        String hwyFileName = rb.getString(matrixName);
+//        // Read highway hwySkim
+//        logger.info("Opening omx file: " + hwyFileName);
+//        OmxFile hSkim = new OmxFile(hwyFileName);
+//        hSkim.openReadOnly();
+//        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.time"));
+//        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
+//        OmxLookup omxLookUp = hSkim.getLookup("zone_number");
+//        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+//        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
 
-
+        autoTravelTime = convertSkimToMatrix(rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup"));
         autoTravelDistance = convertSkimToMatrix(rb.getString("dist.skim.file"),rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup"));
 
     }
@@ -99,7 +107,7 @@ public class MtoLongDistData {
         OmxLookup omxLookUp = skim.getLookup(lookUpName);
         int[] externalNumbers = (int[]) omxLookUp.getLookup();
         matrix.setExternalNumbersZeroBased(externalNumbers);
-
+        logger.info("  Skim matrix was read: " + fileName);
         return matrix;
     }
 
@@ -200,7 +208,7 @@ public class MtoLongDistData {
     public void calculateAccessibility(ArrayList<Zone> zoneList, List<String> fromZones, List<String> toZones, float alphaAuto, float betaAuto) {
 
         //read alpha and beta parameters
-        logger.info("Calculating accessibilities");
+        logger.info("   Calculating accessibilities");
 
         //create lists of origin and destination zones
 

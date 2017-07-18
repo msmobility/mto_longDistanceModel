@@ -30,7 +30,7 @@ public class AccessibilityAnalysis {
 
         zoneList = mtoLongDistData.getZoneList();
 
-        mtoLongDistData.readSkim("auto");
+        mtoLongDistData.readSkims();
         //mtoLongDistData.readSkim("transit");
         //input parameters for accessibility calculations from mto properties
         alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");

@@ -40,10 +40,8 @@ public class ExtCanToIntTripGeneration {
 
     //method to run the trip generation
     public ArrayList<LongDistanceTrip> runExtCanInternationalTripGeneration(ArrayList<Zone> externalZoneList) {
+
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
-
-
-
 
         int tripCount = 0;
         for (Zone zone : externalZoneList) {
@@ -67,7 +65,7 @@ public class ExtCanToIntTripGeneration {
         }
 
 
-        logger.info(tripCount + " Canadian and non-Ontarian international trips generated");
+        logger.info("  " + tripCount + " international trips from External Zones in Canada generated");
         return trips;
     }
 
@@ -99,7 +97,8 @@ public class ExtCanToIntTripGeneration {
 
         return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone, true,
                 0, adultsHh, kidsHh, nonHh);
-        //TODO assign nights!
+
+        //TODO assign nights?
 
     }
 }

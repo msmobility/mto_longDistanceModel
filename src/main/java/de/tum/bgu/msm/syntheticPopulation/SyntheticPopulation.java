@@ -30,24 +30,38 @@ public class SyntheticPopulation {
 
     private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
-    private final Map<Integer, Zone> zoneLookup;
+    private Map<Integer, Zone> zoneLookup;
+    private MtoLongDistData mtoLongDistData;
 
     private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
     private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
-    private ArrayList<Zone> internalZoneList;
+
 
 
     public SyntheticPopulation(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
-        this.zoneLookup = mtoLongDistData.getZoneLookup();
-        readSyntheticPopulation(mtoLongDistData.getInternalZoneList());
+        this.mtoLongDistData=mtoLongDistData;
+        logger.info("Synthetic population reader set up");
+
+
 
     }
 
-    public void readSyntheticPopulation(ArrayList<Zone> internalZoneList) {
-        this.internalZoneList = internalZoneList;
+    public void loadSyntheticPopulation(){
+        this.zoneLookup = mtoLongDistData.getZoneLookup();
+
+        readSyntheticPopulation();
+
+        logger.info("Synthetic population loaded");
+
+
+    }
+
+
+    public void readSyntheticPopulation() {
+
         // method to read in synthetic population
         logger.info("  Reading synthetic population");
         //readZonalData();
@@ -56,6 +70,8 @@ public class SyntheticPopulation {
         readSyntheticPersons();
         examSyntheticPopulation();
         //summarizePopulationData();
+
+
     }
 
     /*public void readZonalData () {

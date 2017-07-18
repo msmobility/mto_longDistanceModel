@@ -99,7 +99,7 @@ public class InternationalTripGeneration {
                         break;
                     }
                 }
-                logger.info(tripCount + " international trips generated in Ontario, with purpose " + tripPurpose + " and state " + tripState);
+                //logger.info(tripCount + " international trips generated in Ontario, with purpose " + tripPurpose + " and state " + tripState);
             }
         }
         return trips;
@@ -156,7 +156,7 @@ public class InternationalTripGeneration {
                 }
             }
         });
-        logger.info("sum of probabilities done");
+        //logger.info("sum of probabilities done");
 
     }
 

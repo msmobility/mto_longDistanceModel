@@ -49,33 +49,39 @@ public class MtoLongDistance {
     private ZoneDisaggregator zd;
 
     public MtoLongDistance(ResourceBundle rb) {
-
+        //SET UP of the models
         this.rb = rb;
-
-        //sp and zone system
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
-        mtoLongDistData.populateZones(syntheticPopulationReader);
-
-        //tg model
         tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
-
-        //mode choice models
         mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
         intModeChoice = new IntModeChoice(rb, mtoLongDistData, mcDomesticModel);
-
-        //destination choice models
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcDomesticModel);
-        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
-        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice);
-
-        //disaggregation model
+        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
+        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         zd = new ZoneDisaggregator(rb,mtoLongDistData);
 
+        logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
     public void runLongDistanceModel() {
 
+        //LOAD the models
+        mtoLongDistData.loadZonalData();
+        syntheticPopulationReader.loadSyntheticPopulation();
+        mtoLongDistData.populateZones(syntheticPopulationReader);
+        tripGenModel.loadTripGenerationModels();
+        dcModel.loadDomesticDestinationChoice();
+        dcInBoundModel.loadIntInboundDestinationChoice();
+        dcOutboundModel.loadIntOutboundDestinationChoiceModel();
+        mcDomesticModel.loadDomesticModeChoice();
+        intModeChoice.loadIntModeChoice();
+        zd.loadZoneDisaggregator();
+
+        logger.info("---------------------ALL MODULES LOADED---------------------");
+
+
+        //RUN models
         boolean runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
         boolean runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
 
@@ -110,7 +116,9 @@ public class MtoLongDistance {
 
 
 
-        if (runTG) allTrips = tripGenModel.runTripGeneration();
+        if (runTG) {
+            allTrips = tripGenModel.runTripGeneration();
+        }
 
         if (runDC) runDestinationChoice(allTrips);
 
@@ -118,7 +126,7 @@ public class MtoLongDistance {
 
         boolean calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
         boolean calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
-        if (calibrationDC && calibrationMC){
+        if (calibrationDC || calibrationMC){
             calibrateModel(calibrationDC, calibrationMC);
         }
 

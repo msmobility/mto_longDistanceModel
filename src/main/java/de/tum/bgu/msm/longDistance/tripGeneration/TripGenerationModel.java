@@ -38,7 +38,16 @@ public class TripGenerationModel {
         domesticTripGeneration = new DomesticTripGeneration(rb, synPop, mtoLongDistData);
         internationalTripGeneration = new InternationalTripGeneration(rb, synPop);
         visitorsTripGeneration = new VisitorsTripGeneration(rb);
-        extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
+        //extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
+
+        logger.info("Trip Generation model set up");
+    }
+
+    public void loadTripGenerationModels(){
+        domesticTripGeneration.loadTripGeneration();
+
+        logger.info("Trip generation loaded");
+
     }
 
     public ArrayList<LongDistanceTrip> runTripGeneration() {
@@ -46,30 +55,30 @@ public class TripGenerationModel {
         //initialize list of trips
         ArrayList<LongDistanceTrip> trips_dom_ontarian; //trips from Ontario to all Canada - sp based
         ArrayList<LongDistanceTrip> trips_int_ontarian; //trips from Ontario to other countries - sp based
-        ArrayList<LongDistanceTrip> trips_int_canadian; //trips from non-Ontario to other countries
+        //ArrayList<LongDistanceTrip> trips_int_canadian; //trips from non-Ontario to other countries
         ArrayList<LongDistanceTrip> trips_visitors; //trips from non-Ontario to all Canada, and trips from other country to Canada
 
         //generate domestic trips
         trips_dom_ontarian = domesticTripGeneration.runTripGeneration();
-        logger.info("Domestic Trips from Ontario generated");
+        logger.info("  " + trips_dom_ontarian.size() + " domestic Trips from Ontario generated");
 
         //generate international trips (must be done after domestic)
         trips_int_ontarian = internationalTripGeneration.runInternationalTripGeneration();
-        logger.info("International trips from Ontario generated");
+        logger.info("  " + trips_int_ontarian.size() + " trips from Ontario generated");
 
         //generate visitors
         trips_visitors = visitorsTripGeneration.runVisitorsTripGeneration(mtoLongDistData.getExternalZoneList());
-        logger.info("Visitor trips to Canada generated");
+        //logger.info("  Visitor trips to Canada generated");
 
-        trips_int_canadian = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
-        logger.info("International trips from non-Ontarian zones generated");
+        //trips_int_canadian = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
+        //logger.info("  International trips from non-Ontarian zones generated");
 
         //join all the trips
         ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
         allTrips.addAll(trips_int_ontarian);
         allTrips.addAll(trips_dom_ontarian);
         allTrips.addAll(trips_visitors);
-        allTrips.addAll(trips_int_canadian);
+        //allTrips.addAll(trips_int_canadian);
 
         return allTrips;
 

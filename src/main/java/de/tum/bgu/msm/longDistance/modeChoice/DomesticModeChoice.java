@@ -65,15 +65,23 @@ public class DomesticModeChoice {
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
 
-        readSkimByMode(rb);
 
         calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
 
+        logger.info("Domestic MC set up");
+
     }
 
-    //constructor with read coefficients and matrices
+
+    public void loadDomesticModeChoice(){
+        readSkimByMode(rb);
+
+        logger.info("Domestic MC loaded");
+    }
+
+
 
 
     public void readSkimByMode(ResourceBundle rb) {

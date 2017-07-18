@@ -21,6 +21,10 @@ public class VisitorsTripGeneration {
     //private TableDataSet visitorRateCoefficients;
     private TableDataSet visitorsRatePerZone;
 
+
+    private TableDataSet externalCanIntRates;
+
+
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
@@ -42,6 +46,11 @@ public class VisitorsTripGeneration {
         String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
         visitorsRatePerZone = Util.readCSVfile(visitorsRatePerZoneFilename);
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
+
+        String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
+        externalCanIntRates = Util.readCSVfile(externalCanIntRatesName);
+        externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
+
     }
 
 
@@ -52,7 +61,26 @@ public class VisitorsTripGeneration {
         ArrayList<LongDistanceTrip> visitorTrips = new ArrayList<>();
 
         int tripCount = 0;
+        int tripCount2 = 0;
         for (Zone zone : externalZoneList) {
+            if (zone.getZoneType().equals(ZoneType.EXTCANADA)) {
+                for (String tripPurpose : tripPurposes) {
+                    for (String tripState : tripStates) {
+                        String column = tripState + "." + tripPurpose;
+                        double tripRate;
+                        //generates all travellers and apply later destination choice
+                        tripRate = externalCanIntRates.getIndexedValueAt(zone.getId(), column);
+
+                        int numberOfTrips = (int) Math.round(tripRate * zone.getPopulation());
+                        for (int i = 0; i < numberOfTrips; i++) {
+                            LongDistanceTrip trip = createExtCanIntLongDistanceTrip(tripPurpose, tripState, zone, visitorPartyProbabilities);
+                            tripCount2++;
+                            visitorTrips.add(trip);
+                        }
+                    }
+                }
+            }
+
             for (String tripPurpose : tripPurposes) {
                 //get rates per zone for all travellers
                 for (String tripState : tripStates) {
@@ -68,7 +96,9 @@ public class VisitorsTripGeneration {
                 }
             }
         }
-        logger.info(tripCount + " visitors trips generated");
+        logger.info("  " + tripCount + " international trips from visitors to Canada + domestic trips from external zones Canada generated");
+        logger.info("  " + tripCount2 + " international trips from External Zones in Canada generated");
+
         return visitorTrips;
     }
 
@@ -104,6 +134,39 @@ public class VisitorsTripGeneration {
                 0, adultsHh, kidsHh, nonHh);
 
         //todo assign duration!
+
+    }
+
+    private LongDistanceTrip createExtCanIntLongDistanceTrip(String tripPurpose, String tripState, Zone zone, TableDataSet travelPartyProbabilities) {
+
+        boolean international = true;
+        int adultsHh;
+        int kidsHh;
+        int nonHh;
+        //generation of trip parties (no assignment of person, only sizes)
+        adultsHh = 1;
+        kidsHh = 0;
+        nonHh = 0;
+        String column = "adults." + tripPurpose;
+        double randomChoice = Math.random();
+        while (adultsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
+            adultsHh++;
+
+        column = "kids." + tripPurpose;
+        randomChoice = Math.random();
+        while (kidsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
+            kidsHh++;
+
+        column = "nonHh." + tripPurpose;
+        randomChoice = Math.random();
+        while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
+            nonHh++;
+
+
+        return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone, true,
+                0, adultsHh, kidsHh, nonHh);
+
+        //TODO assign nights?
 
     }
 

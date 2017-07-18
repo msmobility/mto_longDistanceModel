@@ -2,7 +2,9 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.ResourceBundle;
  */
 public class ZoneDisaggregator {
 
+    private static Logger logger = Logger.getLogger(ZoneDisaggregator.class);
     private ResourceBundle rb;
     private ArrayList<Zone> zoneList;
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
@@ -22,15 +25,18 @@ public class ZoneDisaggregator {
 
     public ZoneDisaggregator(ResourceBundle rb, MtoLongDistData mtoLongDistData){
         this.rb = rb;
-        this.zoneList = mtoLongDistData.getZoneList();
-
         combinedZoneMap = new HashMap<>();
         this.mtoLongDistData = mtoLongDistData;
 
+        logger.info("Zone disaggregator set up");
+    }
+
+    public void loadZoneDisaggregator(){
+        this.zoneList = mtoLongDistData.getZoneList();
         for (Zone z : zoneList) {
             if (combinedZoneMap.containsKey(z.getCombinedZoneId())){ ;
-            combinedZoneMap.get(z.getCombinedZoneId()).put(z.getId(), z);
-        } else {
+                combinedZoneMap.get(z.getCombinedZoneId()).put(z.getId(), z);
+            } else {
                 Map<Integer, Zone> internalZoneMap = new HashMap<>();
                 internalZoneMap.put(z.getId(), z);
                 combinedZoneMap.put(z.getCombinedZoneId(), internalZoneMap);
@@ -38,6 +44,7 @@ public class ZoneDisaggregator {
 
         }
 
+        logger.info("Zone disaggregator loaded");
     }
 
     public void disaggregateDestination(LongDistanceTrip trip){
