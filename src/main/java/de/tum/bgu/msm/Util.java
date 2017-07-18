@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
@@ -43,6 +44,7 @@ public class Util {
     public static ResourceBundle mtoInitialization(String resourceBundleName) {
 
         File propFile = new File(resourceBundleName);
+
         return ResourceUtil.getPropertyBundle(propFile);
     }
 
@@ -161,6 +163,14 @@ public class Util {
         return array;
     }
 
+    public static void initializeRandomNumber(ResourceBundle rb) {
+        // initialize random number generator
+        int seed = ResourceUtil.getIntegerProperty(rb, "run.random.seed");
+        if (seed == -1)
+            MtoLongDistance.rand = new Random();
+        else
+            MtoLongDistance.rand = new Random(seed);
+    }
 
 
 

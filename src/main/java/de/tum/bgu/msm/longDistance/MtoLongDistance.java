@@ -29,6 +29,8 @@ import java.util.*;
 
 public class MtoLongDistance {
 
+    public static Random rand;
+
     static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
 
@@ -60,6 +62,8 @@ public class MtoLongDistance {
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         zd = new ZoneDisaggregator(rb,mtoLongDistData);
+
+        Util.initializeRandomNumber(rb);
 
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
