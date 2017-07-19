@@ -68,7 +68,7 @@ public class MtoLongDistance {
         mtoLongDistData.loadZonalData();
         syntheticPopulationReader.loadSyntheticPopulation();
         mtoLongDistData.populateZones(syntheticPopulationReader);
-        tripGenModel.loadTripGenerationModels();
+        tripGenModel.loadTripGenerationModels(dcOutboundModel);
         dcModel.loadDomesticDestinationChoice();
         dcInBoundModel.loadIntInboundDestinationChoice();
         dcOutboundModel.loadIntOutboundDestinationChoiceModel();

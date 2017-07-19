@@ -1,8 +1,10 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
+import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.Person;
 import de.tum.bgu.msm.Util;
@@ -32,9 +34,14 @@ public class InternationalTripGeneration {
     private TableDataSet internationalTripRates;
     private TableDataSet tripGenerationCoefficients;
 
-    public InternationalTripGeneration(ResourceBundle rb, SyntheticPopulation synPop) {
+    private TableDataSet originCombinedZones;
+
+    private MtoLongDistData mtoLongDistData;
+
+    public InternationalTripGeneration(ResourceBundle rb, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.synPop = synPop;
         this.rb = rb;
+        this.mtoLongDistData = mtoLongDistData;
 
         String internationalTriprates = rb.getString("int.trips");
         internationalTripRates = Util.readCSVfile(internationalTriprates);
@@ -47,10 +54,29 @@ public class InternationalTripGeneration {
         String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
         tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
+
+    }
+
+
+    public void loadInternationalTripGeneration(IntOutboundDestinationChoice dcModel){
+        //method to calculate the accessibility to US as a measure of the probability of starting and international trip
+//        List<String> fromZones;
+//        List<String> toZones;
+//        fromZones = Arrays.asList("ONTARIO");
+//        float alpha = (float) ResourceUtil.getDoubleProperty(rb, "int.access.alpha");
+//        float beta = (float) ResourceUtil.getDoubleProperty(rb, "int.access.beta");
+//        toZones = Arrays.asList("EXTUS");
+//        mtoLongDistData.calculateAccessibility(mtoLongDistData.getZoneList(), fromZones, toZones, alpha , beta);
+
+        originCombinedZones = dcModel.getOrigCombinedZones();
+
+
     }
 
     //method to run the trip generation
     public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
+
+
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
@@ -73,20 +99,19 @@ public class InternationalTripGeneration {
                     int n = numberOfTrips - tripCount;
                     double[] randomChoice = new double[n];
                     for (int k = 0; k < randomChoice.length; k++) {
-                        randomChoice[k] = MtoLongDistance.rand.nextDouble();
+                        randomChoice[k] = MtoLongDistance.rand.nextDouble()*sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];;
                     }
                     //sort the matrix for faster lookup
                     Arrays.sort(randomChoice);
                     //look up for the n travellers
                     int p = 0;
                     double cumulative = probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
+
                     for (double randomNumber : randomChoice){
                         while (randomNumber > cumulative && p < personIds.length - 1) {
                             p++;
-                            cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p] /
-                                    sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];
+                            cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
                         }
-
                         Person pers = synPop.getPersonFromId(personIds[p]);
                         if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
 
@@ -138,26 +163,40 @@ public class InternationalTripGeneration {
 
 
     public void sumProbs(){
-        IntStream.range(0, synPop.getPersons().size()).parallel().forEach(p -> {
-            Person pers = synPop.getPersonFromId(p);
+        List <Person> persons = new ArrayList<>(synPop.getPersons());
+
+        //make random list of persons
+        Collections.shuffle(persons, MtoLongDistance.rand);
+        double exponent = 2;
+
+        int p = 0;
+        for (Person pers : persons) {
+            //IntStream.range(0, synPop.getPersons().size()).parallel().forEach(p -> {
+            //Person pers = synPop.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
             if (pers.getTravelProbabilities() != null) {
                 for (String tripPurpose : tripPurposes) {
                     for (String tripState : tripStates) {
                         int j = tripStates.indexOf(tripState);
                         int i = tripPurposes.indexOf(tripPurpose);
-                        if (pers.isAway() || pers.isDaytrip() || pers.isInOutTrip() || pers.getAge() < 18 ){
+                        if (pers.isAway() || pers.isDaytrip() || pers.isInOutTrip() || pers.getAge() < 18) {
                             probabilityMatrix[i][j][p] = 0f;
                             //cannot be an adult travelling
                         } else {
-                            probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j];
+                            //probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j];
+                            //correct here the probability by the accessibility to US - using access at level 2 zone
+                            probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j] * Math.pow(originCombinedZones.getIndexedValueAt(pers.getHousehold().getZone().getCombinedZoneId(), "usAccess"),exponent);
                         }
                         sumProbabilities[i][j] += probabilityMatrix[i][j][p];
                     }
                 }
             }
-        });
-        //logger.info("sum of probabilities done");
+            p++;
+
+        }
+
+        //});
+        logger.info("  sum of probabilities done for " + p + " persons");
 
     }
 

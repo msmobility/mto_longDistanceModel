@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
@@ -36,16 +37,17 @@ public class TripGenerationModel {
 
         //create the trip generation models
         domesticTripGeneration = new DomesticTripGeneration(rb, synPop, mtoLongDistData);
-        internationalTripGeneration = new InternationalTripGeneration(rb, synPop);
+        internationalTripGeneration = new InternationalTripGeneration(rb, synPop, mtoLongDistData);
         visitorsTripGeneration = new VisitorsTripGeneration(rb);
         //extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
 
         logger.info("Trip Generation model set up");
     }
 
-    public void loadTripGenerationModels(){
+    public void loadTripGenerationModels(IntOutboundDestinationChoice intDcModel){
 
         domesticTripGeneration.loadTripGeneration();
+        internationalTripGeneration.loadInternationalTripGeneration(intDcModel);
         logger.info("Trip generation loaded");
 
     }

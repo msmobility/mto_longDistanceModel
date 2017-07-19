@@ -296,7 +296,7 @@ public class DomesticTripGeneration {
         int tripDuration;
         if (pers.isDaytrip()) tripDuration = 0;
         else {
-            tripDuration = estimateTripDuration(probability);
+            tripDuration = estimateSimpleTripDuration(tripState);
         }
         return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
                 pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
@@ -312,6 +312,13 @@ public class DomesticTripGeneration {
         }
         return tripDuration;
     }
+
+    public static int estimateSimpleTripDuration(String tripState) {
+        int tripDuration = tripState == "daytrip"? 0 : 1;
+
+        return tripDuration;
+    }
+
 
     public static ArrayList<Person> addAdultsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
 

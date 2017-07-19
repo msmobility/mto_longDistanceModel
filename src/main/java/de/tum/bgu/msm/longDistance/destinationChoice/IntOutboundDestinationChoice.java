@@ -275,4 +275,8 @@ public class IntOutboundDestinationChoice {
     public double[] getCalibrationV() {
         return calibrationV;
     }
+
+    public TableDataSet getOrigCombinedZones() {
+        return origCombinedZones;
+    }
 }
