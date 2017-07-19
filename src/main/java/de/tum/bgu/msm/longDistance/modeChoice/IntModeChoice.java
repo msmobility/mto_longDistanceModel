@@ -107,7 +107,8 @@ public class IntModeChoice {
         //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
+        //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
+        return Util.select(expUtilities, modes);
 
 
     }

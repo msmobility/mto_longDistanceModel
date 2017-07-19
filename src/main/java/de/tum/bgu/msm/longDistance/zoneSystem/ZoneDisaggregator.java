@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -61,7 +62,8 @@ public class ZoneDisaggregator {
             i++;
         }
 
-        trip.setDestZone(internalZoneMap.get(new EnumeratedIntegerDistribution(alternatives, expUtilities).sample()));
+        //trip.setDestZone(internalZoneMap.get(new EnumeratedIntegerDistribution(alternatives, expUtilities).sample()));
+        trip.setDestZone(internalZoneMap.get(Util.select(expUtilities, alternatives)));
 
         trip.setTravelDistanceLevel1(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
 
