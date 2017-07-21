@@ -33,6 +33,7 @@ public class DomesticTripGeneration {
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
+    private JsonUtilMto prop;
 
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
@@ -44,23 +45,27 @@ public class DomesticTripGeneration {
 
 
 
-    public DomesticTripGeneration(ResourceBundle rb, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
+    public DomesticTripGeneration(ResourceBundle rb, JsonUtilMto prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.rb = rb;
+        this.prop = prop;
         this.synPop = synPop;
 
-        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
+        //String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
+        tripGenerationCoefficients = Util.readCSVfile(prop.getStringProp("tg.dom.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
-        String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
+        //String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
 
-        travelPartyProbabilities = Util.readCSVfile(travelPartyProbabilitiesFilename);
+        travelPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.dom.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.mtoLongDistData = mtoLongDistData;
 
-        alphaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
-        betaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
+        //alphaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
+        //betaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
+
+        alphaAccess = prop.getFloatProp("tg.dom.access.alpha");
+        betaAccess = prop.getFloatProp("tg.dom.access.beta");
 
     }
 
@@ -147,6 +152,8 @@ public class DomesticTripGeneration {
         double accessibility = pers.getHousehold().getZone().getAccessibility();
 
         int winter = Mto.getWinter()? 1:0;
+
+
 
         //read coefficients
         String coefficientColumn = tripState + "." + tripPurpose;

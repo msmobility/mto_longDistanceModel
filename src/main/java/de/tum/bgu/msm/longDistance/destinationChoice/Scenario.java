@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
@@ -28,16 +29,18 @@ import java.util.stream.IntStream;
 public class Scenario {
 
     MtoLongDistData mtoLongDistData;
+    JsonUtilMto prop;
     ResourceBundle rb;
     private DomesticDestinationChoice dcModel;
     private DomesticModeChoice mcModel;
     Logger logger = Logger.getLogger(Scenario.class);
     ArrayList<LongDistanceTrip> allTrips;
 
-    public Scenario(ResourceBundle rb) {
+    public Scenario(ResourceBundle rb, JsonUtilMto prop) {
 
         this.rb = rb;
-        mtoLongDistData = new MtoLongDistData(rb);
+        this.prop = prop;
+        mtoLongDistData = new MtoLongDistData(rb, prop);
         mcModel = new DomesticModeChoice(rb, mtoLongDistData);
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcModel );
 
@@ -45,8 +48,9 @@ public class Scenario {
 
     public static void main(String[] args) {
         ResourceBundle rb = Util.mtoInitialization(args[0]);
+        JsonUtilMto prop = new JsonUtilMto("./javaFiles/properties.json");
 
-        Scenario scenario = new Scenario(rb);
+        Scenario scenario = new Scenario(rb, prop);
 
 
         scenario.iterate();

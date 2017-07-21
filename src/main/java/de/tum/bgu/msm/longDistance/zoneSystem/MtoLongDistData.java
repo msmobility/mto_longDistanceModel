@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.syntheticPopulation.Household;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class MtoLongDistData {
     private static Logger logger = Logger.getLogger(MtoLongDistData.class);
     private ResourceBundle rb;
+    private JsonUtilMto prop;
     private Matrix autoTravelTime;
     private Matrix autoTravelDistance;
 
@@ -49,21 +51,33 @@ public class MtoLongDistData {
     private TableDataSet externalOverseasTable;
 
 
-    public MtoLongDistData(ResourceBundle rb) {
+    public MtoLongDistData(ResourceBundle rb, JsonUtilMto prop) {
         this.rb = rb;
-        autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
-        distanceFileMatrixLookup = new String[]{rb.getString("dist.skim.file"), rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup")};
+        this.prop = prop;
+        //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
+        //distanceFileMatrixLookup = new String[]{rb.getString("dist.skim.file"), rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup")};
 
-        externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
+        autoFileMatrixLookup = new String[]{prop.getStringProp("zone.skim.time.file"),
+                prop.getStringProp("zone.skim.time.matrix"),
+                prop.getStringProp("zone.skim.time.lookup")};
+        distanceFileMatrixLookup = new String[]{prop.getStringProp("zone.skim.distance.file"),
+                prop.getStringProp("zone.skim.distance.matrix"),
+                prop.getStringProp("zone.skim.distance.lookup")};
+
+        //externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
+        externalCanadaTable = Util.readCSVfile(prop.getStringProp("zone.external.canada_file"));
         externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
 
-        externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
+        //externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
+        externalUsTable = Util.readCSVfile(prop.getStringProp("zone.external.us_file"));
         externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
 
-        externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
+        //externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
+        externalOverseasTable = Util.readCSVfile(prop.getStringProp("zone.external.os_file"));
         externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
 
-        zoneTable = Util.readCSVfile(rb.getString("int.can"));
+        //zoneTable = Util.readCSVfile(rb.getString("int.can"));
+        zoneTable = Util.readCSVfile(prop.getStringProp("zone.internal_file"));
         zoneTable.buildIndex(1);
 
         logger.info("Zonal data manager set up");
@@ -251,8 +265,9 @@ public class MtoLongDistData {
 
     }
 
+
     public void writeOutAccessibilities(ArrayList<Zone> zoneList) {
-        //print out accessibilities
+        //print out accessibilities - no longer used
 
         String fileName = rb.getString("access.out.file") + ".csv";
         PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);

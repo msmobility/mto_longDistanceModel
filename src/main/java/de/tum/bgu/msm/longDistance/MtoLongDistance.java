@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
@@ -35,6 +36,8 @@ public class MtoLongDistance {
 
     static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
+    private JsonUtilMto prop;
+
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
     private MtoLongDistData mtoLongDistData;
     private SyntheticPopulation syntheticPopulationReader;
@@ -52,29 +55,36 @@ public class MtoLongDistance {
     private boolean runDC;
     private boolean calibrationDC;
     private boolean calibrationMC;
+    private String inputTripFile;
 
     //output options
     private boolean writeTrips;
-    private boolean analyzeAccess;
+    //private boolean analyzeAccess;
 
     //SET UP the models
-    public MtoLongDistance(ResourceBundle rb) {
+    public MtoLongDistance(ResourceBundle rb, JsonUtilMto prop) {
         this.rb = rb;
+        this.prop = prop;
         Util.initializeRandomNumber(rb);
 
         //read developing options
-        calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
-        calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
-        runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
-        runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
+        //calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        calibrationDC = prop.getBooleanProp("dc.calibration");
+        //calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
+        calibrationMC = prop.getBooleanProp("mc.calibration");
+        //runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
+        runTG = prop.getBooleanProp("run.develop.tg");
+        //runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
+        runDC = prop.getBooleanProp("run.develop.dc");
+        inputTripFile = prop.getStringProp("run.develop.trip_input_file");
 
         //read output options
         writeTrips = ResourceUtil.getBooleanProperty(rb, "write.trips", false);
-        analyzeAccess = ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false);
+        //analyzeAccess = ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false);
 
-        mtoLongDistData = new MtoLongDistData(rb);
-        syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
-        tripGenModel = new TripGenerationModel(rb, mtoLongDistData, syntheticPopulationReader);
+        mtoLongDistData = new MtoLongDistData(rb, prop);
+        syntheticPopulationReader = new SyntheticPopulation(rb, prop, mtoLongDistData);
+        tripGenModel = new TripGenerationModel(rb, prop, mtoLongDistData, syntheticPopulationReader);
         mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
         intModeChoice = new IntModeChoice(rb, mtoLongDistData, mcDomesticModel);
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcDomesticModel);
@@ -143,7 +153,7 @@ public class MtoLongDistance {
             if (runDC) {
                 //load saved trips without destination
                 logger.info("Loading generated trips");
-                TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.in.file"));
+                TableDataSet tripsDomesticTable = Util.readCSVfile(inputTripFile);
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, false);
                     allTrips.add(ldt);
@@ -154,7 +164,7 @@ public class MtoLongDistance {
             } else {
                 //load saved trip with destinations
                 logger.info("Loading generated trips");
-                TableDataSet tripsDomesticTable = Util.readCSVfile(ResourceUtil.getProperty(rb, "trip.in.file"));
+                TableDataSet tripsDomesticTable = Util.readCSVfile(inputTripFile);
 
                 for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, true);
@@ -293,11 +303,11 @@ public class MtoLongDistance {
         }
 
 
-        if (analyzeAccess) {
-
-            AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
-            accAna.calculateAccessibilityForAnalysis();
-        }
+//        if (analyzeAccess) {
+//
+//            AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
+//            accAna.calculateAccessibilityForAnalysis();
+//        }
 
     }
 

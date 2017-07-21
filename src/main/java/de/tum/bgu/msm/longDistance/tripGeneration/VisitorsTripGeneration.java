@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
@@ -30,13 +31,15 @@ public class VisitorsTripGeneration {
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
+    private JsonUtilMto prop;
 
-    public VisitorsTripGeneration(ResourceBundle rb) {
+    public VisitorsTripGeneration(ResourceBundle rb, JsonUtilMto prop) {
 
+        this.prop = prop;
         this.rb = rb;
 
-        String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
-        visitorPartyProbabilities = Util.readCSVfile(visitorPartyProbabilitiesFilename);
+        //String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
+        visitorPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.visitors.party_file"));
         visitorPartyProbabilities.buildIndex(visitorPartyProbabilities.getColumnPosition("travelParty"));
 
         //String visitorsRateFilename = rb.getString("visitor.rates");
@@ -44,12 +47,12 @@ public class VisitorsTripGeneration {
         //visitorRateCoefficients.buildIndex(visitorRateCoefficients.getColumnPosition("factor"));
         //no longer used
 
-        String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
-        visitorsRatePerZone = Util.readCSVfile(visitorsRatePerZoneFilename);
+        //String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
+        visitorsRatePerZone = Util.readCSVfile(prop.getStringProp("tg.visitors.rates_file"));
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
 
-        String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
-        externalCanIntRates = Util.readCSVfile(externalCanIntRatesName);
+        //String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
+        externalCanIntRates = Util.readCSVfile(prop.getStringProp("tg.visitors.external_can_int_rates_file"));
         externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
     }

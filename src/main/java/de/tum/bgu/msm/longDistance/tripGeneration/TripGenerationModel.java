@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -20,6 +21,7 @@ import java.util.ResourceBundle;
  */
 public class TripGenerationModel {
     private ResourceBundle rb;
+    private JsonUtilMto prop;
     private MtoLongDistData mtoLongDistData;
     static Logger logger = Logger.getLogger(TripGenerationModel.class);
     private SyntheticPopulation synPop;
@@ -30,15 +32,16 @@ public class TripGenerationModel {
     private VisitorsTripGeneration visitorsTripGeneration;
     //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
-    public TripGenerationModel(ResourceBundle rb, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
+    public TripGenerationModel(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
         this.rb = rb;
+        this.prop = prop;
         this.mtoLongDistData = mtoLongDistData;
         this.synPop = synPop;
 
         //create the trip generation models
-        domesticTripGeneration = new DomesticTripGeneration(rb, synPop, mtoLongDistData);
-        internationalTripGeneration = new InternationalTripGeneration(rb, synPop, mtoLongDistData);
-        visitorsTripGeneration = new VisitorsTripGeneration(rb);
+        domesticTripGeneration = new DomesticTripGeneration(rb, prop, synPop, mtoLongDistData);
+        internationalTripGeneration = new InternationalTripGeneration(rb, prop, synPop, mtoLongDistData);
+        visitorsTripGeneration = new VisitorsTripGeneration(rb, prop);
         //extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
 
         logger.info("Trip Generation model set up");

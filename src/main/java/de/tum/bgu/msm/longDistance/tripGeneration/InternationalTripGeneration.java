@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
@@ -26,6 +27,7 @@ public class InternationalTripGeneration {
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
+    private JsonUtilMto prop;
     private double[][] sumProbabilities;
     private int[] personIds;
     private double[][][] probabilityMatrix;
@@ -38,22 +40,23 @@ public class InternationalTripGeneration {
 
     private MtoLongDistData mtoLongDistData;
 
-    public InternationalTripGeneration(ResourceBundle rb, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
+    public InternationalTripGeneration(ResourceBundle rb, JsonUtilMto prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.synPop = synPop;
         this.rb = rb;
+        this.prop = prop;
         this.mtoLongDistData = mtoLongDistData;
 
-        String internationalTriprates = rb.getString("int.trips");
-        internationalTripRates = Util.readCSVfile(internationalTriprates);
+        //String internationalTriprates = rb.getString("int.trips");
+        internationalTripRates = Util.readCSVfile(prop.getStringProp("tg.int.rates_file"));
         internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
 
-        String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
-        travelPartyProbabilities = Util.readCSVfile(intTravelPartyProbabilitiesFilename);
+        //String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
+        travelPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.int.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
-        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
-        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
+//        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
+//        tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
+//        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
 
     }
 

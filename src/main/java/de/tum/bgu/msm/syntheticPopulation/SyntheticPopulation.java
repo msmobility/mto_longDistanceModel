@@ -1,6 +1,9 @@
 package de.tum.bgu.msm.syntheticPopulation;
 
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.Mto;
+import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
@@ -30,11 +33,14 @@ public class SyntheticPopulation {
 
     private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
+    private JsonUtilMto prop;
+
     private Map<Integer, Zone> zoneLookup;
     private MtoLongDistData mtoLongDistData;
 
     private String hhFilename;
     private String ppFilename;
+    private String travellersFilename;
 
 
     private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
@@ -43,13 +49,17 @@ public class SyntheticPopulation {
 
 
 
-    public SyntheticPopulation(ResourceBundle rb, MtoLongDistData mtoLongDistData) {
+    public SyntheticPopulation(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
+        this.prop = prop;
         this.mtoLongDistData=mtoLongDistData;
 
-        hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
-        ppFilename = ResourceUtil.getProperty(rb, "syn.pop.pp");
+        //hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
+        hhFilename = prop.getStringProp("sp.hh_file");
+        //ppFilename = ResourceUtil.getProperty(rb, "syn.pop.pp");
+        ppFilename = prop.getStringProp("sp.pp_file");
+        travellersFilename = prop.getStringProp("out.travellers_file");
 
 
         logger.info("Synthetic population reader set up");
@@ -247,8 +257,8 @@ public class SyntheticPopulation {
     public void writeSyntheticPopulation() {
         logger.info("Writing out data for trip generation (travellers)");
 
-        String OutputTravellersFilename = rb.getString("trav.out.file");
-        PrintWriter pw2 = Util.openFileForSequentialWriting(OutputTravellersFilename, false);
+
+        PrintWriter pw2 = Util.openFileForSequentialWriting(travellersFilename, false);
 
         pw2.println("personId, away, daytrip, inOutTrip");
         for (Person trav : getPersons()) {

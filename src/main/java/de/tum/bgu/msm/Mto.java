@@ -26,14 +26,17 @@ public class Mto {
     private static Logger logger = Logger.getLogger(Mto.class);
     private ResourceBundle rb;
 
+    private JsonUtilMto prop;
+
 
     private static int year;
     private static boolean winter;
 
 
-    private Mto(ResourceBundle rb) {
+    private Mto(ResourceBundle rb, JsonUtilMto prop) {
         // constructor
         this.rb = rb;
+        this.prop = prop;
     }
 
 
@@ -49,20 +52,28 @@ public class Mto {
         }
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = Util.mtoInitialization(args[0]);
+        JsonUtilMto prop = new JsonUtilMto("./javaFiles/properties.json");
+
+
+
+
+        //year = Integer.parseInt(args[1]);
+        year = prop.getIntProp("year");
+        //winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
+        winter = prop.getBooleanProp("winter");
+
+
+        Mto model = new Mto(rb, prop);
 
         //todo test version of getting json properties
-        JsonUtilMto prop = new JsonUtilMto("./file.json");
-        System.out.println(prop.bool("run.full_model"));
-        System.out.println(prop.stri("zone_files.external.us"));
-        System.out.println(prop.lon("year"));
-        System.out.println(prop.dble("alpha"));
+        //System.out.println(prop.getBooleanProp("run.moel"));
+//        System.out.println(prop.getStringProp("zone_files.external.us"));
+//        System.out.println((int) prop.getLongProp("year"));
+//        System.out.println(prop.getDoubleProp("alpha"));
 
-        year = Integer.parseInt(args[1]);
-        winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
-
-        Mto model = new Mto(rb);
         if (ResourceUtil.getBooleanProperty(rb, "analyze.survey.data", false)) model.runDataAnalysis();
-        if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
+        //if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
+        if (prop.getBooleanProp("run.full_model")) model.runLongDistModel();
 
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);
@@ -84,12 +95,14 @@ public class Mto {
     private void runLongDistModel() {
         // main method to run long-distance model
         logger.info("Started runLongDistModel for the year " + year);
-        MtoLongDistance ld = new MtoLongDistance(rb);
+        MtoLongDistance ld = new MtoLongDistance(rb, prop);
         ld.loadLongDistanceModel();
         ld.runLongDistanceModel();
         logger.info("Module runLongDistModel completed.");
 
     }
+
+
 
 
     public static int getYear() {
