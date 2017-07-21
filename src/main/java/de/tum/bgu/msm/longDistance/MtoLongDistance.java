@@ -287,6 +287,7 @@ public class MtoLongDistance {
 
     public void writeLongDistanceOutputs(){
         if (writeTrips) {
+
             syntheticPopulationReader.writeSyntheticPopulation();
             writeTrips(allTrips);
         }

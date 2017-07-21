@@ -33,6 +33,10 @@ public class SyntheticPopulation {
     private Map<Integer, Zone> zoneLookup;
     private MtoLongDistData mtoLongDistData;
 
+    private String hhFilename;
+    private String ppFilename;
+
+
     private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
     private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
@@ -43,6 +47,11 @@ public class SyntheticPopulation {
         // Constructor
         this.rb = rb;
         this.mtoLongDistData=mtoLongDistData;
+
+        hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
+        ppFilename = ResourceUtil.getProperty(rb, "syn.pop.pp");
+
+
         logger.info("Synthetic population reader set up");
 
 
@@ -98,11 +107,9 @@ public class SyntheticPopulation {
 
 
 
-        String fileName = ResourceUtil.getProperty(rb, "syn.pop.hh");
-
         String recString = "";
         int recCount = 0;
-        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader in = new BufferedReader(new FileReader(hhFilename))) {
             recString = in.readLine();
 
             // read header
@@ -137,7 +144,7 @@ public class SyntheticPopulation {
                 householdMap.put(id,hh);
             }
         } catch (IOException e) {
-            logger.fatal("IO Exception caught reading synpop household file: " + fileName);
+            logger.fatal("IO Exception caught reading synpop household file: " + hhFilename);
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " households.");
@@ -146,11 +153,11 @@ public class SyntheticPopulation {
 
     private void readSyntheticPersons() {
 
-        String fileName = ResourceUtil.getProperty(rb, "syn.pop.pp");
+
 
         String recString = "";
         int recCount = 0;
-        try (BufferedReader in = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader in = new BufferedReader(new FileReader(ppFilename))) {
             recString = in.readLine();
 
             // read header
@@ -183,7 +190,7 @@ public class SyntheticPopulation {
                 personMap.put(id,pp);
             }
         } catch (IOException e) {
-            logger.fatal("IO Exception caught reading synpop person file: " + fileName);
+            logger.fatal("IO Exception caught reading synpop person file: " + ppFilename);
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " persons.");
