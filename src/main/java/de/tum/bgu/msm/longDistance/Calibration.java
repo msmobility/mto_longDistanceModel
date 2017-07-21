@@ -1,6 +1,12 @@
 package de.tum.bgu.msm.longDistance;
 
+import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 
@@ -9,9 +15,9 @@ import java.util.ArrayList;
  */
 public class Calibration {
 
+    static Logger logger = Logger.getLogger(Calibration.class);
+
     public Calibration() {
-
-
     }
 
     public double[][] getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
@@ -260,6 +266,82 @@ public class Calibration {
                 break;
         }
         return weight;
+    }
+
+    public void printOutCalibrationResults(DomesticDestinationChoice domDc, IntOutboundDestinationChoice intOutDc, IntInboundDestinationChoice intInDc,
+                                           DomesticModeChoice domMc, IntModeChoice intMc){
+
+        logger.info("---------------------------------------------------------");
+        logger.info("-----------------RESULTS DC------------------------------");
+        logger.info("k_domestic_dc visit = " + domDc.getDomDcCalibrationV()[0]);
+        logger.info("k_domestic_dc business = " + domDc.getDomDcCalibrationV()[1]);
+        logger.info("k_domestic_dc leisure = " + domDc.getDomDcCalibrationV()[2]);
+        logger.info("k_int_out_dc visit = " + intOutDc.getCalibrationV()[0]);
+        logger.info("k_int_out_dc business = " + intOutDc.getCalibrationV()[1]);
+        logger.info("k_int_out_dc leisure = " + intOutDc.getCalibrationV()[2]);
+        logger.info("k_int_in_dc visit = " + intInDc.getCalibrationV()[0]);
+        logger.info("k_int_in_dc business = " + intInDc.getCalibrationV()[1]);
+        logger.info("k_int_in_dc leisure = " + intInDc.getCalibrationV()[2]);
+        logger.info("---------------------------------------------------------");
+
+        logger.info("---------------------------------------------------------");
+        logger.info("-----------------RESULTS MC------------------------------");
+        String type = "k_domestic_mc_";
+        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrix()[0][0] +
+                ",air=" + domMc.getCalibrationMatrix()[0][1] +
+                ",rail=" + domMc.getCalibrationMatrix()[0][2] +
+                ",bus=" + domMc.getCalibrationMatrix()[0][3]);
+        logger.info(type + "business: auto=" + domMc.getCalibrationMatrix()[1][0] +
+                ",air=" + domMc.getCalibrationMatrix()[1][1] +
+                ",rail=" + domMc.getCalibrationMatrix()[1][2] +
+                ",bus=" + domMc.getCalibrationMatrix()[1][3]);
+        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrix()[2][0] +
+                ",air=" + domMc.getCalibrationMatrix()[2][1] +
+                ",rail=" + domMc.getCalibrationMatrix()[2][2] +
+                ",bus=" + domMc.getCalibrationMatrix()[2][3]);
+        type = "k_int_out_mc_";
+        logger.info(type + "visit: auto=" + intMc.getCalibrationMatrixOutbound()[0][0] +
+                ",air=" + intMc.getCalibrationMatrixOutbound()[0][1] +
+                ",rail=" + intMc.getCalibrationMatrixOutbound()[0][2] +
+                ",bus=" + intMc.getCalibrationMatrixOutbound()[0][3]);
+        logger.info(type + "business: auto=" + intMc.getCalibrationMatrixOutbound()[1][0] +
+                ",air=" + intMc.getCalibrationMatrixOutbound()[1][1] +
+                ",rail=" + intMc.getCalibrationMatrixOutbound()[1][2] +
+                ",bus=" + intMc.getCalibrationMatrixOutbound()[1][3]);
+        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixOutbound()[2][0] +
+                ",air=" + intMc.getCalibrationMatrixOutbound()[2][1] +
+                ",rail=" + intMc.getCalibrationMatrixOutbound()[2][2] +
+                ",bus=" + intMc.getCalibrationMatrixOutbound()[2][3]);
+        type = "k_int_in_mc";
+        logger.info(type + "visit: auto=" + intMc.getCalibrationMatrixInbound()[0][0] +
+                ",air=" + intMc.getCalibrationMatrixInbound()[0][1] +
+                ",rail=" + intMc.getCalibrationMatrixInbound()[0][2] +
+                ",bus=" + intMc.getCalibrationMatrixInbound()[0][3]);
+        logger.info(type + "business: auto=" + intMc.getCalibrationMatrixInbound()[1][0] +
+                ",air=" + intMc.getCalibrationMatrixInbound()[1][1] +
+                ",rail=" + intMc.getCalibrationMatrixInbound()[1][2] +
+                ",bus=" + intMc.getCalibrationMatrixInbound()[1][3]);
+        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixOutbound()[2][0] +
+                ",air=" + intMc.getCalibrationMatrixInbound()[2][1] +
+                ",rail=" + intMc.getCalibrationMatrixInbound()[2][2] +
+                ",bus=" + intMc.getCalibrationMatrixInbound()[2][3]);
+
+
+        type = "k_domesticVisitors_mc_";
+        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrixVisitors()[0][0] +
+                ",air=" + domMc.getCalibrationMatrixVisitors()[0][1] +
+                ",rail=" + domMc.getCalibrationMatrixVisitors()[0][2] +
+                ",bus=" + domMc.getCalibrationMatrixVisitors()[0][3]);
+        logger.info(type + "business: auto=" + domMc.getCalibrationMatrixVisitors()[1][0] +
+                ",air=" + domMc.getCalibrationMatrixVisitors()[1][1] +
+                ",rail=" + domMc.getCalibrationMatrixVisitors()[1][2] +
+                ",bus=" + domMc.getCalibrationMatrixVisitors()[1][3]);
+        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrixVisitors()[2][0] +
+                ",air=" + domMc.getCalibrationMatrixVisitors()[2][1] +
+                ",rail=" + domMc.getCalibrationMatrixVisitors()[2][2] +
+                ",bus=" + domMc.getCalibrationMatrixVisitors()[2][3]);
+        logger.info("---------------------------------------------------------");
+
     }
 
 

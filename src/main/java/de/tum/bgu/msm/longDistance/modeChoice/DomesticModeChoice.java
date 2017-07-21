@@ -33,10 +33,17 @@ public class DomesticModeChoice {
     // 0 is auto, 1 is plane, 2 is train, 3 is rail
 
     //the arrays of matrices are stored in the order of modes
+    String travelTimeFileName;
+    String priceFileName;
+    String transfersFileName;
+    String freqFileName;
+    String lookUpName;
+
     private Matrix[] travelTimeMatrix = new Matrix[4];
     private Matrix[] priceMatrix = new Matrix[4];
     private Matrix[] transferMatrix = new Matrix[4];
     private Matrix[] frequencyMatrix = new Matrix[4];
+
 
     private TableDataSet mcOntarioCoefficients;
     private TableDataSet mcExtCanadaCoefficients;
@@ -66,6 +73,14 @@ public class DomesticModeChoice {
         combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones.buildIndex(1);
 
+        //matrix names
+        travelTimeFileName = rb.getString("travel.time.combined");
+        priceFileName = rb.getString("price.combined");
+        transfersFileName = rb.getString("transfer.combined");
+        freqFileName = rb.getString("freq.combined");
+        lookUpName = rb.getString("skim.mode.choice.lookup");
+
+
 
         calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
@@ -78,7 +93,6 @@ public class DomesticModeChoice {
 
     public void loadDomesticModeChoice(){
         readSkimByMode(rb);
-
         logger.info("Domestic MC loaded");
     }
 
@@ -90,11 +104,6 @@ public class DomesticModeChoice {
 
 
 
-        String travelTimeFileName = rb.getString("travel.time.combined");
-        String priceFileName = rb.getString("price.combined");
-        String transfersFileName = rb.getString("transfer.combined");
-        String freqFileName = rb.getString("freq.combined");
-
         for (int m : modes) {
 
             String matrixName = modeNames[m];
@@ -103,7 +112,7 @@ public class DomesticModeChoice {
             skim.openReadOnly();
             OmxMatrix omxMatrix = skim.getMatrix(matrixName);
             travelTimeMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
-            OmxLookup omxLookUp = skim.getLookup(rb.getString("skim.mode.choice.lookup"));
+            OmxLookup omxLookUp = skim.getLookup(lookUpName);
             int[] externalNumbers = (int[]) omxLookUp.getLookup();
             travelTimeMatrix[m].setExternalNumbersZeroBased(externalNumbers);
 

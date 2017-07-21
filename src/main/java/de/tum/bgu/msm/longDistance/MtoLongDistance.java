@@ -44,12 +44,33 @@ public class MtoLongDistance {
     private IntInboundDestinationChoice dcInBoundModel;
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
+    private Calibration c;
     private ZoneDisaggregator zd;
+
+    //developing options
+    private boolean runTG;
+    private boolean runDC;
+    private boolean calibrationDC;
+    private boolean calibrationMC;
+
+    //output options
+    private boolean writeTrips;
+    private boolean analyzeAccess;
 
     //SET UP the models
     public MtoLongDistance(ResourceBundle rb) {
         this.rb = rb;
         Util.initializeRandomNumber(rb);
+
+        //read developing options
+        calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
+        runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
+        runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
+
+        //read output options
+        writeTrips = ResourceUtil.getBooleanProperty(rb, "write.trips", false);
+        analyzeAccess = ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false);
 
         mtoLongDistData = new MtoLongDistData(rb);
         syntheticPopulationReader = new SyntheticPopulation(rb, mtoLongDistData);
@@ -59,6 +80,7 @@ public class MtoLongDistance {
         dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcDomesticModel);
         dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
         dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
+        c = new Calibration();
         zd = new ZoneDisaggregator(rb,mtoLongDistData);
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
@@ -85,9 +107,36 @@ public class MtoLongDistance {
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 
 
-        //RUN models
-        boolean runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
-        boolean runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
+        //TRIP GENERATION and DESTINATION CHOICE
+        if (runTG && runDC){
+            //run the full model
+            allTrips = tripGenModel.runTripGeneration();
+            runDestinationChoice(allTrips);
+        } else {
+            //run the in-development model
+           runDevelopingTgAndDcModels();
+        }
+
+        //MODE CHOICE
+        runModeChoice(allTrips);
+
+        //CALIBRATION TOOLS
+        if (calibrationDC || calibrationMC){
+            calibrateModel(calibrationDC, calibrationMC);
+        }
+
+        //DISAGGREGATION
+        runDisaggregation(allTrips);
+
+        //OUTPUTS
+        writeLongDistanceOutputs();
+
+
+    }
+
+
+
+    public void runDevelopingTgAndDcModels(){
 
         //developing tools to skip TG and/or DC if needed
         if (!runTG) {
@@ -99,6 +148,9 @@ public class MtoLongDistance {
                     LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, mtoLongDistData.getZoneLookup(), syntheticPopulationReader, false);
                     allTrips.add(ldt);
                 }
+                //and then run destination choice
+                runDestinationChoice(allTrips);
+
             } else {
                 //load saved trip with destinations
                 logger.info("Loading generated trips");
@@ -111,37 +163,6 @@ public class MtoLongDistance {
             }
         }
 
-
-
-
-
-        if (runTG) {
-            allTrips = tripGenModel.runTripGeneration();
-        }
-
-        if (runDC) runDestinationChoice(allTrips);
-
-        runModeChoice(allTrips);
-
-        boolean calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
-        boolean calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
-        if (calibrationDC || calibrationMC){
-            calibrateModel(calibrationDC, calibrationMC);
-        }
-
-        runDisaggregation(allTrips);
-
-        if (ResourceUtil.getBooleanProperty(rb, "write.trips", false)) {
-            syntheticPopulationReader.writeSyntheticPopulation();
-            writeTrips(allTrips);
-        }
-
-
-        if (ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false)) {
-
-            AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
-            accAna.calculateAccessibilityForAnalysis();
-        }
 
     }
 
@@ -212,51 +233,12 @@ public class MtoLongDistance {
         });
     }
 
-    public void runDisaggregation(ArrayList<LongDistanceTrip> allTrips) {
-        logger.info("Starting disaggregation");
-        allTrips.parallelStream().forEach(t -> {
-            zd.disaggregateDestination(t);
-        });
-        logger.info("Finished disaggregation");
-    }
-
-    public void writeTrips(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Writing out data for trip generation (trips)");
-
-        String OutputTripsFileName = rb.getString("trip.out.file");
-        PrintWriter pw = Util.openFileForSequentialWriting(OutputTripsFileName, false);
-
-
-        pw.println(LongDistanceTrip.getHeader());
-
-
-        for (LongDistanceTrip tr : trips) {
-            //if (tr.getOrigZone().getZoneType() == ZoneType.ONTARIO){
-            pw.println(tr.toString());
-        }
-
-
-        pw.close();
-    }
-
-//    public void writePopByZone() {
-//        PrintWriter pw = Util.openFileForSequentialWriting(rb.getString("zone.out.file"), false);
-//        pw.println("zone,hh,pp");
-//        for (Zone zone : mtoLongDistData.getInternalZoneList()) {
-//            pw.println(zone.getId() + "," + zone.getHouseholds() + "," + zone.getPopulation());
-//        }
-//        pw.close();
-//    }
-
-
-
-
     public void calibrateModel(boolean dc, boolean mc){
 
         int maxIter = 10;
         double[][][] calibrationMatrixMc = new double[4][3][4];
         double[][] calibrationMatrixDc = new double[3][3];
-        Calibration c = new Calibration();
+
 
         if (dc) {
             for (int iteration = 0; iteration < maxIter; iteration++) {
@@ -290,76 +272,51 @@ public class MtoLongDistance {
         runDestinationChoice(allTrips);
         runModeChoice(allTrips);
 
-        logger.info("---------------------------------------------------------");
-        logger.info("-----------------RESULTS DC------------------------------");
-        logger.info("k_domestic_dc visit = " + dcModel.getDomDcCalibrationV()[0]);
-        logger.info("k_domestic_dc business = " + dcModel.getDomDcCalibrationV()[1]);
-        logger.info("k_domestic_dc leisure = " + dcModel.getDomDcCalibrationV()[2]);
-        logger.info("k_int_out_dc visit = " + dcOutboundModel.getCalibrationV()[0]);
-        logger.info("k_int_out_dc business = " + dcOutboundModel.getCalibrationV()[1]);
-        logger.info("k_int_out_dc leisure = " + dcOutboundModel.getCalibrationV()[2]);
-        logger.info("k_int_in_dc visit = " + dcInBoundModel.getCalibrationV()[0]);
-        logger.info("k_int_in_dc business = " + dcInBoundModel.getCalibrationV()[1]);
-        logger.info("k_int_in_dc leisure = " + dcInBoundModel.getCalibrationV()[2]);
-        logger.info("---------------------------------------------------------");
+        c.printOutCalibrationResults(dcModel, dcOutboundModel, dcInBoundModel, mcDomesticModel, intModeChoice);
 
-        logger.info("---------------------------------------------------------");
-        logger.info("-----------------RESULTS MC------------------------------");
-        String type = "k_domestic_mc_";
-        logger.info(type + "visit: auto=" + mcDomesticModel.getCalibrationMatrix()[0][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrix()[0][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrix()[0][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrix()[0][3]);
-        logger.info(type + "business: auto=" + mcDomesticModel.getCalibrationMatrix()[1][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrix()[1][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrix()[1][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrix()[1][3]);
-        logger.info(type + "leisure: auto=" + mcDomesticModel.getCalibrationMatrix()[2][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrix()[2][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrix()[2][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrix()[2][3]);
-        type = "k_int_out_mc_";
-        logger.info(type + "visit: auto=" + intModeChoice.getCalibrationMatrixOutbound()[0][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[0][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[0][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[0][3]);
-        logger.info(type + "business: auto=" + intModeChoice.getCalibrationMatrixOutbound()[1][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[1][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[1][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[1][3]);
-        logger.info(type + "leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixOutbound()[2][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixOutbound()[2][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixOutbound()[2][3]);
-        type = "k_int_in_mc";
-        logger.info(type + "visit: auto=" + intModeChoice.getCalibrationMatrixInbound()[0][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixInbound()[0][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[0][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[0][3]);
-        logger.info(type + "business: auto=" + intModeChoice.getCalibrationMatrixInbound()[1][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixInbound()[1][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[1][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[1][3]);
-        logger.info(type + "leisure: auto=" + intModeChoice.getCalibrationMatrixOutbound()[2][0] +
-                ",air=" + intModeChoice.getCalibrationMatrixInbound()[2][1] +
-                ",rail=" + intModeChoice.getCalibrationMatrixInbound()[2][2] +
-                ",bus=" + intModeChoice.getCalibrationMatrixInbound()[2][3]);
+    }
+
+    public void runDisaggregation(ArrayList<LongDistanceTrip> allTrips) {
+        logger.info("Starting disaggregation");
+        allTrips.parallelStream().forEach(t -> {
+            zd.disaggregateDestination(t);
+        });
+        logger.info("Finished disaggregation");
+    }
 
 
-        type = "k_domesticVisitors_mc_";
-        logger.info(type + "visit: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[0][3]);
-        logger.info(type + "business: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[1][3]);
-        logger.info(type + "leisure: auto=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][0] +
-                ",air=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][1] +
-                ",rail=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][2] +
-                ",bus=" + mcDomesticModel.getCalibrationMatrixVisitors()[2][3]);
-        logger.info("---------------------------------------------------------");
+    public void writeLongDistanceOutputs(){
+        if (writeTrips) {
+            syntheticPopulationReader.writeSyntheticPopulation();
+            writeTrips(allTrips);
+        }
+
+
+        if (analyzeAccess) {
+
+            AccessibilityAnalysis accAna = new AccessibilityAnalysis(rb, mtoLongDistData);
+            accAna.calculateAccessibilityForAnalysis();
+        }
+
+    }
+
+    public void writeTrips(ArrayList<LongDistanceTrip> trips) {
+        logger.info("Writing out data for trip generation (trips)");
+
+        String OutputTripsFileName = rb.getString("trip.out.file");
+        PrintWriter pw = Util.openFileForSequentialWriting(OutputTripsFileName, false);
+
+
+        pw.println(LongDistanceTrip.getHeader());
+
+
+        for (LongDistanceTrip tr : trips) {
+            //if (tr.getOrigZone().getZoneType() == ZoneType.ONTARIO){
+            pw.println(tr.toString());
+        }
+
+
+        pw.close();
     }
 
 
