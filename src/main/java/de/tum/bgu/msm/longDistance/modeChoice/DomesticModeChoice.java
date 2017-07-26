@@ -2,11 +2,9 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -14,7 +12,6 @@ import de.tum.bgu.msm.syntheticPopulation.Person;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -49,8 +46,8 @@ public class DomesticModeChoice {
     private TableDataSet mcOntarioCoefficients;
     private TableDataSet mcExtCanadaCoefficients;
     private TableDataSet combinedZones;
-    String[] tripPurposeArray;
-    String[] tripStateArray;
+    private String[] tripPurposeArray;
+    private String[] tripStateArray;
 
     private boolean calibration;
     private double[][] calibrationMatrix;
@@ -154,10 +151,10 @@ public class DomesticModeChoice {
         double[] expUtilities;
         if (trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m, trip.getDestZoneId()))).toArray();
+            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m, trip.getDestCombinedZoneId()))).toArray();
         } else {
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromExtCanada(trip, m, trip.getDestZoneId()))).toArray();
+            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromExtCanada(trip, m, trip.getDestCombinedZoneId()))).toArray();
         }
         double probability_denominator = Arrays.stream(expUtilities).sum();
         //todo if there is no access by any mode for the selected OD pair, just go by car
@@ -178,9 +175,9 @@ public class DomesticModeChoice {
     public double calculateUtilityFromExtCanada(LongDistanceTrip trip, int m, int destination) {
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
         String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+        String tripState = tripStateArray[trip.getTripState()];
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -218,6 +215,7 @@ public class DomesticModeChoice {
                 price = 20;
             }
         }
+
         double k_calibration = mcExtCanadaCoefficients.getStringIndexedValueAt("k_calibration", column);
         double b_intercept = mcExtCanadaCoefficients.getStringIndexedValueAt("intercept", column);
         double b_frequency = mcExtCanadaCoefficients.getStringIndexedValueAt("frequency", column);
@@ -233,7 +231,7 @@ public class DomesticModeChoice {
         double alpha_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("alpha", column);
 
 
-        if (calibration) k_calibration = calibrationMatrixVisitors[trip.getLongDistanceTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrixVisitors[trip.getTripPurpose()][m];
 
         utility = b_intercept + b_frequency * frequency +
                 k_calibration +
@@ -263,9 +261,9 @@ public class DomesticModeChoice {
 
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
         String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+        String tripState = tripStateArray[trip.getTripState()];
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -276,7 +274,7 @@ public class DomesticModeChoice {
         }
 
         int origin = trip.getOrigZone().getCombinedZoneId();
-        //int destination = trip.getDestZoneId();
+        //int destination = trip.getDestCombinedZoneId();
 
         //zone-related variables
 
@@ -338,7 +336,7 @@ public class DomesticModeChoice {
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
         //todo this updates calibration factor from during-runtime calibration matrix
-        if (calibration) k_calibration = calibrationMatrix[trip.getLongDistanceTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrix[trip.getTripPurpose()][m];
 
         utility = b_intercept + k_calibration +
                 b_frequency * frequency +

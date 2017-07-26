@@ -1,26 +1,18 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.syntheticPopulation.Person;
-import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
-import org.apache.commons.math3.util.Pair;
 
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -67,9 +59,9 @@ public class Scenario {
         IntStream.range(0, iterations).forEach(i -> {
             runDestinationChoice(allTrips);
 
-            allTrips.stream().filter(t -> t.getDestZoneId() == 24)
+            allTrips.stream().filter(t -> t.getDestCombinedZoneId() == 24)
                     .forEach(t -> {
-                        purpose_counter[t.getLongDistanceTripPurpose()][i] += 1;
+                        purpose_counter[t.getTripPurpose()][i] += 1;
                     });
 
             logger.info(String.format("%d,%d,%d",
@@ -124,9 +116,9 @@ public class Scenario {
 
     private void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         trips.parallelStream().forEach( t -> { //Easy parallel makes for fun times!!!
-            if (!t.isLongDistanceInternational()) {
+            if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);
-                t.setDestination(destZoneId);
+                t.setCombinedDestZoneId(destZoneId);
             }
         });
     }

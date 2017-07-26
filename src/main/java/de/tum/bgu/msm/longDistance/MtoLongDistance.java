@@ -3,7 +3,6 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
@@ -15,12 +14,10 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import de.tum.bgu.msm.Util;
-import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 
 /**
  * Ontario Provincial Model
@@ -180,16 +177,16 @@ public class MtoLongDistance {
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
-            if (!t.isLongDistanceInternational()) {
+            if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
-                t.setDestination(destZoneId);
+                t.setCombinedDestZoneId(destZoneId);
                 t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
             } else {
                 if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
                     // residents to international
                     int destZoneId = dcOutboundModel.selectDestination(t);
-                    t.setDestination(destZoneId);
+                    t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
                     if (t.getDestZoneType().equals(ZoneType.EXTUS))
                         t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
@@ -197,13 +194,13 @@ public class MtoLongDistance {
                 } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
                     // us visitors with destination in CANADA
                     int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
-                    t.setDestination(destZoneId);
+                    t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                     t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
                 } else {
                     //os visitors to Canada
                     int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
-                    t.setDestination(destZoneId);
+                    t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 }
             }
@@ -215,7 +212,7 @@ public class MtoLongDistance {
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> {
-            if (!t.isLongDistanceInternational()) {
+            if (!t.isInternational()) {
                 //domestic mode choice for synthetic persons in Ontario
                 int mode = mcDomesticModel.selectModeDomestic(t);
                 t.setMode(mode);

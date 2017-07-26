@@ -28,24 +28,24 @@ public class Calibration {
         for (LongDistanceTrip t : allTrips) {
             if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getDestZoneType().equals(ZoneType.ONTARIO)) {
                 //trip that starts in Ontario or end in ontario
-                if (!t.isLongDistanceInternational()) {
+                if (!t.isInternational()) {
                     //domestic from Ontario - row 0
                     if (t.getTravelDistanceLevel2() < 2000) {
-                        averageDistances[0][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[0][t.getLongDistanceTripPurpose()] += getTripWeight(t);
+                        averageDistances[0][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[0][t.getTripPurpose()] += getTripWeight(t);
                     }
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
                     if (t.getTravelDistanceLevel2() < 4000) {
-                        averageDistances[1][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[1][t.getLongDistanceTripPurpose()] += getTripWeight(t);
+                        averageDistances[1][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[1][t.getTripPurpose()] += getTripWeight(t);
                     }
                 } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
                     //international from US to ontario + row 2
                     if (t.getTravelDistanceLevel2() < 4000) {
-                        averageDistances[2][t.getLongDistanceTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[2][t.getLongDistanceTripPurpose()] += getTripWeight(t);
+                        averageDistances[2][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
+                        counts[2][t.getTripPurpose()] += getTripWeight(t);
                     }
                 }
             }
@@ -97,23 +97,23 @@ public class Calibration {
 
         for (LongDistanceTrip t : allTrips) {
             if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)|| t.getDestZoneType().equals(ZoneType.ONTARIO)) {
-                if (!t.isLongDistanceInternational()) {
+                if (!t.isInternational()) {
                     //domestic from Ontario - row 0
                     if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)){
-                        countsByMode[0][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                        countsByMode[0][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
                     } else {
-                        countsByMode[3][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                        countsByMode[3][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
                     }
 
 
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
-                    countsByMode[1][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                    countsByMode[1][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
 
                 } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
                     //international from US to ontario + row 2
-                    countsByMode[2][t.getLongDistanceTripPurpose()][t.getMode()] += getTripWeight(t);
+                    countsByMode[2][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
                 }
 
 
@@ -254,7 +254,7 @@ public class Calibration {
 
     public double getTripWeight(LongDistanceTrip t) {
         double weight = 0;
-        switch (t.getLongDistanceTripState()) {
+        switch (t.getTripState()) {
             case 0:
                 weight = 0;
                 break;

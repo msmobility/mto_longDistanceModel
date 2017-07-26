@@ -1,14 +1,10 @@
 package de.tum.bgu.msm.longDistance.zoneSystem;
 
-import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +47,7 @@ public class ZoneDisaggregator {
 
     public void disaggregateDestination(LongDistanceTrip trip){
 
-        Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestZoneId());
+        Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestCombinedZoneId());
 
         int[] alternatives = new int [internalZoneMap.size()];
         double[] expUtilities = new double[internalZoneMap.size()];

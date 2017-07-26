@@ -2,7 +2,6 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
@@ -11,14 +10,11 @@ import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import javafx.beans.binding.BooleanExpression;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
-import javax.xml.ws.soap.MTOM;
 import java.util.*;
 
 /**
@@ -108,7 +104,7 @@ public class IntOutboundDestinationChoice {
         int destination;
         //0 visit, 1 business and 2 leisure
 
-        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
 
         if (selectUs(trip, tripPurpose)) {
 
@@ -184,7 +180,7 @@ public class IntOutboundDestinationChoice {
 
         double probability = utility / (1 + utility);
 
-        if (trip.getLongDistanceTripState() == 1) {
+        if (trip.getTripState() == 1) {
             //daytrips are always to US
             return true;
         } else {
@@ -201,7 +197,7 @@ public class IntOutboundDestinationChoice {
 
         //read coefficients
 
-        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+        String tripState = tripStateArray[trip.getTripState()];
 
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
         double b_log_population = coefficients.getStringIndexedValueAt("log_population", tripPurpose);
@@ -212,7 +208,7 @@ public class IntOutboundDestinationChoice {
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
 
         if (calibration) {
-            switch (trip.getLongDistanceTripPurpose()) {
+            switch (trip.getTripPurpose()) {
                 case 2:
                     //tripPurpose = "leisure";
                     k_dtLogsum = calibrationV[2];

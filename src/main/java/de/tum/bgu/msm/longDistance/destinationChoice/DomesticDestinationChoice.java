@@ -2,21 +2,17 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -98,7 +94,7 @@ public class DomesticDestinationChoice {
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {
 
-        //        switch (trip.getLongDistanceTripPurpose()) {
+        //        switch (trip.getTripPurpose()) {
 //            case 2:
 //                tripPurpose = "leisure";
 //                break;
@@ -109,7 +105,7 @@ public class DomesticDestinationChoice {
 //                tripPurpose = "business";
 //                break;
 //        }
-        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
 
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
@@ -180,8 +176,8 @@ public class DomesticDestinationChoice {
             logsum = Math.log(logsum);
         }
 
-        double dtLogsum = trip.getLongDistanceTripState()==1? logsum: 0;
-        double onLogsum = trip.getLongDistanceTripState()!=1? logsum: 0;
+        double dtLogsum = trip.getTripState()==1? logsum: 0;
+        double onLogsum = trip.getTripState()!=1? logsum: 0;
 
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
@@ -193,7 +189,7 @@ public class DomesticDestinationChoice {
 
 
         if (calibration) {
-            switch (trip.getLongDistanceTripPurpose()) {
+            switch (trip.getTripPurpose()) {
                 case 2:
                     //tripPurpose = "leisure";
                     b_calibration_dt = domDcCalibrationV[2];

@@ -2,8 +2,6 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.pb.common.util.ResourceUtil;
-import com.sun.org.apache.regexp.internal.RE;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
@@ -12,7 +10,6 @@ import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
@@ -76,7 +73,7 @@ public class IntInboundDestinationChoice {
 
     public int selectDestinationFromUs(LongDistanceTrip trip) {
 
-        String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
 
         double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateCanZoneUtilityFromUs(trip, tripPurpose, a))).toArray();
 
@@ -91,7 +88,7 @@ public class IntInboundDestinationChoice {
 
     public int selectDestinationFromOs(LongDistanceTrip trip) {
 
-        //String tripPurpose = tripPurposeArray[trip.getLongDistanceTripPurpose()];
+        //String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
 
         double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> calculateCanZoneUtilityFromOs(a)).toArray();
 
@@ -127,7 +124,7 @@ public class IntInboundDestinationChoice {
     public double calculateCanZoneUtilityFromUs(LongDistanceTrip trip, String tripPurpose, int destination) {
 
 //read coefficients
-        String tripState = tripStateArray[trip.getLongDistanceTripState()];
+        String tripState = tripStateArray[trip.getTripState()];
 
         double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
         double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
@@ -143,7 +140,7 @@ public class IntInboundDestinationChoice {
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
 
         if (calibration) {
-            switch (trip.getLongDistanceTripPurpose()) {
+            switch (trip.getTripPurpose()) {
                 case 2:
                     //tripPurpose = "leisure";
                     k_dtLogsum = calibrationV[2];
