@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
@@ -38,21 +39,25 @@ public class DomesticDestinationChoice {
     private RandomGenerator rng;
 
 
-    public DomesticDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
+    public DomesticDestinationChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
         this.rb = rb;
 
         //coef format
         // table format: coeff | visit | leisure | business
-        coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
+        //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
+        coefficients = Util.readCSVfile(prop.getStringProp("dc.dom.coef_file"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
 
         //load alternatives
-        combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+
+        //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        combinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
         combinedZones.buildIndex(1);
         alternatives = combinedZones.getColumnAsInt("alt");
 
-        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        calibration = prop.getBooleanProp("dc.calibration");
         this.domDcCalibrationV = new double[] {1,1,1};
         this.domesticModeChoice = domesticModeChoice;
 

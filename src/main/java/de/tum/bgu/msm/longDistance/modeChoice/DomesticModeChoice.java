@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
@@ -56,33 +57,42 @@ public class DomesticModeChoice {
     private double[][] calibrationMatrixVisitors;
 
 
-    public DomesticModeChoice(ResourceBundle rb, MtoLongDistData ldData) {
+    public DomesticModeChoice(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData ldData) {
         this.rb = rb;
 
 
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
-        mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
+        //mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
+        mcOntarioCoefficients = Util.readCSVfile(prop.getStringProp("mc.dom.ontarian.coef_file"));
+
         mcOntarioCoefficients.buildStringIndex(1);
 
-        mcExtCanadaCoefficients = Util.readCSVfile(rb.getString("mc.extcanada.coefs"));
+        //mcExtCanadaCoefficients = Util.readCSVfile(rb.getString("mc.extcanada.coefs"));
+        mcExtCanadaCoefficients = Util.readCSVfile(prop.getStringProp("mc.dom.other_can.coef_file"));
         mcExtCanadaCoefficients.buildStringIndex(1);
 
         //taken from destination choice
-        combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        combinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
         combinedZones.buildIndex(1);
 
         //matrix names
-        travelTimeFileName = rb.getString("travel.time.combined");
-        priceFileName = rb.getString("price.combined");
-        transfersFileName = rb.getString("transfer.combined");
-        freqFileName = rb.getString("freq.combined");
-        lookUpName = rb.getString("skim.mode.choice.lookup");
+//        travelTimeFileName = rb.getString("travel.time.combined");
+//        priceFileName = rb.getString("price.combined");
+//        transfersFileName = rb.getString("transfer.combined");
+//        freqFileName = rb.getString("freq.combined");
+//        lookUpName = rb.getString("skim.mode.choice.lookup");
+
+        travelTimeFileName = prop.getStringProp("mc.skim.time_file");
+        priceFileName = prop.getStringProp("mc.skim.price_file");
+        transfersFileName = prop.getStringProp("mc.skim.transfer_file");
+        freqFileName = prop.getStringProp("mc.skim.frequency_file");
+        lookUpName = prop.getStringProp("mc.skim.lookup");
 
 
-
-        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
+        calibration = prop.getBooleanProp("mc.calibration");
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
 

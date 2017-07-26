@@ -85,13 +85,13 @@ public class MtoLongDistance {
         mtoLongDistData = new MtoLongDistData(rb, prop);
         syntheticPopulationReader = new SyntheticPopulation(rb, prop, mtoLongDistData);
         tripGenModel = new TripGenerationModel(rb, prop, mtoLongDistData, syntheticPopulationReader);
-        mcDomesticModel = new DomesticModeChoice(rb, mtoLongDistData);
-        intModeChoice = new IntModeChoice(rb, mtoLongDistData, mcDomesticModel);
-        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcDomesticModel);
-        dcOutboundModel = new IntOutboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
-        dcInBoundModel = new IntInboundDestinationChoice(rb, mtoLongDistData, intModeChoice, dcModel);
+        mcDomesticModel = new DomesticModeChoice(rb, prop, mtoLongDistData);
+        intModeChoice = new IntModeChoice(rb, prop, mtoLongDistData, mcDomesticModel);
+        dcModel = new DomesticDestinationChoice(rb, prop, mtoLongDistData, mcDomesticModel);
+        dcOutboundModel = new IntOutboundDestinationChoice(rb, prop, mtoLongDistData, intModeChoice, dcModel);
+        dcInBoundModel = new IntInboundDestinationChoice(rb, prop, mtoLongDistData, intModeChoice, dcModel);
         c = new Calibration();
-        zd = new ZoneDisaggregator(rb,mtoLongDistData);
+        zd = new ZoneDisaggregator(rb, prop, mtoLongDistData);
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 

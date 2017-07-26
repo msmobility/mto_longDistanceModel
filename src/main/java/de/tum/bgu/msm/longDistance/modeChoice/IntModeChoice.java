@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.Calibration;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
@@ -49,21 +50,22 @@ public class IntModeChoice {
 
 
 
-    public IntModeChoice(ResourceBundle rb, MtoLongDistData ldData, DomesticModeChoice dmChoice) {
+    public IntModeChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, DomesticModeChoice dmChoice) {
         this.rb = rb;
 
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
-        mcIntOutboundCoefficients = Util.readCSVfile(rb.getString("mc.int.outbound.coefs"));
+       // mcIntOutboundCoefficients = Util.readCSVfile(rb.getString("mc.int.outbound.coefs"));
+        mcIntOutboundCoefficients = Util.readCSVfile(prop.getStringProp("mc.int.outbound.coef_file"));
         mcIntOutboundCoefficients.buildStringIndex(1);
 
-        mcIntInboundCoefficients = Util.readCSVfile(rb.getString("mc.int.inbound.coefs"));
+        mcIntInboundCoefficients = Util.readCSVfile(prop.getStringProp("mc.int.outbound.coef_file"));
         mcIntInboundCoefficients.buildStringIndex(1);
 
         this.dmChoice = dmChoice;
 
-        calibration = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);
+        calibration = prop.getBooleanProp("mc.calibration");
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 

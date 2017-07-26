@@ -41,8 +41,8 @@ public class Scenario {
         this.rb = rb;
         this.prop = prop;
         mtoLongDistData = new MtoLongDistData(rb, prop);
-        mcModel = new DomesticModeChoice(rb, mtoLongDistData);
-        dcModel = new DomesticDestinationChoice(rb, mtoLongDistData, mcModel );
+        mcModel = new DomesticModeChoice(rb, prop,  mtoLongDistData);
+        dcModel = new DomesticDestinationChoice(rb, prop, mtoLongDistData, mcModel );
 
     }
 

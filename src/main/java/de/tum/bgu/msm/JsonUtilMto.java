@@ -39,20 +39,11 @@ public class JsonUtilMto {
 
     public boolean getBooleanProp(String key) {
 
-        String[] keys = key.split("[.]");
-
-
-
-        JSONObject property = jsonProperties;
-
         try {
-            for (int i = 0; i < keys.length-1; i++) {
-                property = (JSONObject) property.get(keys[i]);
-            }
-            return (boolean) property.get(keys[keys.length - 1]);
-
+            return (boolean) getProperty(key);
         } catch (Exception e) {
-            throw new RuntimeException("Property key not found: " + key);
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
         }
 
     }
@@ -60,37 +51,22 @@ public class JsonUtilMto {
 
     public String getStringProp(String key) {
 
-        String[] keys = key.split("[.]");
-
-        JSONObject property = jsonProperties;
-
-        try{
-            for (int i = 0; i < keys.length-1; i++) {
-                property = (JSONObject) property.get(keys[i]);
-            }
-
-            return (String) property.get(keys[keys.length - 1]);
-        } catch (Exception e){
-            throw new RuntimeException("Property key not found: " + key);
+        try {
+            return (String) getProperty(key);
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
         }
 
     }
 
     public float getFloatProp(String key) {
 
-        String[] keys = key.split("[.]");
-
-        JSONObject property = jsonProperties;
-
-        try{
-            for (int i = 0; i < keys.length-1; i++) {
-                property = (JSONObject) property.get(keys[i]);
-            }
-
-            return (float)(double) property.get(keys[keys.length - 1]);
-
-        } catch (Exception e){
-            throw new RuntimeException("Property key not found: " + key);
+        try {
+            return (float)(double) getProperty(key);
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
         }
 
 
@@ -98,18 +74,11 @@ public class JsonUtilMto {
 
     public long getLongProp(String key) {
 
-        String[] keys = key.split("[.]");
-
-        JSONObject property = jsonProperties;
-
-        try{
-            for (int i = 0; i < keys.length-1; i++) {
-                property = (JSONObject) property.get(keys[i]);
-            }
-
-            return (long) property.get(keys[keys.length - 1]);
-        } catch (Exception e){
-            throw new RuntimeException("Property key not found: " + key);
+        try {
+            return (long) getProperty(key);
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
         }
 
 
@@ -117,21 +86,31 @@ public class JsonUtilMto {
 
     public int getIntProp(String key) {
 
+        try {
+            return Math.toIntExact((long) getProperty(key));
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
+        }
+
+    }
+
+
+    public Object getProperty(String key){
+
         String[] keys = key.split("[.]");
-
-
-
         JSONObject property = jsonProperties;
 
         try{
             for (int i = 0; i < keys.length-1; i++) {
                 property = (JSONObject) property.get(keys[i]);
             }
+            if((property.get(keys[keys.length - 1]))!= null){
+                return property.get(keys[keys.length - 1]);
+            } else {
+                throw new Exception("Property key not found " + key);
+            }
 
-            return Math.toIntExact((long) property.get(keys[keys.length - 1]));
-
-        } catch (ArithmeticException e){
-            throw new RuntimeException("Cannot convert the property to an integer: " + key);
         } catch (Exception e){
             throw new RuntimeException("Property key not found: " + key);
         }

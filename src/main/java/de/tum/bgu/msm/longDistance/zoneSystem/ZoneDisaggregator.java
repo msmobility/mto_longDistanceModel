@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
@@ -24,7 +25,7 @@ public class ZoneDisaggregator {
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
     private MtoLongDistData mtoLongDistData;
 
-    public ZoneDisaggregator(ResourceBundle rb, MtoLongDistData mtoLongDistData){
+    public ZoneDisaggregator(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData mtoLongDistData){
         this.rb = rb;
         combinedZoneMap = new HashMap<>();
         this.mtoLongDistData = mtoLongDistData;

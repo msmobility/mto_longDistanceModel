@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
@@ -47,10 +48,11 @@ public class IntOutboundDestinationChoice {
     private double[] calibrationV;
 
 
-    public IntOutboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intModeChoice, DomesticDestinationChoice dcModel) {
+    public IntOutboundDestinationChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, IntModeChoice intModeChoice, DomesticDestinationChoice dcModel) {
 
         this.rb = rb;
-        coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
+        //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
+        coefficients = Util.readCSVfile(prop.getStringProp("dc.int.outbound.coef_file"));
         coefficients.buildStringIndex(1);
 
         this.ldData = ldData;
@@ -59,18 +61,21 @@ public class IntOutboundDestinationChoice {
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //load alternatives
-        destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
+        //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
+        destCombinedZones = Util.readCSVfile(prop.getStringProp("dc.int.outbound.alt_file"));
         destCombinedZones.buildIndex(1);
         alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
 
         //load alternatives (origins, to read accessibility to US of the zone)
-        origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        //origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        origCombinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
         origCombinedZones.buildIndex(1);
 
         this.dcModel = dcModel;
         this.intModeChoice = intModeChoice;
 
-        calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
+        //calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
+        calibration = prop.getBooleanProp("dc.calibration");
         this.calibrationV = new double[]{1, 1, 1};
 
         logger.info("International DC (outbound) set up");

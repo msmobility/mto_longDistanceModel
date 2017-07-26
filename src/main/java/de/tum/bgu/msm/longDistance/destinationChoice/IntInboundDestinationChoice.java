@@ -4,6 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import com.sun.org.apache.regexp.internal.RE;
+import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
@@ -37,23 +38,26 @@ public class IntInboundDestinationChoice {
 
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
+    public IntInboundDestinationChoice(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
         //coef format
         // table format: coeff | visit | leisure | business
         this.rb = rb;
-        coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
+        //coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
+        coefficients = Util.readCSVfile(prop.getStringProp("dc.int.inbound.coef_file"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //load alternatives
-        destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        //destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
+        destCombinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
         destCombinedZones.buildIndex(1);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
         this.dcModel = dcModel;
         this.intModeChoice = intMcModel;
-        calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
+        calibration = prop.getBooleanProp("dc.calibration");
         this.calibrationV = new double[] {1,1,1};
 
         logger.info("International DC (inbound) set up");
