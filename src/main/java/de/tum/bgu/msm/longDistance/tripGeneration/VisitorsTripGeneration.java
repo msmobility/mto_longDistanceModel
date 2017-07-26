@@ -133,11 +133,12 @@ public class VisitorsTripGeneration {
         while (nonHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
+        int duration = tripState.equals("daytrip")? 0:1;
 
         return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone, true,
-                0, adultsHh, kidsHh, nonHh);
+                duration, adultsHh, kidsHh, nonHh);
 
-        //todo assign duration!
+
 
     }
 
@@ -166,11 +167,12 @@ public class VisitorsTripGeneration {
         while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
+        int duration = tripState.equals("daytrip")? 0:1;
 
         return new LongDistanceTrip(null, international, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), zone, true,
-                0, adultsHh, kidsHh, nonHh);
+                duration, adultsHh, kidsHh, nonHh);
 
-        //TODO assign nights?
+
 
     }
 

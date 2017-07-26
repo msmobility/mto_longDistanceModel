@@ -94,16 +94,6 @@ public class IntModeChoice {
         }
 
 
-
-        //double probability_denominator = Arrays.stream(expUtilities).sum();
-        //todo if there is no access by any mode for the selected OD pair, just go by car -- not needed for Int trips??
-        /*if (probability_denominator == 0){
-            expUtilities[0] = 1;
-        }*/
-
-        //calculate the probability for each trip, based on the destination utilities
-        //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
-
         //choose one destination, weighted at random by the probabilities
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
         return Util.select(expUtilities, modes);
@@ -164,7 +154,7 @@ public class IntModeChoice {
         double beta_time = mcIntInboundCoefficients.getStringIndexedValueAt("beta_time", column);
         double k_calibration = mcIntInboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
-        //todo calibration during runtime
+        //calibration factor update during runtime
         if (calibration) k_calibration = calibrationMatrixInbound[trip.getTripPurpose()][m];
 
 
@@ -209,21 +199,6 @@ public class IntModeChoice {
 
         double vot= mcIntOutboundCoefficients.getStringIndexedValueAt("vot", column);
 
-//        todo scenario testing - remove for final version
-//        if (origin >18 & origin < 28 & destination == 103 & m == 2){
-//            //"a high speed train between toronto a montreal that reduces time to the half
-//            time = time / 2;
-//
-//        }
-
-
-
-//        if (origin >18 & origin < 28 & destination == 103){
-//            //price = price * 2;
-//            logger.info("mode" +  modeNames[m] + "intermetro: " + interMetro + " ruralRural: " + ruralRural + "travelTime" + time);
-//        }
-
-
         double impedance = 0;
         if (vot != 0){
             impedance = price/(vot/60) + time;
@@ -250,7 +225,7 @@ public class IntModeChoice {
 
         double k_calibration = mcIntOutboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
-        //todo calibration during runtime
+        //calibration during runtime
         if (calibration) k_calibration = calibrationMatrixOutbound[trip.getTripPurpose()][m];
 
         utility = b_intercept + k_calibration +

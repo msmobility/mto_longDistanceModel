@@ -167,7 +167,7 @@ public class IntInboundDestinationChoice {
         }
         if(logsum ==0){
             return Double.NEGATIVE_INFINITY;
-            //todo how to deal with trips that logsum == 0 --> means that no mode is available
+            //deal with trips that logsum == 0 --> means that no mode is available
             //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
         } else {
             logsum = Math.log(logsum);

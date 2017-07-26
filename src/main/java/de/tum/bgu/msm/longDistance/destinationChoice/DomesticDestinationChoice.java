@@ -139,13 +139,14 @@ public class DomesticDestinationChoice {
         int origin = trip.getOrigZone().getCombinedZoneId();
         float distance = autoDist.getValueAt(origin, destination);
 
+
+        //filters are not applied so all the trips are generated:
         //if (distance < 40 || distance > 1000) return Double.NEGATIVE_INFINITY;
         //if (distance < 40) return Double.NEGATIVE_INFINITY;
         //if (origin == destination && trip.getOrigZone().getZoneType() == ZoneType.EXTCANADA) return Double.NEGATIVE_INFINITY;
 
-        //TODO: check if this west-east transformation is suitable
-        String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
-        String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
+//        String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
+  //      String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
         //if (origin_east_west.equals(destination_east_west) && !"ontario".equals(origin_east_west)) return Double.NEGATIVE_INFINITY;
 
         double civic = combinedZones.getIndexedValueAt(destination,"population") + combinedZones.getIndexedValueAt(destination,"employment");
@@ -170,8 +171,7 @@ public class DomesticDestinationChoice {
         }
         if(logsum ==0){
             return Double.NEGATIVE_INFINITY;
-            //todo how to deal with trips that logsum == 0 --> means that no mode is available
-            //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
+            //deals with trips that logsum == 0 --> means that no mode is available - no one is travelling there?
         } else {
             logsum = Math.log(logsum);
         }

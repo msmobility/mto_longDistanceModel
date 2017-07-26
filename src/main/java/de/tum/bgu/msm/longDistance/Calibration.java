@@ -72,7 +72,7 @@ public class Calibration {
 
         double expansionFactor = 1;
 
-        //todo hard coded for calibration
+        //hard coded for calibration
         calibrationMatrix[0][0] = (averageDistances[0][0] / 133-1) * expansionFactor + 1; //domestic visit
         calibrationMatrix[0][1] = (averageDistances[0][1] / 175-1) * expansionFactor + 1; //domestic business
         calibrationMatrix[0][2] = (averageDistances[0][2] / 134-1) * expansionFactor + 1; //domestic leisure
@@ -145,7 +145,7 @@ public class Calibration {
 
         double expansionFactor = 1;
 
-        //todo hard coded for calibration
+        //hard coded for calibration
         //domestic
         int type = 0;
         surveyShares[type][0][0] = 0.93; // visit - auto

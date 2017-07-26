@@ -110,7 +110,7 @@ public class MtoLongDistance {
 
     public void runLongDistanceModel() {
 
-        //todo test to avoid parallelization
+        //property change to avoid parallelization
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 
 

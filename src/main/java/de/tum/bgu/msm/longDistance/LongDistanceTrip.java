@@ -31,7 +31,7 @@ public class LongDistanceTrip {
     private int tripPurpose;
     private int tripState;
     private boolean summer = true;
-    private int nights;
+    private int nights; //currently specified as 1 for overnight and 0 for daytrip
     private int hhAdultsTravelPartySize;
     private int hhKidsTravelPartySize;
     //private ArrayList<Person> hhTravelParty;

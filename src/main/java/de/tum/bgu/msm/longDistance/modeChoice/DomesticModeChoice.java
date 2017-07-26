@@ -157,13 +157,11 @@ public class DomesticModeChoice {
             expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromExtCanada(trip, m, trip.getDestCombinedZoneId()))).toArray();
         }
         double probability_denominator = Arrays.stream(expUtilities).sum();
-        //todo if there is no access by any mode for the selected OD pair, just go by car
+
+        //if there is no access by any mode for the selected OD pair, just go by car
         if (probability_denominator == 0) {
             expUtilities[0] = 1;
         }
-
-        //calculate the probability for each trip, based on the destination utilities
-        //double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
         return Util.select(expUtilities, modes);
@@ -335,7 +333,7 @@ public class DomesticModeChoice {
         double b_impedance = mcOntarioCoefficients.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
-        //todo this updates calibration factor from during-runtime calibration matrix
+        //this updates calibration factor from during-runtime calibration matrix
         if (calibration) k_calibration = calibrationMatrix[trip.getTripPurpose()][m];
 
         utility = b_intercept + k_calibration +

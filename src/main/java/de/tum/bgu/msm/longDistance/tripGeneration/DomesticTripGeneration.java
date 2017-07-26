@@ -88,7 +88,7 @@ public class DomesticTripGeneration {
         double[] expUtilities = new double[4];
         expUtilities[3] = 1; //base case - or do not travel
 
-        //todo this option may give randomness to the results
+        //this option may give randomness to the results
         //synPop.getHouseholds().forEach(hhold -> {
           for (Household hhold : synPop.getHouseholds()) {
 

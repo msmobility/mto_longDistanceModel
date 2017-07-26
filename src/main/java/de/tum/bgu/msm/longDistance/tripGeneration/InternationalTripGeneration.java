@@ -156,7 +156,7 @@ public class InternationalTripGeneration {
         int tripDuration;
         if (pers.isDaytrip()) tripDuration = 0;
         else {
-            tripDuration = 1; //TODO assign real number of nights!!!
+            tripDuration = 1;
         }
 
         return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), true,

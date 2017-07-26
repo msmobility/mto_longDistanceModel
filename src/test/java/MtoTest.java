@@ -25,7 +25,7 @@ public class MtoTest {
 
         ResourceBundle rb = Util.mtoInitialization("src/test/resources/mto.properties");
 
-        //todo prepare inpuot folders
+        //todo prepare input folders
 
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 

@@ -65,12 +65,6 @@ public class Mto {
 
         Mto model = new Mto(rb, prop);
 
-        //todo test version of getting json properties
-        //System.out.println(prop.getBooleanProp("run.moel"));
-//        System.out.println(prop.getStringProp("zone_files.external.us"));
-//        System.out.println((int) prop.getLongProp("year"));
-//        System.out.println(prop.getDoubleProp("alpha"));
-
         if (ResourceUtil.getBooleanProperty(rb, "analyze.survey.data", false)) model.runDataAnalysis();
         //if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
         if (prop.getBooleanProp("run.full_model")) model.runLongDistModel();
