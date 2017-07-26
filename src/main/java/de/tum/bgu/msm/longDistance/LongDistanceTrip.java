@@ -30,7 +30,7 @@ public class LongDistanceTrip {
     private boolean international;
     private int tripPurpose;
     private int tripState;
-    private boolean is_summer = true;
+    private boolean summer = true;
     private int nights;
     private int hhAdultsTravelPartySize;
     private int hhKidsTravelPartySize;
@@ -53,7 +53,7 @@ public class LongDistanceTrip {
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
         this.origZone = origZone;
-        this.is_summer = summer;
+        this.summer = summer;
         this.nights = nights;
         this.hhAdultsTravelPartySize = hhAdultsTravelPartySize;
         this.hhKidsTravelPartySize = hhKidsTravelPartySize;
@@ -236,13 +236,8 @@ public class LongDistanceTrip {
         return str;
     }
 
-
-
     public boolean isSummer() {
-        return is_summer;
+        return summer;
     }
 
-    public String getTripPurposeAsString() {
-        return tripPurposes.get(getTripPurpose());
-    }
 }
