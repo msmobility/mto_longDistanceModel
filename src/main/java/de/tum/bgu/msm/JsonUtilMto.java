@@ -3,6 +3,7 @@ package de.tum.bgu.msm;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -92,6 +93,25 @@ public class JsonUtilMto {
 
         try {
             return Math.toIntExact((long) getProperty(jsonProperties,key));
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
+        }
+
+    }
+
+    public static int[] getArrayIntProp(JSONObject jsonProperties, String key) {
+
+        try {
+
+            Object[] propertyArray  = ((JSONArray) getProperty(jsonProperties, key)).toArray();
+            //logger.info(propertyArray[0].toString());
+            int [] propertyArrayInt = new int[propertyArray.length];
+            for (int i=0; i< propertyArray.length; i++){
+                propertyArrayInt[i] = Integer.parseInt(propertyArray[i].toString());
+                //logger.info(propertyArrayInt[i]);
+            }
+            return new int[3];
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
