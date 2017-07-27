@@ -134,7 +134,8 @@ public class SyntheticPopulation {
             int posDdType = Util.findPositionInArray("dtype",header);
 //            int posWrkrs  = util.findPositionInArray("nworkers",header);
 //            int posKids   = util.findPositionInArray("kidspr",header);
-            int posTaz    = Util.findPositionInArray("ID",header);
+            int posTaz    = Util.findPositionInArray("ID",header); /*is the old sp*/
+//            int posTaz    = Util.findPositionInArray("TRESO_ID",header); /*is the new sp*/
 
             // read line
             while ((recString = in.readLine()) != null) {

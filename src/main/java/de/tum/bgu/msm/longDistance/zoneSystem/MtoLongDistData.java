@@ -152,8 +152,8 @@ public class MtoLongDistData {
         zones = zoneTable.getColumnAsInt("ID");
         for (int zone : zones) {
             int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
-            int employment = (int) zoneTable.getIndexedValueAt(zone, "Employment");
-            Zone internalZone = new Zone(zone, 0, employment, ZoneType.ONTARIO, combinedZone);
+            //int employment = (int) zoneTable.getIndexedValueAt(zone, "Employment");
+            Zone internalZone = new Zone(zone, 0, 0, ZoneType.ONTARIO, combinedZone);
             internalZoneList.add(internalZone);
         }
 
