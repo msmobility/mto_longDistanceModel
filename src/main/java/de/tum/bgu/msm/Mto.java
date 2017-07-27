@@ -7,6 +7,7 @@ import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
 import de.tum.bgu.msm.longDistance.MtoLongDistance;
 
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 
 import java.util.ResourceBundle;
@@ -26,14 +27,14 @@ public class Mto {
     private static Logger logger = Logger.getLogger(Mto.class);
     private ResourceBundle rb;
 
-    private JsonUtilMto prop;
+    private JSONObject prop;
 
 
     private static int year;
     private static boolean winter;
 
 
-    private Mto(ResourceBundle rb, JsonUtilMto prop) {
+    private Mto(ResourceBundle rb, JSONObject prop) {
         // constructor
         this.rb = rb;
         this.prop = prop;
@@ -47,27 +48,25 @@ public class Mto {
         // Check how many arguments were passed in
         if(args.length != 2)
         {
-            logger.error("Error: Please provide two parguments, 1. the model resources, 2. the start year");
+            logger.error("Error: Please provide two arguments, 1. the model resources, 2. the start year");
             System.exit(0);
         }
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = Util.mtoInitialization(args[0]);
-        JsonUtilMto prop = new JsonUtilMto("./javaFiles/properties.json");
-
-
-
+        JsonUtilMto jsonUtilMto = new JsonUtilMto("./javaFiles/properties.json");
+        JSONObject prop = jsonUtilMto.getJsonProperties();
 
         //year = Integer.parseInt(args[1]);
-        year = prop.getIntProp("year");
+        year = JsonUtilMto.getIntProp(prop, "year");
         //winter = ResourceUtil.getBooleanProperty(rb,"winter",false);
-        winter = prop.getBooleanProp("winter");
+        winter = JsonUtilMto.getBooleanProp(prop,"winter");
 
 
         Mto model = new Mto(rb, prop);
 
         if (ResourceUtil.getBooleanProperty(rb, "analyze.survey.data", false)) model.runDataAnalysis();
         //if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
-        if (prop.getBooleanProp("run.full_model")) model.runLongDistModel();
+        if (JsonUtilMto.getBooleanProp(prop, "run.full_model")) model.runLongDistModel();
 
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);

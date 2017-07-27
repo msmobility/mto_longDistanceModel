@@ -9,6 +9,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 
 import java.io.BufferedReader;
@@ -33,7 +34,7 @@ public class SyntheticPopulation {
 
     private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
 
     private Map<Integer, Zone> zoneLookup;
     private MtoLongDistData mtoLongDistData;
@@ -49,17 +50,17 @@ public class SyntheticPopulation {
 
 
 
-    public SyntheticPopulation(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData mtoLongDistData) {
+    public SyntheticPopulation(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData) {
         // Constructor
         this.rb = rb;
         this.prop = prop;
         this.mtoLongDistData=mtoLongDistData;
 
         //hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
-        hhFilename = prop.getStringProp("sp.hh_file");
+        hhFilename = JsonUtilMto.getStringProp(prop,"sp.hh_file");
         //ppFilename = ResourceUtil.getProperty(rb, "syn.pop.pp");
-        ppFilename = prop.getStringProp("sp.pp_file");
-        travellersFilename = prop.getStringProp("out.travellers_file");
+        ppFilename = JsonUtilMto.getStringProp(prop,"sp.pp_file");
+        travellersFilename = JsonUtilMto.getStringProp(prop,"out.travellers_file");
 
 
         logger.info("Synthetic population reader set up");

@@ -8,6 +8,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ import java.util.ResourceBundle;
  */
 public class TripGenerationModel {
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
     private MtoLongDistData mtoLongDistData;
     static Logger logger = Logger.getLogger(TripGenerationModel.class);
     private SyntheticPopulation synPop;
@@ -32,7 +33,7 @@ public class TripGenerationModel {
     private VisitorsTripGeneration visitorsTripGeneration;
     //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
-    public TripGenerationModel(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
+    public TripGenerationModel(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
         this.rb = rb;
         this.prop = prop;
         this.mtoLongDistData = mtoLongDistData;

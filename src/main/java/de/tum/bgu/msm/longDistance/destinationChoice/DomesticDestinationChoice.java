@@ -14,6 +14,7 @@ import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -35,25 +36,25 @@ public class DomesticDestinationChoice {
     private RandomGenerator rng;
 
 
-    public DomesticDestinationChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
+    public DomesticDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
         this.rb = rb;
 
         //coef format
         // table format: coeff | visit | leisure | business
         //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
-        coefficients = Util.readCSVfile(prop.getStringProp("dc.dom.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.coef_file"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
 
         //load alternatives
 
         //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        combinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
+        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
         combinedZones.buildIndex(1);
         alternatives = combinedZones.getColumnAsInt("alt");
 
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = prop.getBooleanProp("dc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         this.domDcCalibrationV = new double[] {1,1,1};
         this.domesticModeChoice = domesticModeChoice;
 

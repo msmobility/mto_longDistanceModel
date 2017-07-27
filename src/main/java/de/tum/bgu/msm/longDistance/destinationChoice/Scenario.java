@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -21,14 +22,14 @@ import java.util.stream.IntStream;
 public class Scenario {
 
     MtoLongDistData mtoLongDistData;
-    JsonUtilMto prop;
+    JSONObject prop;
     ResourceBundle rb;
     private DomesticDestinationChoice dcModel;
     private DomesticModeChoice mcModel;
     Logger logger = Logger.getLogger(Scenario.class);
     ArrayList<LongDistanceTrip> allTrips;
 
-    public Scenario(ResourceBundle rb, JsonUtilMto prop) {
+    public Scenario(ResourceBundle rb, JSONObject prop) {
 
         this.rb = rb;
         this.prop = prop;
@@ -40,7 +41,8 @@ public class Scenario {
 
     public static void main(String[] args) {
         ResourceBundle rb = Util.mtoInitialization(args[0]);
-        JsonUtilMto prop = new JsonUtilMto("./javaFiles/properties.json");
+        JsonUtilMto jsonUtilMto = new JsonUtilMto("./javaFiles/properties.json");
+        JSONObject prop = jsonUtilMto.getJsonProperties();
 
         Scenario scenario = new Scenario(rb, prop);
 

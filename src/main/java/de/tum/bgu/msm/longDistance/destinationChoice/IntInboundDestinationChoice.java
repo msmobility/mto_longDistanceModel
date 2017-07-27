@@ -11,6 +11,7 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.Arrays;
 import java.util.ResourceBundle;
@@ -35,26 +36,26 @@ public class IntInboundDestinationChoice {
 
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
+    public IntInboundDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
         //coef format
         // table format: coeff | visit | leisure | business
         this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
-        coefficients = Util.readCSVfile(prop.getStringProp("dc.int.inbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.inbound.coef_file"));
         coefficients.buildStringIndex(1);
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        destCombinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
         destCombinedZones.buildIndex(1);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
         this.dcModel = dcModel;
         this.intModeChoice = intMcModel;
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = prop.getBooleanProp("dc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         this.calibrationV = new double[] {1,1,1};
 
         logger.info("International DC (inbound) set up");

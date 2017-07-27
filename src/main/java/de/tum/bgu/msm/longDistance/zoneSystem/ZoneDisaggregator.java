@@ -4,6 +4,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class ZoneDisaggregator {
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
     private MtoLongDistData mtoLongDistData;
 
-    public ZoneDisaggregator(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData mtoLongDistData){
+    public ZoneDisaggregator(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData){
         this.rb = rb;
         combinedZoneMap = new HashMap<>();
         this.mtoLongDistData = mtoLongDistData;

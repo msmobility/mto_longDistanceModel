@@ -8,6 +8,7 @@ import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.Arrays;
 import java.util.ResourceBundle;
@@ -46,22 +47,22 @@ public class IntModeChoice {
 
 
 
-    public IntModeChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, DomesticModeChoice dmChoice) {
+    public IntModeChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, DomesticModeChoice dmChoice) {
         this.rb = rb;
 
         tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
        // mcIntOutboundCoefficients = Util.readCSVfile(rb.getString("mc.int.outbound.coefs"));
-        mcIntOutboundCoefficients = Util.readCSVfile(prop.getStringProp("mc.int.outbound.coef_file"));
+        mcIntOutboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
         mcIntOutboundCoefficients.buildStringIndex(1);
 
-        mcIntInboundCoefficients = Util.readCSVfile(prop.getStringProp("mc.int.outbound.coef_file"));
+        mcIntInboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
         mcIntInboundCoefficients.buildStringIndex(1);
 
         this.dmChoice = dmChoice;
 
-        calibration = prop.getBooleanProp("mc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 

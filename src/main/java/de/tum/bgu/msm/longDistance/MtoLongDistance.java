@@ -15,6 +15,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -33,7 +34,7 @@ public class MtoLongDistance {
 
     static Logger logger = Logger.getLogger(MtoLongDistance.class);
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
 
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
     private MtoLongDistData mtoLongDistData;
@@ -59,21 +60,21 @@ public class MtoLongDistance {
     //private boolean analyzeAccess;
 
     //SET UP the models
-    public MtoLongDistance(ResourceBundle rb, JsonUtilMto prop) {
+    public MtoLongDistance(ResourceBundle rb, JSONObject prop) {
         this.rb = rb;
         this.prop = prop;
         Util.initializeRandomNumber(rb);
 
         //read developing options
         //calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
-        calibrationDC = prop.getBooleanProp("dc.calibration");
+        calibrationDC = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         //calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
-        calibrationMC = prop.getBooleanProp("mc.calibration");
+        calibrationMC = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
         //runTG = ResourceUtil.getBooleanProperty(rb, "run.trip.gen", false);
-        runTG = prop.getBooleanProp("run.develop.tg");
+        runTG = JsonUtilMto.getBooleanProp(prop,"run.develop.tg");
         //runDC = ResourceUtil.getBooleanProperty(rb, "run.dest.choice", false);
-        runDC = prop.getBooleanProp("run.develop.dc");
-        inputTripFile = prop.getStringProp("run.develop.trip_input_file");
+        runDC = JsonUtilMto.getBooleanProp(prop,"run.develop.dc");
+        inputTripFile = JsonUtilMto.getStringProp(prop,"run.develop.trip_input_file");
 
         //read output options
         writeTrips = ResourceUtil.getBooleanProperty(rb, "write.trips", false);

@@ -12,6 +12,7 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -27,7 +28,7 @@ public class InternationalTripGeneration {
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
     private double[][] sumProbabilities;
     private int[] personIds;
     private double[][][] probabilityMatrix;
@@ -40,18 +41,18 @@ public class InternationalTripGeneration {
 
     private MtoLongDistData mtoLongDistData;
 
-    public InternationalTripGeneration(ResourceBundle rb, JsonUtilMto prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
+    public InternationalTripGeneration(ResourceBundle rb, JSONObject prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.synPop = synPop;
         this.rb = rb;
         this.prop = prop;
         this.mtoLongDistData = mtoLongDistData;
 
         //String internationalTriprates = rb.getString("int.trips");
-        internationalTripRates = Util.readCSVfile(prop.getStringProp("tg.int.rates_file"));
+        internationalTripRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.int.rates_file"));
         internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
 
         //String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
-        travelPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.int.party_file"));
+        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.int.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 //        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");

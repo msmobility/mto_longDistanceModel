@@ -37,10 +37,14 @@ public class JsonUtilMto {
 
     }
 
-    public boolean getBooleanProp(String key) {
+    public JSONObject getJsonProperties() {
+        return jsonProperties;
+    }
+
+    public static boolean getBooleanProp(JSONObject jsonProperties, String key) {
 
         try {
-            return (boolean) getProperty(key);
+            return (boolean) getProperty(jsonProperties, key);
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
@@ -49,10 +53,10 @@ public class JsonUtilMto {
     }
 
 
-    public String getStringProp(String key) {
+    public static String getStringProp(JSONObject jsonProperties, String key) {
 
         try {
-            return (String) getProperty(key);
+            return (String) getProperty(jsonProperties,key);
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
@@ -60,22 +64,10 @@ public class JsonUtilMto {
 
     }
 
-    public float getFloatProp(String key) {
+    public static float getFloatProp(JSONObject jsonProperties, String key) {
 
         try {
-            return (float)(double) getProperty(key);
-        } catch (Exception e) {
-            throw new RuntimeException("Property key not found or invalid: " + key);
-            //I guess this is impossible for json files
-        }
-
-
-    }
-
-    public long getLongProp(String key) {
-
-        try {
-            return (long) getProperty(key);
+            return (float)(double) getProperty(jsonProperties,key);
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
@@ -84,10 +76,22 @@ public class JsonUtilMto {
 
     }
 
-    public int getIntProp(String key) {
+    public static long getLongProp(JSONObject jsonProperties, String key) {
 
         try {
-            return Math.toIntExact((long) getProperty(key));
+            return (long) getProperty(jsonProperties,key);
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
+        }
+
+
+    }
+
+    public static int getIntProp(JSONObject jsonProperties, String key) {
+
+        try {
+            return Math.toIntExact((long) getProperty(jsonProperties,key));
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
@@ -96,7 +100,7 @@ public class JsonUtilMto {
     }
 
 
-    public Object getProperty(String key){
+    public static Object getProperty(JSONObject jsonProperties, String key){
 
         String[] keys = key.split("[.]");
         JSONObject property = jsonProperties;

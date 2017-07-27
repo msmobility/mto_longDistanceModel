@@ -14,6 +14,7 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -44,11 +45,11 @@ public class IntOutboundDestinationChoice {
     private double[] calibrationV;
 
 
-    public IntOutboundDestinationChoice(ResourceBundle rb, JsonUtilMto prop,  MtoLongDistData ldData, IntModeChoice intModeChoice, DomesticDestinationChoice dcModel) {
+    public IntOutboundDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, IntModeChoice intModeChoice, DomesticDestinationChoice dcModel) {
 
         this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
-        coefficients = Util.readCSVfile(prop.getStringProp("dc.int.outbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.outbound.coef_file"));
         coefficients.buildStringIndex(1);
 
         this.ldData = ldData;
@@ -58,20 +59,20 @@ public class IntOutboundDestinationChoice {
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
-        destCombinedZones = Util.readCSVfile(prop.getStringProp("dc.int.outbound.alt_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.outbound.alt_file"));
         destCombinedZones.buildIndex(1);
         alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
 
         //load alternatives (origins, to read accessibility to US of the zone)
         //origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        origCombinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
+        origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
         origCombinedZones.buildIndex(1);
 
         this.dcModel = dcModel;
         this.intModeChoice = intModeChoice;
 
         //calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
-        calibration = prop.getBooleanProp("dc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         this.calibrationV = new double[]{1, 1, 1};
 
         logger.info("International DC (outbound) set up");

@@ -12,6 +12,7 @@ import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -33,7 +34,7 @@ public class DomesticTripGeneration {
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
 
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
@@ -45,27 +46,27 @@ public class DomesticTripGeneration {
 
 
 
-    public DomesticTripGeneration(ResourceBundle rb, JsonUtilMto prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
+    public DomesticTripGeneration(ResourceBundle rb, JSONObject prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
         this.rb = rb;
         this.prop = prop;
         this.synPop = synPop;
 
         //String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        tripGenerationCoefficients = Util.readCSVfile(prop.getStringProp("tg.dom.coef_file"));
+        tripGenerationCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
         //String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
 
-        travelPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.dom.party_file"));
+        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
         this.mtoLongDistData = mtoLongDistData;
 
         //alphaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
         //betaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
 
-        alphaAccess = prop.getFloatProp("tg.dom.access.alpha");
-        betaAccess = prop.getFloatProp("tg.dom.access.beta");
+        alphaAccess = JsonUtilMto.getFloatProp(prop,"tg.dom.access.alpha");
+        betaAccess = JsonUtilMto.getFloatProp(prop,"tg.dom.access.beta");
 
     }
 

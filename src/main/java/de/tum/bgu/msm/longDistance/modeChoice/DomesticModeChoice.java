@@ -13,6 +13,7 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -54,7 +55,7 @@ public class DomesticModeChoice {
     private double[][] calibrationMatrixVisitors;
 
 
-    public DomesticModeChoice(ResourceBundle rb, JsonUtilMto prop, MtoLongDistData ldData) {
+    public DomesticModeChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData) {
         this.rb = rb;
 
 
@@ -62,17 +63,17 @@ public class DomesticModeChoice {
         tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
-        mcOntarioCoefficients = Util.readCSVfile(prop.getStringProp("mc.dom.ontarian.coef_file"));
+        mcOntarioCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.dom.ontarian.coef_file"));
 
         mcOntarioCoefficients.buildStringIndex(1);
 
         //mcExtCanadaCoefficients = Util.readCSVfile(rb.getString("mc.extcanada.coefs"));
-        mcExtCanadaCoefficients = Util.readCSVfile(prop.getStringProp("mc.dom.other_can.coef_file"));
+        mcExtCanadaCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.dom.other_can.coef_file"));
         mcExtCanadaCoefficients.buildStringIndex(1);
 
         //taken from destination choice
         //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        combinedZones = Util.readCSVfile(prop.getStringProp("dc.dom.alt_file"));
+        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
         combinedZones.buildIndex(1);
 
         //matrix names
@@ -82,14 +83,14 @@ public class DomesticModeChoice {
 //        freqFileName = rb.getString("freq.combined");
 //        lookUpName = rb.getString("skim.mode.choice.lookup");
 
-        travelTimeFileName = prop.getStringProp("mc.skim.time_file");
-        priceFileName = prop.getStringProp("mc.skim.price_file");
-        transfersFileName = prop.getStringProp("mc.skim.transfer_file");
-        freqFileName = prop.getStringProp("mc.skim.frequency_file");
-        lookUpName = prop.getStringProp("mc.skim.lookup");
+        travelTimeFileName = JsonUtilMto.getStringProp(prop,"mc.skim.time_file");
+        priceFileName = JsonUtilMto.getStringProp(prop,"mc.skim.price_file");
+        transfersFileName = JsonUtilMto.getStringProp(prop,"mc.skim.transfer_file");
+        freqFileName = JsonUtilMto.getStringProp(prop,"mc.skim.frequency_file");
+        lookUpName = JsonUtilMto.getStringProp(prop,"mc.skim.lookup");
 
 
-        calibration = prop.getBooleanProp("mc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
         calibrationMatrix = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
 

@@ -9,6 +9,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,15 +32,15 @@ public class VisitorsTripGeneration {
     static final List<String> tripStates = MtoLongDistData.getTripStates();
     static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
     private ResourceBundle rb;
-    private JsonUtilMto prop;
+    private JSONObject prop;
 
-    public VisitorsTripGeneration(ResourceBundle rb, JsonUtilMto prop) {
+    public VisitorsTripGeneration(ResourceBundle rb, JSONObject prop) {
 
         this.prop = prop;
         this.rb = rb;
 
         //String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
-        visitorPartyProbabilities = Util.readCSVfile(prop.getStringProp("tg.visitors.party_file"));
+        visitorPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.party_file"));
         visitorPartyProbabilities.buildIndex(visitorPartyProbabilities.getColumnPosition("travelParty"));
 
         //String visitorsRateFilename = rb.getString("visitor.rates");
@@ -48,11 +49,11 @@ public class VisitorsTripGeneration {
         //no longer used
 
         //String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
-        visitorsRatePerZone = Util.readCSVfile(prop.getStringProp("tg.visitors.rates_file"));
+        visitorsRatePerZone = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.rates_file"));
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
 
         //String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
-        externalCanIntRates = Util.readCSVfile(prop.getStringProp("tg.visitors.external_can_int_rates_file"));
+        externalCanIntRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.external_can_int_rates_file"));
         externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
     }
