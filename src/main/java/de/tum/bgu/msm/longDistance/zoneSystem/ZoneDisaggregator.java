@@ -24,7 +24,7 @@ public class ZoneDisaggregator {
     private MtoLongDistData mtoLongDistData;
 
     private int[] niagaraFallsIds;
-    private ArrayList<Zone> niagaraFallsList;
+    private ArrayList<Zone> niagaraFallsList = new ArrayList<>();
     private double niagaraFactor;
     private float alphaPopDom;
     private float alphaDistDom;
@@ -43,6 +43,8 @@ public class ZoneDisaggregator {
         alphaDistInt = JsonUtilMto.getFloatProp(prop, "disaggregation.int.alpha_dist");
 
         niagaraFallsIds = JsonUtilMto.getArrayIntProp(prop, "disaggregation.dom.niagara_zones");
+
+
         niagaraFactor = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.niagara_factor");
 
 
@@ -63,8 +65,8 @@ public class ZoneDisaggregator {
 
         for (int i : niagaraFallsIds){
             niagaraFallsList.add(mtoLongDistData.getZoneLookup().get(i));
+            //logger.info(i);
         }
-
         logger.info("Zone disaggregator loaded");
     }
 

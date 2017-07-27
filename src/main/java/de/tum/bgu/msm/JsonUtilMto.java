@@ -111,7 +111,7 @@ public class JsonUtilMto {
                 propertyArrayInt[i] = Integer.parseInt(propertyArray[i].toString());
                 //logger.info(propertyArrayInt[i]);
             }
-            return new int[3];
+            return propertyArrayInt;
         } catch (Exception e) {
             throw new RuntimeException("Property key not found or invalid: " + key);
             //I guess this is impossible for json files
