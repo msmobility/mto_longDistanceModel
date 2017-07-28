@@ -147,8 +147,13 @@ public class ZoneDisaggregator {
 
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
-            expUtilities[i] = Math.pow(z.getPopulation(), alphaPop)*
-                    Math.pow(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId()), alphaDist);
+            float distance = mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
+            if (distance > 10) {
+                expUtilities[i] = Math.pow(z.getPopulation(), alphaPop) *
+                        Math.pow(distance, alphaDist);
+            } else {
+                expUtilities[i] = 0;
+            }
             i++;
         }
 
