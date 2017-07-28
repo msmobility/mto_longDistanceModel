@@ -87,11 +87,13 @@ public class ZoneDisaggregator {
             }
 
             //trip.setDestZone(internalZoneMap.get(new EnumeratedIntegerDistribution(alternatives, expUtilities).sample()));
-            trip.setDestZone(destZone);
 
-            trip.setTravelDistanceLevel1(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
 
         }
+
+        trip.setDestZone(destZone);
+
+        trip.setTravelDistanceLevel1(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
     }
 
     private Zone selectDestinationInNiagara(LongDistanceTrip trip) {
