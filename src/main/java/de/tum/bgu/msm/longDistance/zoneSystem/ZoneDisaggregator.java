@@ -105,7 +105,7 @@ public class ZoneDisaggregator {
 
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
-            expUtilities[i] = (z.getPopulation());
+            expUtilities[i] = (getCivicValues(z, trip));
             if (niagaraFallsList.contains(z))
                 expUtilities[i] = expUtilities[i]*niagaraFactor;
             i++;
@@ -126,7 +126,7 @@ public class ZoneDisaggregator {
 
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
-            expUtilities[i] = (z.getPopulation());
+            expUtilities[i] = (getCivicValues(z, trip));
             i++;
         }
 
@@ -148,9 +148,9 @@ public class ZoneDisaggregator {
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
             float distance = mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
-            //todo intrazonal!
+            //todo threshold
             if (distance > 40) {
-                expUtilities[i] = Math.pow(z.getPopulation(), alphaPop) *
+                expUtilities[i] = Math.pow(getCivicValues(z, trip), alphaPop) *
                         Math.pow(distance, alphaDist);
             } else {
                 expUtilities[i] = 0;
@@ -161,5 +161,27 @@ public class ZoneDisaggregator {
         return internalZoneMap.get(Util.select(expUtilities, alternatives));
     }
 
+
+    public double getCivicValues(Zone zone, LongDistanceTrip trip){
+
+        double civic = 0;
+
+        switch (trip.getTripPurpose()) {
+            case 0:
+                //visit
+                civic = zone.getPopulation();
+                break;
+            case 1:
+                //business
+                civic = zone.getPopulation() + zone.getEmployment();
+                break;
+            case 2:
+                //leisure
+                civic = zone.getPopulation() + zone.getEmployment();
+                break;
+        }
+
+        return civic;
+    }
 
 }
