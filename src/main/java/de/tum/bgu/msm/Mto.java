@@ -54,6 +54,8 @@ public class Mto {
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = Util.mtoInitialization(args[0]);
         JsonUtilMto jsonUtilMto = new JsonUtilMto("./javaFiles/properties.json");
+        //check this to read the json file from the code folder if needed
+        //JsonUtilMto jsonUtilMto = new JsonUtilMto("INSERT LOCATION HERE");
         JSONObject prop = jsonUtilMto.getJsonProperties();
 
         //year = Integer.parseInt(args[1]);
