@@ -200,7 +200,7 @@ public class InternationalTripGeneration {
         }
 
         //});
-        logger.info("  sum of probabilities done for " + p + " persons");
+        //logger.info("  sum of probabilities done for " + p + " persons");
 
     }
 

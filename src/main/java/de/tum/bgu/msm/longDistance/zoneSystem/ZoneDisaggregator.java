@@ -148,7 +148,8 @@ public class ZoneDisaggregator {
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
             float distance = mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
-            if (distance > 10) {
+            //todo intrazonal!
+            if (distance > 40) {
                 expUtilities[i] = Math.pow(z.getPopulation(), alphaPop) *
                         Math.pow(distance, alphaDist);
             } else {
