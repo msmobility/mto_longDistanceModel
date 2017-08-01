@@ -1,7 +1,5 @@
 package de.tum.bgu.msm;
 
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

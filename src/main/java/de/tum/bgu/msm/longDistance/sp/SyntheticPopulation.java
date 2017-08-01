@@ -1,10 +1,8 @@
-package de.tum.bgu.msm.syntheticPopulation;
+package de.tum.bgu.msm.longDistance.sp;
 
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.Mto;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
@@ -37,24 +35,24 @@ public class SyntheticPopulation {
     private JSONObject prop;
 
     private Map<Integer, Zone> zoneLookup;
-    private MtoLongDistData mtoLongDistData;
+    private DataSet dataSet;
 
     private String hhFilename;
     private String ppFilename;
     private String travellersFilename;
 
 
-    private static final Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
+    private Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
 
-    private static final Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
+    private Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
 
 
 
-    public SyntheticPopulation(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData) {
+    public SyntheticPopulation(JSONObject prop) {
         // Constructor
-        this.rb = rb;
+//        this.rb = rb;
         this.prop = prop;
-        this.mtoLongDistData=mtoLongDistData;
+
 
         //hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
         hhFilename = JsonUtilMto.getStringProp(prop,"sp.hh_file");
@@ -69,13 +67,27 @@ public class SyntheticPopulation {
 
     }
 
-    public void loadSyntheticPopulation(){
-        this.zoneLookup = mtoLongDistData.getZoneLookup();
+    public void loadSyntheticPopulation(DataSet dataSet){
+
+        this.dataSet = dataSet;
+        this.zoneLookup = dataSet.getZones();
+
 
         readSyntheticPopulation();
+        populateZones();
+
 
         logger.info("Synthetic population loaded");
 
+
+    }
+
+    public void populateZones() {
+        for (Household hh : dataSet.getHouseholds().values()) {
+            Zone zone = hh.getZone();
+            zone.addHouseholds(1);
+            zone.addPopulation(hh.getHhSize());
+        }
 
     }
 
@@ -90,6 +102,9 @@ public class SyntheticPopulation {
         readSyntheticPersons();
         examSyntheticPopulation();
         //summarizePopulationData();
+
+        dataSet.setPersons(this.personMap);
+        dataSet.setHouseholds(this.householdMap);
 
 
     }

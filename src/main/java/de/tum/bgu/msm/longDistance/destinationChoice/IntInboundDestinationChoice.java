@@ -4,9 +4,10 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -36,15 +37,14 @@ public class IntInboundDestinationChoice {
 
 
 
-    public IntInboundDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, IntModeChoice intMcModel, DomesticDestinationChoice dcModel) {
+    public IntInboundDestinationChoice(JSONObject prop) {
         //coef format
         // table format: coeff | visit | leisure | business
-        this.rb = rb;
+        //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.inbound.coef_file"));
         coefficients.buildStringIndex(1);
-        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
-        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
+
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
@@ -52,8 +52,7 @@ public class IntInboundDestinationChoice {
         destCombinedZones.buildIndex(1);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
-        this.dcModel = dcModel;
-        this.intModeChoice = intMcModel;
+
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         this.calibrationV = new double[] {1,1,1};
@@ -62,7 +61,12 @@ public class IntInboundDestinationChoice {
 
     }
 
-    public void loadIntInboundDestinationChoice(){
+    public void loadIntInboundDestinationChoice(DataSet dataSet){
+
+        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
+        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
+        this.dcModel = dataSet.getDcDomestic();
+        this.intModeChoice = dataSet.getMcInt();
         //load combined zones distance skim
         autoTravelTime = dcModel.getAutoDist();
 

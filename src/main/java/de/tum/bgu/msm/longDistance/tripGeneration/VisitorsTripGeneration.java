@@ -2,9 +2,10 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
@@ -27,17 +28,20 @@ public class VisitorsTripGeneration {
 
     private TableDataSet externalCanIntRates;
 
+    private DataSet dataSet;
+    private ArrayList<Zone> externalZoneList;
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
-    static final List<String> tripStates = MtoLongDistData.getTripStates();
-    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+    static final List<String> tripStates = ZonalData.getTripStates();
+    static final List<String> tripPurposes = ZonalData.getTripPurposes();
     private ResourceBundle rb;
     private JSONObject prop;
 
-    public VisitorsTripGeneration(ResourceBundle rb, JSONObject prop) {
+    public VisitorsTripGeneration(JSONObject prop) {
 
         this.prop = prop;
-        this.rb = rb;
+
+        //this.rb = rb;
 
         //String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
         visitorPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.party_file"));
@@ -56,11 +60,19 @@ public class VisitorsTripGeneration {
         externalCanIntRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.external_can_int_rates_file"));
         externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
+
+
+    }
+
+
+    public void loadVisitorsTripGeneration(DataSet dataSet){
+        this.dataSet  = dataSet;
+        externalZoneList = dataSet.getExternalZones();
     }
 
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runVisitorsTripGeneration(ArrayList<Zone> externalZoneList) {
+    public ArrayList<LongDistanceTrip> runVisitorsTripGeneration() {
 
 
         ArrayList<LongDistanceTrip> visitorTrips = new ArrayList<>();
@@ -120,17 +132,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = MtoLongDistance.rand.nextDouble();
+        double randomChoice = LDModel.rand.nextDouble();
         while (adultsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = MtoLongDistance.rand.nextDouble();
+        randomChoice = LDModel.rand.nextDouble();
         while (kidsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = MtoLongDistance.rand.nextDouble();
+        randomChoice = LDModel.rand.nextDouble();
         while (nonHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
@@ -154,17 +166,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = MtoLongDistance.rand.nextDouble();
+        double randomChoice = LDModel.rand.nextDouble();
         while (adultsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = MtoLongDistance.rand.nextDouble();
+        randomChoice = LDModel.rand.nextDouble();
         while (kidsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = MtoLongDistance.rand.nextDouble();
+        randomChoice = LDModel.rand.nextDouble();
         while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 

@@ -3,9 +3,10 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
@@ -21,7 +22,8 @@ import java.util.stream.IntStream;
  */
 public class Scenario {
 
-    MtoLongDistData mtoLongDistData;
+    ZonalData zonalData;
+    DataSet dataSet;
     JSONObject prop;
     ResourceBundle rb;
     private DomesticDestinationChoice dcModel;
@@ -33,9 +35,10 @@ public class Scenario {
 
         this.rb = rb;
         this.prop = prop;
-        mtoLongDistData = new MtoLongDistData(rb, prop);
-        mcModel = new DomesticModeChoice(rb, prop,  mtoLongDistData);
-        dcModel = new DomesticDestinationChoice(rb, prop, mtoLongDistData, mcModel );
+        this.dataSet = dataSet;
+        zonalData = new ZonalData(prop);
+        mcModel = new DomesticModeChoice(prop);
+        dcModel = new DomesticDestinationChoice(prop);
 
     }
 
@@ -75,7 +78,7 @@ public class Scenario {
             int average = (int) Arrays.stream(purpose_counter[p]).average().getAsDouble();
             int min = Arrays.stream(purpose_counter[p]).min().getAsInt();
             int max = Arrays.stream(purpose_counter[p]).max().getAsInt();
-            System.out.println(String.format("%s,%d,%d,%d", MtoLongDistData.getTripPurposes().get(p), average, min, max));
+            System.out.println(String.format("%s,%d,%d,%d", ZonalData.getTripPurposes().get(p), average, min, max));
 
         }
 

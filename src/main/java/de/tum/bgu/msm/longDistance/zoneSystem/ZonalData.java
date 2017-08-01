@@ -2,12 +2,11 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.Mto;
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.syntheticPopulation.Household;
-import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.sp.Household;
+import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -26,17 +25,18 @@ import java.util.stream.Collectors;
  * Version 1
  */
 
-public class MtoLongDistData {
-    private static Logger logger = Logger.getLogger(MtoLongDistData.class);
+public class ZonalData {
+    private static Logger logger = Logger.getLogger(ZonalData.class);
     private ResourceBundle rb;
     private JSONObject prop;
     private Matrix autoTravelTime;
     private Matrix autoTravelDistance;
 
-    private ArrayList<Zone> zoneList;
+    private DataSet dataSet;
 
-    private ArrayList<Zone> internalZones;
-    private ArrayList<Zone> externalZones;
+
+
+
     private Map<Integer, Zone> zoneLookup;
 
     public static final List<String> tripPurposes = Arrays.asList("visit", "business", "leisure");
@@ -44,7 +44,7 @@ public class MtoLongDistData {
 
     private String[] autoFileMatrixLookup;
     private String[] distanceFileMatrixLookup;
-    ;
+
 
     private TableDataSet zoneTable;
     private TableDataSet externalCanadaTable;
@@ -52,8 +52,8 @@ public class MtoLongDistData {
     private TableDataSet externalOverseasTable;
 
 
-    public MtoLongDistData(ResourceBundle rb, JSONObject prop) {
-        this.rb = rb;
+    public ZonalData(JSONObject prop) {
+
         this.prop = prop;
         //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
         //distanceFileMatrixLookup = new String[]{rb.getString("dist.skim.file"), rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup")};
@@ -82,14 +82,26 @@ public class MtoLongDistData {
         zoneTable.buildIndex(1);
 
         logger.info("Zonal data manager set up");
+
+
+
     }
 
-    public void loadZonalData() {
-        this.internalZones = readInternalZones();
-        this.externalZones = readExternalZones();
-        this.zoneList = new ArrayList<>();
-        this.zoneList.addAll(internalZones);
-        this.zoneList.addAll(externalZones);
+    public void loadZonalData(DataSet dataset) {
+
+        this.dataSet = dataset;
+        ArrayList<Zone> zoneList;
+        ArrayList<Zone> internalZones = readInternalZones();
+        ArrayList<Zone> externalZones = readExternalZones();
+
+        zoneList = new ArrayList<>();
+        zoneList.addAll(internalZones);
+        zoneList.addAll(externalZones);
+
+        dataSet.setInternalZones(internalZones);
+        dataSet.setExternalZones(externalZones);
+        dataSet.setZones(zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x)));
+
         //convert the arraylist of zones into a map of zones accessible by id:
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
 
@@ -107,8 +119,9 @@ public class MtoLongDistData {
     }
 
     public void readSkims() {
-        autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
-        autoTravelDistance = convertSkimToMatrix(distanceFileMatrixLookup);
+        dataSet.setAutoTravelTime(convertSkimToMatrix(autoFileMatrixLookup));
+        dataSet.setAutoTravelDistance(convertSkimToMatrix(distanceFileMatrixLookup));
+
     }
 
     public Matrix convertSkimToMatrix(String[] fileMatrixLookupName) {
@@ -268,45 +281,14 @@ public class MtoLongDistData {
     }
 
 
-    public void writeOutAccessibilities(ArrayList<Zone> zoneList) {
-        //print out accessibilities - no longer used
 
-        String fileName = rb.getString("access.out.file") + ".csv";
-        PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
-        pw.println("Zone,Accessibility,Population,Employments");
-
-        logger.info("Print out data of accessibility");
-
-        for (Zone zone : zoneList) {
-            pw.println(zone.getId() + "," + zone.getAccessibility() + "," + zone.getPopulation() + "," + zone.getEmployment());
-        }
-        pw.close();
-    }
 
     public Map<Integer, Zone> getZoneLookup() {
         return zoneLookup;
     }
 
-    public ArrayList<Zone> getZoneList() {
-        return zoneList;
-    }
 
-    public ArrayList<Zone> getExternalZoneList() {
-        return externalZones;
-    }
 
-    public ArrayList<Zone> getInternalZoneList() {
-        return internalZones;
-    }
-
-    public void populateZones(SyntheticPopulation syntheticPopulationReader) {
-        for (Household hh : syntheticPopulationReader.getHouseholds()) {
-            Zone zone = hh.getZone();
-            zone.addHouseholds(1);
-            zone.addPopulation(hh.getHhSize());
-        }
-
-    }
 
 
 }

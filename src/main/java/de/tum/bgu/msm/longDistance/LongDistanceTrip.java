@@ -3,11 +3,11 @@ package de.tum.bgu.msm.longDistance;
 
 
 import com.pb.common.datafile.TableDataSet;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.syntheticPopulation.Person;
-import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.sp.Person;
+import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +22,8 @@ import java.util.Map;
 public class LongDistanceTrip {
 
     private static int tripCounter = 0;
-    private static final List<String> tripStates = MtoLongDistData.getTripStates();
-    private static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
+    private static final List<String> tripStates = ZonalData.getTripStates();
+    private static final List<String> tripPurposes = ZonalData.getTripPurposes();
 
     private int tripId;
     private Person traveller;

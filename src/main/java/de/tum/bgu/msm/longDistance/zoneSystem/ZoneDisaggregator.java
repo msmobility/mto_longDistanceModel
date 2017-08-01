@@ -2,15 +2,12 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Created by carlloga on 02-05-17.
@@ -19,9 +16,9 @@ public class ZoneDisaggregator {
 
     private static Logger logger = Logger.getLogger(ZoneDisaggregator.class);
     private ResourceBundle rb;
-    private ArrayList<Zone> zoneList;
+    private Collection<Zone> zoneList;
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;
-    private MtoLongDistData mtoLongDistData;
+    private DataSet dataSet;
 
     private int[] niagaraFallsIds;
     private ArrayList<Zone> niagaraFallsList = new ArrayList<>();
@@ -31,10 +28,10 @@ public class ZoneDisaggregator {
     private float alphaPopInt;
     private float alphaDistInt;
 
-    public ZoneDisaggregator(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData){
-        this.rb = rb;
+    public ZoneDisaggregator( JSONObject prop){
+        //this.rb = rb;
         combinedZoneMap = new HashMap<>();
-        this.mtoLongDistData = mtoLongDistData;
+        //this.zonalData = zonalData;
         logger.info("Zone disaggregator set up");
 
         alphaPopDom = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.alpha_pop");
@@ -50,8 +47,10 @@ public class ZoneDisaggregator {
 
     }
 
-    public void loadZoneDisaggregator(){
-        this.zoneList = mtoLongDistData.getZoneList();
+    public void loadZoneDisaggregator(DataSet dataSet){
+
+        this.dataSet = dataSet;
+        this.zoneList = dataSet.getZones().values();
         for (Zone z : zoneList) {
             if (combinedZoneMap.containsKey(z.getCombinedZoneId())){ ;
                 combinedZoneMap.get(z.getCombinedZoneId()).put(z.getId(), z);
@@ -64,7 +63,7 @@ public class ZoneDisaggregator {
         }
 
         for (int i : niagaraFallsIds){
-            niagaraFallsList.add(mtoLongDistData.getZoneLookup().get(i));
+            niagaraFallsList.add(dataSet.getZones().get(i));
             //logger.info(i);
         }
         logger.info("Zone disaggregator loaded");
@@ -93,7 +92,7 @@ public class ZoneDisaggregator {
 
         trip.setDestZone(destZone);
 
-        trip.setTravelDistanceLevel1(mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
+        trip.setTravelDistanceLevel1(dataSet.getAutoTravelDistance(trip.getOrigZone().getId(), trip.getDestZone().getId()));
     }
 
     private Zone selectDestinationInNiagara(LongDistanceTrip trip) {
@@ -147,7 +146,7 @@ public class ZoneDisaggregator {
 
         for (Zone z : internalZoneMap.values()){
             alternatives[i] = z.getId();
-            float distance = mtoLongDistData.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
+            float distance = dataSet.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
             //todo threshold
             if (distance > 40) {
                 expUtilities[i] = Math.pow(getCivicValues(z, trip), alphaPop) *

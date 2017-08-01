@@ -1,24 +1,13 @@
 package de.tum.bgu.msm;
 
-import com.pb.common.datafile.CSVFileReader;
 import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
-import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyTour;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
+import de.tum.bgu.msm.longDistance.LDModel;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.random.RandomGeneratorFactory;
 import org.apache.log4j.Logger;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 
 
 import java.io.*;
@@ -26,8 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
 
@@ -171,10 +158,10 @@ public class Util {
 
         int seed = ResourceUtil.getIntegerProperty(rb, "run.random.seed");
         if (seed == -1) {
-            MtoLongDistance.rand = new Random();
+            LDModel.rand = new Random();
 
         } else {
-            MtoLongDistance.rand = new Random(seed);
+            LDModel.rand = new Random(seed);
         }
 
     }
@@ -182,7 +169,7 @@ public class Util {
     //select method to avoid randomization of enumIntegerDistr object
     public static int select (double[] probabilities, int[] id) {
         // select item based on probabilities (for zero-based float array)
-        double selPos = Arrays.stream(probabilities).sum() * MtoLongDistance.rand.nextFloat();
+        double selPos = Arrays.stream(probabilities).sum() * LDModel.rand.nextFloat();
         double sum = 0;
         for (int i = 0; i < probabilities.length; i++) {
             sum += probabilities[i];

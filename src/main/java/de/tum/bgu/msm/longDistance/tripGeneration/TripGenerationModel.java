@@ -1,18 +1,14 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
-import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
-import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
+import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.ResourceBundle;
 
 
@@ -23,7 +19,7 @@ import java.util.ResourceBundle;
 public class TripGenerationModel {
     private ResourceBundle rb;
     private JSONObject prop;
-    private MtoLongDistData mtoLongDistData;
+    private DataSet dataSet;
     static Logger logger = Logger.getLogger(TripGenerationModel.class);
     private SyntheticPopulation synPop;
 
@@ -33,25 +29,29 @@ public class TripGenerationModel {
     private VisitorsTripGeneration visitorsTripGeneration;
     //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
-    public TripGenerationModel(ResourceBundle rb, JSONObject prop, MtoLongDistData mtoLongDistData, SyntheticPopulation synPop) {
-        this.rb = rb;
+    public TripGenerationModel(JSONObject prop) {
+        //this.rb = rb;
         this.prop = prop;
-        this.mtoLongDistData = mtoLongDistData;
-        this.synPop = synPop;
+
+//        this.synPop = synPop;
 
         //create the trip generation models
-        domesticTripGeneration = new DomesticTripGeneration(rb, prop, synPop, mtoLongDistData);
-        internationalTripGeneration = new InternationalTripGeneration(rb, prop, synPop, mtoLongDistData);
-        visitorsTripGeneration = new VisitorsTripGeneration(rb, prop);
+        domesticTripGeneration = new DomesticTripGeneration(prop);
+        internationalTripGeneration = new InternationalTripGeneration(prop);
+        visitorsTripGeneration = new VisitorsTripGeneration(prop);
         //extCanToIntTripGeneration = new ExtCanToIntTripGeneration(rb);
 
         logger.info("Trip Generation model set up");
     }
 
-    public void loadTripGenerationModels(IntOutboundDestinationChoice intDcModel){
+    public void loadTripGenerationModels(DataSet dataSet){
 
-        domesticTripGeneration.loadTripGeneration();
-        internationalTripGeneration.loadInternationalTripGeneration(intDcModel);
+        this.dataSet = dataSet;
+
+        domesticTripGeneration.loadTripGeneration(dataSet);
+        internationalTripGeneration.loadInternationalTripGeneration(dataSet);
+        visitorsTripGeneration.loadVisitorsTripGeneration(dataSet);
+
         logger.info("Trip generation loaded");
 
     }
@@ -73,10 +73,10 @@ public class TripGenerationModel {
         logger.info("  " + trips_int_ontarian.size() + " international trips from Ontario generated");
 
         //generate visitors
-        trips_visitors = visitorsTripGeneration.runVisitorsTripGeneration(mtoLongDistData.getExternalZoneList());
+        trips_visitors = visitorsTripGeneration.runVisitorsTripGeneration();
         //logger.info("  Visitor trips to Canada generated");
 
-        //trips_int_canadian = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(mtoLongDistData.getExternalZoneList());
+        //trips_int_canadian = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(zonalData.getExternalZoneList());
         //logger.info("  International trips from non-Ontarian zones generated");
 
         //join all the trips

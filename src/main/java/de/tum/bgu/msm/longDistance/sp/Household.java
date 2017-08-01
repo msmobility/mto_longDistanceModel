@@ -1,11 +1,6 @@
-package de.tum.bgu.msm.syntheticPopulation;
+package de.tum.bgu.msm.longDistance.sp;
  import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
  import org.apache.log4j.Logger;
-
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *

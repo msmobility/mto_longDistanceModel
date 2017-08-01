@@ -4,8 +4,9 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -47,11 +48,8 @@ public class IntModeChoice {
 
 
 
-    public IntModeChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, DomesticModeChoice dmChoice) {
-        this.rb = rb;
-
-        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
-        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
+    public IntModeChoice(JSONObject prop) {
+        //this.rb = rb;
 
        // mcIntOutboundCoefficients = Util.readCSVfile(rb.getString("mc.int.outbound.coefs"));
         mcIntOutboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
@@ -60,18 +58,24 @@ public class IntModeChoice {
         mcIntInboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
         mcIntInboundCoefficients.buildStringIndex(1);
 
-        this.dmChoice = dmChoice;
 
         calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
-        calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
-        calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
+
 
         logger.info("International MC set up");
 
     }
 
 
-    public void loadIntModeChoice(){
+    public void loadIntModeChoice(DataSet dataSet){
+        this.dmChoice = dataSet.getMcDomestic();
+
+        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
+        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
+
+        calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
+        calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
+
         travelTimeMatrix = dmChoice.getTravelTimeMatrix();
         priceMatrix = dmChoice.getPriceMatrix();
         transferMatrix = dmChoice.getTransferMatrix();

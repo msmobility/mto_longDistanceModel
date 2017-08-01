@@ -4,11 +4,12 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.syntheticPopulation.Person;
+import de.tum.bgu.msm.longDistance.sp.Person;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -55,12 +56,8 @@ public class DomesticModeChoice {
     private double[][] calibrationMatrixVisitors;
 
 
-    public DomesticModeChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData) {
+    public DomesticModeChoice(JSONObject prop) {
         this.rb = rb;
-
-
-        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
-        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
 
         //mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
         mcOntarioCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.dom.ontarian.coef_file"));
@@ -91,15 +88,21 @@ public class DomesticModeChoice {
 
 
         calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
-        calibrationMatrix = new double[tripPurposeArray.length][modes.length];
-        calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
+
 
         logger.info("Domestic MC set up");
 
     }
 
 
-    public void loadDomesticModeChoice(){
+    public void loadDomesticModeChoice(DataSet dataSet){
+
+        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
+        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
+
+        calibrationMatrix = new double[tripPurposeArray.length][modes.length];
+        calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
+
         readSkimByMode(rb);
         logger.info("Domestic MC loaded");
     }

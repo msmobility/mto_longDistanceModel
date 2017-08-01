@@ -2,15 +2,15 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.*;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
-import de.tum.bgu.msm.syntheticPopulation.*;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.random.RandomGeneratorFactory;
+import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
+import de.tum.bgu.msm.longDistance.sp.Household;
+import de.tum.bgu.msm.longDistance.sp.Person;
+import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -27,10 +27,10 @@ import java.util.*;
 
 public class DomesticTripGeneration {
 
-    private List<String> tripPurposes = MtoLongDistData.getTripPurposes();
-    private List<String> tripStates = MtoLongDistData.getTripStates();
+    private List<String> tripPurposes = ZonalData.getTripPurposes();
+    private List<String> tripStates = ZonalData.getTripStates();
 
-    private MtoLongDistData mtoLongDistData;
+    private DataSet dataSet;
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
@@ -39,17 +39,18 @@ public class DomesticTripGeneration {
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
 
-    private SyntheticPopulation synPop;
+    //private SyntheticPopulation synPop;
 
     private float alphaAccess;
     private float betaAccess;
 
 
 
-    public DomesticTripGeneration(ResourceBundle rb, JSONObject prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
+    public DomesticTripGeneration(JSONObject prop) {
         this.rb = rb;
         this.prop = prop;
-        this.synPop = synPop;
+
+        //this.synPop = synPop;
 
         //String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
         tripGenerationCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.coef_file"));
@@ -60,7 +61,7 @@ public class DomesticTripGeneration {
 
         travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
-        this.mtoLongDistData = mtoLongDistData;
+
 
         //alphaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
         //betaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
@@ -71,14 +72,16 @@ public class DomesticTripGeneration {
     }
 
 
-    public void loadTripGeneration(){
+    public void loadTripGeneration(DataSet dataSet){
+
+        this.dataSet = dataSet;
 
         List<String> fromZones;
         List<String> toZones;
         //accessibility in Canada to Canada Trips - assing short-distance accessibility to zones
         fromZones = Arrays.asList("ONTARIO");
         toZones = Arrays.asList("ONTARIO", "EXTCANADA");
-        mtoLongDistData.calculateAccessibility(mtoLongDistData.getZoneList(), fromZones, toZones, alphaAccess , betaAccess);
+        AccessibilityAnalysis.calculateAccessibility(dataSet, fromZones, toZones, alphaAccess , betaAccess);
     }
 
     //method to run the trip generation
@@ -91,11 +94,11 @@ public class DomesticTripGeneration {
 
         //this option may give randomness to the results
         //synPop.getHouseholds().forEach(hhold -> {
-          for (Household hhold : synPop.getHouseholds()) {
+          for (Household hhold : dataSet.getHouseholds().values()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
-            Collections.shuffle(membersList, MtoLongDistance.rand);
+            Collections.shuffle(membersList, LDModel.rand);
 
             for (Person pers : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international
@@ -117,7 +120,7 @@ public class DomesticTripGeneration {
                             tgProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probabilities[tripStates.indexOf(tripState)];
                         }
                         //select the trip state
-                        double randomNumber1 = MtoLongDistance.rand.nextDouble();
+                        double randomNumber1 = LDModel.rand.nextDouble();
                         int tripStateChoice = 3;
 
                         if (randomNumber1 < probabilities[0]) {
@@ -317,9 +320,9 @@ public class DomesticTripGeneration {
 
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;
-        double randomChoice4 = MtoLongDistance.rand.nextDouble();
+        double randomChoice4 = LDModel.rand.nextDouble();
         while (tripDuration < 30 && randomChoice4 < probability[0] / (probability[0] + probability[2])) {
-            randomChoice4 = MtoLongDistance.rand.nextDouble();
+            randomChoice4 = LDModel.rand.nextDouble();
             tripDuration++;
         }
         return tripDuration;
@@ -337,7 +340,7 @@ public class DomesticTripGeneration {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
         hhTravelParty.add(0, pers);
-        double randomChoice2 = MtoLongDistance.rand.nextDouble();
+        double randomChoice2 = LDModel.rand.nextDouble();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() > 17) {
@@ -358,7 +361,7 @@ public class DomesticTripGeneration {
     public static ArrayList<Person> addKidsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
-        double randomChoice2 = MtoLongDistance.rand.nextDouble();
+        double randomChoice2 = LDModel.rand.nextDouble();
         Household hhold = pers.getHousehold();
         for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() < 18) {
@@ -379,7 +382,7 @@ public class DomesticTripGeneration {
     public static int addNonHhTravelPartySize(String tripPurpose, TableDataSet travelPartyProbabilities) {
         // methods selects party size for travel groups that are composed of non-household members
         // note that additional travelers on this trip are not specified in the synthetic population (simplified approach)
-        double randomChoice3 = MtoLongDistance.rand.nextDouble();
+        double randomChoice3 = LDModel.rand.nextDouble();
         int k = 0;
         String column = tripPurpose + ".nonHh";
         while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) && k < 10)

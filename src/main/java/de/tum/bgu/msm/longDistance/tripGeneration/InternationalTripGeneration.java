@@ -1,21 +1,17 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
-import de.tum.bgu.msm.syntheticPopulation.Person;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
+import de.tum.bgu.msm.longDistance.sp.Person;
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.syntheticPopulation.SyntheticPopulation;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 
 /**
@@ -25,27 +21,27 @@ import java.util.stream.IntStream;
 public class InternationalTripGeneration {
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
-    static final List<String> tripStates = MtoLongDistData.getTripStates();
-    static final List<String> tripPurposes = MtoLongDistData.getTripPurposes();
-    private ResourceBundle rb;
+    static final List<String> tripStates = ZonalData.getTripStates();
+    static final List<String> tripPurposes = ZonalData.getTripPurposes();
+    //private ResourceBundle rb;
     private JSONObject prop;
     private double[][] sumProbabilities;
     private int[] personIds;
     private double[][][] probabilityMatrix;
-    private SyntheticPopulation synPop;
+    //private SyntheticPopulation synPop;
     private TableDataSet travelPartyProbabilities;
     private TableDataSet internationalTripRates;
     private TableDataSet tripGenerationCoefficients;
 
     private TableDataSet originCombinedZones;
 
-    private MtoLongDistData mtoLongDistData;
+    private DataSet dataSet;
 
-    public InternationalTripGeneration(ResourceBundle rb, JSONObject prop, SyntheticPopulation synPop, MtoLongDistData mtoLongDistData) {
-        this.synPop = synPop;
-        this.rb = rb;
+    public InternationalTripGeneration(JSONObject prop) {
+//        this.synPop = synPop;
+//        this.rb = rb;
         this.prop = prop;
-        this.mtoLongDistData = mtoLongDistData;
+
 
         //String internationalTriprates = rb.getString("int.trips");
         internationalTripRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.int.rates_file"));
@@ -62,7 +58,9 @@ public class InternationalTripGeneration {
     }
 
 
-    public void loadInternationalTripGeneration(IntOutboundDestinationChoice dcModel){
+    public void loadInternationalTripGeneration(DataSet dataSet){
+
+        this.dataSet = dataSet;
         //method to calculate the accessibility to US as a measure of the probability of starting and international trip
 //        List<String> fromZones;
 //        List<String> toZones;
@@ -70,9 +68,9 @@ public class InternationalTripGeneration {
 //        float alpha = (float) ResourceUtil.getDoubleProperty(rb, "int.access.alpha");
 //        float beta = (float) ResourceUtil.getDoubleProperty(rb, "int.access.beta");
 //        toZones = Arrays.asList("EXTUS");
-//        mtoLongDistData.calculateAccessibility(mtoLongDistData.getZoneList(), fromZones, toZones, alpha , beta);
+//        zonalData.calculateAccessibility(zonalData.getZoneList(), fromZones, toZones, alpha , beta);
 
-        originCombinedZones = dcModel.getOrigCombinedZones();
+        originCombinedZones = dataSet.getDcIntOutbound().getOrigCombinedZones();
 
 
     }
@@ -86,8 +84,8 @@ public class InternationalTripGeneration {
 
         //initialize probMatrices
         sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
-        personIds = new int[synPop.getPersons().size()];
-        probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][synPop.getPersons().size()];
+        personIds = new int[dataSet.getPersons().size()];
+        probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][dataSet.getPersons().size()];
 
         //normalize p(travel) per purpose/state by sum of the probability for each person
         sumProbs();
@@ -103,7 +101,7 @@ public class InternationalTripGeneration {
                     int n = numberOfTrips - tripCount;
                     double[] randomChoice = new double[n];
                     for (int k = 0; k < randomChoice.length; k++) {
-                        randomChoice[k] = MtoLongDistance.rand.nextDouble()*sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];;
+                        randomChoice[k] = LDModel.rand.nextDouble()*sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];;
                     }
                     //sort the matrix for faster lookup
                     Arrays.sort(randomChoice);
@@ -116,7 +114,7 @@ public class InternationalTripGeneration {
                             p++;
                             cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
                         }
-                        Person pers = synPop.getPersonFromId(personIds[p]);
+                        Person pers = dataSet.getPersonFromId(personIds[p]);
                         if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
 
                             LongDistanceTrip trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, travelPartyProbabilities);
@@ -167,10 +165,10 @@ public class InternationalTripGeneration {
 
 
     public void sumProbs(){
-        List <Person> persons = new ArrayList<>(synPop.getPersons());
+        List <Person> persons = new ArrayList<>(dataSet.getPersons().values());
 
         //make random list of persons
-        Collections.shuffle(persons, MtoLongDistance.rand);
+        Collections.shuffle(persons, LDModel.rand);
         double exponent = 2;
 
         int p = 0;

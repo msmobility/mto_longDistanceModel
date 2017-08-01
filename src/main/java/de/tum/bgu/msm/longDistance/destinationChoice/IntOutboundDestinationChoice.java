@@ -4,10 +4,11 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
@@ -32,7 +33,7 @@ public class IntOutboundDestinationChoice {
     private int[] alternativesOS;
 
     private TableDataSet origCombinedZones;
-    private MtoLongDistData ldData;
+    private ZonalData ldData;
 
     private IntModeChoice intModeChoice;
     private DomesticDestinationChoice dcModel;
@@ -45,17 +46,16 @@ public class IntOutboundDestinationChoice {
     private double[] calibrationV;
 
 
-    public IntOutboundDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, IntModeChoice intModeChoice, DomesticDestinationChoice dcModel) {
+    public IntOutboundDestinationChoice(JSONObject prop) {
 
-        this.rb = rb;
+        //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.outbound.coef_file"));
         coefficients.buildStringIndex(1);
 
-        this.ldData = ldData;
+//        this.ldData = ldData;
 
-        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
-        tripStateArray = ldData.tripStates.toArray(new String[ldData.tripStates.size()]);
+
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
@@ -68,8 +68,7 @@ public class IntOutboundDestinationChoice {
         origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
         origCombinedZones.buildIndex(1);
 
-        this.dcModel = dcModel;
-        this.intModeChoice = intModeChoice;
+
 
         //calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
         calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
@@ -79,12 +78,19 @@ public class IntOutboundDestinationChoice {
 
     }
 
-    public void loadIntOutboundDestinationChoiceModel() {
+    public void loadIntOutboundDestinationChoiceModel(DataSet dataSet) {
+
+        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
+        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
+
+        this.dcModel = dataSet.getDcDomestic();
+        this.intModeChoice = dataSet.getMcInt();
+
+
         //load combined zones distance skim
-        autoTravelTime = dcModel.getAutoDist();
+        autoTravelTime = dataSet.getDcDomestic().getAutoDist();
 
-
-        ldData.getExternalZoneList().forEach(zone -> {
+        dataSet.getExternalZones().forEach(zone -> {
             if (zone.getZoneType() == ZoneType.EXTOVERSEAS) {
                 externalOsMap.put(zone.getCombinedZoneId(), zone);
             }
@@ -185,7 +191,7 @@ public class IntOutboundDestinationChoice {
             //daytrips are always to US
             return true;
         } else {
-            if (MtoLongDistance.rand.nextDouble() < probability) {
+            if (LDModel.rand.nextDouble() < probability) {
                 return true;
             } else {
                 return false;

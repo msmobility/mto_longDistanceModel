@@ -1,14 +1,10 @@
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.MtoLongDistance;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.ResourceBundle;
 
 import static junit.framework.Assert.assertEquals;
-
-import org.matsim.core.utils.misc.CRCChecksum;
 
 /**
  * Created by carlloga on 7/18/2017.
@@ -30,7 +26,7 @@ public class MtoTest {
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 
         logger.info("Started test for runLongDistModel");
-        //MtoLongDistance ld = new MtoLongDistance(rb);
+        //LDModel ld = new LDModel(rb);
         //ld.loadLongDistanceModel();
         //ld.runLongDistanceModel();
         logger.info("Module runLongDistModel completed");

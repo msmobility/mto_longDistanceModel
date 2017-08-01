@@ -3,11 +3,12 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.MtoLongDistData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -35,16 +36,22 @@ public class DomesticDestinationChoice {
     private double[] domDcCalibrationV;
     private RandomGenerator rng;
 
+    //private String[] fileMatrixLooup = new String[3];
 
-    public DomesticDestinationChoice(ResourceBundle rb, JSONObject prop, MtoLongDistData ldData, DomesticModeChoice domesticModeChoice) {
-        this.rb = rb;
+
+    public DomesticDestinationChoice(JSONObject prop) {
+
+
+        //fileMatrixLooup[0] = JsonUtilMto.getStringProp(prop, )
+        //fileMatrixLooup[1] = JsonUtilMto.getStringProp(prop, )
+        //fileMatrixLooup[2] = JsonUtilMto.getStringProp(prop, )
 
         //coef format
         // table format: coeff | visit | leisure | business
         //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.coef_file"));
         coefficients.buildStringIndex(1);
-        tripPurposeArray = ldData.tripPurposes.toArray(new String[ldData.tripPurposes.size()]);
+
 
         //load alternatives
 
@@ -56,26 +63,32 @@ public class DomesticDestinationChoice {
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         this.domDcCalibrationV = new double[] {1,1,1};
-        this.domesticModeChoice = domesticModeChoice;
+
 
         logger.info("Domestic DC set up");
         //enum integer distribution does not accept Random but Random Generator
-        //rng = RandomGeneratorFactory.createRandomGenerator(MtoLongDistance.rand);
+        //rng = RandomGeneratorFactory.createRandomGenerator(LDModel.rand);
 
     }
 
-    public void loadDomesticDestinationChoice(){
+    public void loadDomesticDestinationChoice(DataSet dataSet){
+
+        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
+        this.domesticModeChoice = dataSet.getMcDomestic();
+
         //load combined zones distance skim
-        readSkim(rb);
+        //readSkim();
+
+        autoDist = domesticModeChoice.getTravelTimeMatrix()[0];
         logger.info("Domestic DC loaded");
 
     }
 
-    public void readSkim(ResourceBundle rb) {
+/*
+    public void readSkim() {
         // read skim file
 
-        String matrixName = "auto.skim.combinedzones.2013";
-        String hwyFileName = rb.getString(matrixName);
+
 
         // Read highway hwySkim
         OmxFile hSkim = new OmxFile(hwyFileName);
@@ -89,6 +102,7 @@ public class DomesticDestinationChoice {
         logger.info("  Skim matrix was read: " + hwyFileName);
 
     }
+*/
 
 
 
@@ -240,8 +254,8 @@ public class DomesticDestinationChoice {
         fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
 
         double u =
-                Math.exp(-alpha * distance)
-                + b_distance_log * log_distance
+                //b_distance * Math.exp(-alpha * distance)
+                 b_distance_log * log_distance
                 + b_dtLogsum * dtLogsum * b_calibration_dt
                 + b_onLogsum * onLogsum * b_calibration_on
                 + b_civic * civic

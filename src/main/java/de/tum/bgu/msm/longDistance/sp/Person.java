@@ -1,12 +1,5 @@
-package de.tum.bgu.msm.syntheticPopulation;
- import org.apache.log4j.Logger;
+package de.tum.bgu.msm.longDistance.sp;
 
-
- import java.lang.reflect.Array;
- import java.util.ArrayList;
- import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import static java.lang.Integer.parseInt;
 
