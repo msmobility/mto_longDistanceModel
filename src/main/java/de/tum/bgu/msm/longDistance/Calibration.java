@@ -21,7 +21,18 @@ public class Calibration implements ModelComponent{
 
     private boolean calibrationDC;
     private boolean calibrationMC;
-    private DataSet dataSet;
+
+    private int maxIter;
+
+
+    private DomesticDestinationChoice dcModel;
+    private IntOutboundDestinationChoice dcOutboundModel;
+    private IntInboundDestinationChoice dcInBoundModel;
+    private DcModel dcM;
+
+    private DomesticModeChoice mcDomesticModel;
+    private IntModeChoice intModeChoice;
+    private McModel mcM;
 
 
     static Logger logger = Logger.getLogger(Calibration.class);
@@ -32,16 +43,23 @@ public class Calibration implements ModelComponent{
     @Override
     public void setup(JSONObject prop) {
 
-        //calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+
         calibrationDC = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
-        //calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
         calibrationMC = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
+        maxIter = 5;
 
     }
 
     @Override
     public void load(DataSet dataSet) {
+        dcModel = dataSet.getDcDomestic();
+        dcOutboundModel = dataSet.getDcIntOutbound();
+        dcInBoundModel = dataSet.getDcIntInbound();
+        dcM = dataSet.getDestinationChoiceModel();
 
+        mcDomesticModel = dataSet.getMcDomestic();
+        intModeChoice = dataSet.getMcInt();
+        mcM = dataSet.getModeChoiceModel();
 
     }
 
@@ -49,25 +67,19 @@ public class Calibration implements ModelComponent{
     public void run(DataSet dataSet, int nThreads) {
 
         if(calibrationDC || calibrationMC) {
-            calibrateModel(calibrationDC, calibrationMC, dataSet.getAllTrips());
+            calibrateModel(calibrationDC, calibrationMC, dataSet);
         }
     }
 
 
-     public void calibrateModel(boolean dc, boolean mc, ArrayList<LongDistanceTrip> allTrips){
+     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet){
 
-         DomesticDestinationChoice dcModel = dataSet.getDcDomestic();
-         IntOutboundDestinationChoice dcOutboundModel = dataSet.getDcIntOutbound();
-         IntInboundDestinationChoice dcInBoundModel = dataSet.getDcIntInbound();
-         DcModel dcM = dataSet.getDestinationChoiceModel();
+         //load existing models
 
-         DomesticModeChoice mcDomesticModel = dataSet.getMcDomestic();
-         IntModeChoice intModeChoice = dataSet.getMcInt();
-         McModel mcM = dataSet.getModeChoiceModel();
+        ArrayList<LongDistanceTrip> allTrips = dataSet.getAllTrips();
 
 
 
-        int maxIter = 10;
         double[][][] calibrationMatrixMc = new double[4][3][4];
         double[][] calibrationMatrixDc = new double[3][3];
 
