@@ -22,36 +22,39 @@ public class DataSet {
 
     private static Logger logger = Logger.getLogger(DataSet.class);
 
+    //GENERAL
     public static final List<String> tripPurposes = Arrays.asList("visit", "business", "leisure");
     public static final List<String> tripStates = Arrays.asList("away", "daytrip", "inout");
 
+    //ZONAL DATA
     private Map<Integer, Zone> zones = new HashMap<>();
-
     private ArrayList<Zone> internalZones = new ArrayList<>();
     private ArrayList<Zone> externalZones = new ArrayList<>();
 
+    //SKIMS GA-zones
     private Matrix autoTravelTime;
     private Matrix autoTravelDistance;
 
+    //SYNYHETIC POPULATION
     private Map<Integer, Person> persons = new HashMap<>();
     private Map<Integer, Household> households = new HashMap<>();
 
-
+    //TRIPS
     ArrayList<LongDistanceTrip> allTrips;
 
-    //models to be passed between models
-    private DomesticModeChoice mcDomestic;
+    //MODELS
+    //todo probably the data to be interchanged between models should be here instead
+    private DcModel destinationChoiceModel;
     private DomesticDestinationChoice dcDomestic;
-    private IntModeChoice mcInt;
     private IntOutboundDestinationChoice dcIntOutbound;
     private IntInboundDestinationChoice dcIntInbound;
 
-    private DcModel destinationChoiceModel;
     private McModel modeChoiceModel;
+    private DomesticModeChoice mcDomestic;
+    private IntModeChoice mcInt;
 
 
-
-    //methods
+    //geters and setters
 
     public static List<String> getTripPurposes() {
         return tripPurposes;
@@ -88,7 +91,6 @@ public class DataSet {
     public void setAutoTravelTime(Matrix autoTravelTime) {
         this.autoTravelTime = autoTravelTime;
     }
-
 
     public void setAutoTravelDistance(Matrix autoTravelDistance) {
         this.autoTravelDistance = autoTravelDistance;

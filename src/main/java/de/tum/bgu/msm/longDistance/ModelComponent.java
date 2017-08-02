@@ -1,10 +1,10 @@
 package de.tum.bgu.msm.longDistance;
 
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import org.json.simple.JSONObject;
 
 /**
  * Created by carlloga on 8/1/2017.
+ * This interface is to be used in all the model components
  */
 public interface ModelComponent {
 

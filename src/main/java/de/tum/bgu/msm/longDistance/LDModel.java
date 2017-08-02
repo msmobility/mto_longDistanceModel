@@ -94,8 +94,6 @@ public class LDModel implements ModelComponent {
         dataSet.setModeChoiceModel(mcModel);
         dataSet.setDestinationChoiceModel(dcModel);
 
-
-
         //LOAD the modules
         zonalData.load(dataSet);
         syntheticPopulationReader.load(dataSet);
