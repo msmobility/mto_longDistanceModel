@@ -34,7 +34,6 @@ public class Calibration implements ModelComponent{
     private IntModeChoice intModeChoice;
     private McModel mcM;
 
-
     static Logger logger = Logger.getLogger(Calibration.class);
 
     public Calibration() {
