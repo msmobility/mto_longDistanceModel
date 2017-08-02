@@ -36,7 +36,8 @@ public class Scenario {
         this.rb = rb;
         this.prop = prop;
         this.dataSet = dataSet;
-        zonalData = new ZonalData(prop);
+        zonalData = new ZonalData();
+        zonalData.setup(prop);
         mcModel = new DomesticModeChoice(prop);
         dcModel = new DomesticDestinationChoice(prop);
 

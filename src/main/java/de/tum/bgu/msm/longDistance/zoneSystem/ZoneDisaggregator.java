@@ -4,6 +4,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.ModelComponent;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -12,7 +13,7 @@ import java.util.*;
 /**
  * Created by carlloga on 02-05-17.
  */
-public class ZoneDisaggregator {
+public class ZoneDisaggregator implements ModelComponent {
 
     private static Logger logger = Logger.getLogger(ZoneDisaggregator.class);
     private ResourceBundle rb;
@@ -28,7 +29,11 @@ public class ZoneDisaggregator {
     private float alphaPopInt;
     private float alphaDistInt;
 
-    public ZoneDisaggregator( JSONObject prop){
+    public ZoneDisaggregator() {
+
+    }
+
+    public void setup(JSONObject prop){
         //this.rb = rb;
         combinedZoneMap = new HashMap<>();
         //this.zonalData = zonalData;
@@ -47,7 +52,7 @@ public class ZoneDisaggregator {
 
     }
 
-    public void loadZoneDisaggregator(DataSet dataSet){
+    public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
         this.zoneList = dataSet.getZones().values();
@@ -68,6 +73,11 @@ public class ZoneDisaggregator {
         }
         logger.info("Zone disaggregator loaded");
     }
+
+    public void run(DataSet dataSet, int nThreads){
+
+    }
+
 
     public void disaggregateDestination(LongDistanceTrip trip) {
 

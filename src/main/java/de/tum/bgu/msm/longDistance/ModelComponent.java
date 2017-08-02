@@ -8,10 +8,10 @@ import org.json.simple.JSONObject;
  */
 public interface ModelComponent {
 
-    void setup(JSONObject submodelConfiguration, String inputFolder, String outputFolder);
+    void setup(JSONObject submodelConfiguration);
 
-    void load(ZonalData zonalData);
+    void load(DataSet dataSet);
 
-    void run(ZonalData zonalData, int nThreads);
+    void run(DataSet dataSet, int nThreads);
 
 }

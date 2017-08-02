@@ -5,6 +5,7 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.sp.Household;
 import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
 import omx.OmxFile;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * Version 1
  */
 
-public class ZonalData {
+public class ZonalData implements ModelComponent {
     private static Logger logger = Logger.getLogger(ZonalData.class);
     private ResourceBundle rb;
     private JSONObject prop;
@@ -52,7 +53,10 @@ public class ZonalData {
     private TableDataSet externalOverseasTable;
 
 
-    public ZonalData(JSONObject prop) {
+    public ZonalData() {
+    }
+
+    public void setup(JSONObject prop){
 
         this.prop = prop;
         //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
@@ -87,7 +91,7 @@ public class ZonalData {
 
     }
 
-    public void loadZonalData(DataSet dataset) {
+    public void load(DataSet dataset) {
 
         this.dataSet = dataset;
         ArrayList<Zone> zoneList;
@@ -108,6 +112,10 @@ public class ZonalData {
         readSkims();
 
         logger.info("Zonal data loaded");
+    }
+
+    public void run(DataSet dataSet, int nThreads){
+
     }
 
     public static List<String> getTripPurposes() {

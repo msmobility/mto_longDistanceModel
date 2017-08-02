@@ -8,6 +8,7 @@ import de.tum.bgu.msm.longDistance.LDModel;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 
 import java.io.*;
@@ -152,11 +153,11 @@ public class Util {
         return array;
     }
 
-    public static void initializeRandomNumber(ResourceBundle rb) {
+    public static void initializeRandomNumber(JSONObject prop) {
         // initialize random number generator
 
 
-        int seed = ResourceUtil.getIntegerProperty(rb, "run.random.seed");
+        int seed = JsonUtilMto.getIntProp(prop, "run.random_seed");
         if (seed == -1) {
             LDModel.rand = new Random();
 

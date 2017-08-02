@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.sp;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
@@ -28,7 +29,7 @@ import java.util.*;
  *
  */
 
-public class SyntheticPopulation {
+public class SyntheticPopulation implements ModelComponent {
 
     private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
@@ -48,7 +49,10 @@ public class SyntheticPopulation {
 
 
 
-    public SyntheticPopulation(JSONObject prop) {
+    public SyntheticPopulation() {
+    }
+
+    public void setup(JSONObject prop){
         // Constructor
 //        this.rb = rb;
         this.prop = prop;
@@ -67,7 +71,7 @@ public class SyntheticPopulation {
 
     }
 
-    public void loadSyntheticPopulation(DataSet dataSet){
+    public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
         this.zoneLookup = dataSet.getZones();
@@ -79,6 +83,10 @@ public class SyntheticPopulation {
 
         logger.info("Synthetic population loaded");
 
+
+    }
+
+    public void run(DataSet dataSet, int nThreads){
 
     }
 

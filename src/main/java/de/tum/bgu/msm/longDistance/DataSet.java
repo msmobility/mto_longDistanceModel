@@ -34,6 +34,9 @@ public class DataSet {
     private Map<Integer, Person> persons = new HashMap<>();
     private Map<Integer, Household> households = new HashMap<>();
 
+
+    ArrayList<LongDistanceTrip> allTrips;
+
     //models to be passed between models
     private DomesticModeChoice mcDomestic;
     private DomesticDestinationChoice dcDomestic;
@@ -173,5 +176,13 @@ public class DataSet {
 
     public void setDcIntOutbound(IntOutboundDestinationChoice dcIntOutbound) {
         this.dcIntOutbound = dcIntOutbound;
+    }
+
+    public ArrayList<LongDistanceTrip> getAllTrips() {
+        return allTrips;
+    }
+
+    public void setAllTrips(ArrayList<LongDistanceTrip> allTrips) {
+        this.allTrips = allTrips;
     }
 }

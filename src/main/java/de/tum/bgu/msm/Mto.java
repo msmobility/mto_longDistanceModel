@@ -4,6 +4,7 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.SurveyDataImporter;
 import de.tum.bgu.msm.dataAnalysis.MtoAnalyzeData;
 import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
+import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 
 import org.apache.log4j.Logger;
@@ -90,9 +91,12 @@ public class Mto {
     private void runLongDistModel() {
         // main method to run long-distance model
         logger.info("Started runLongDistModel for the year " + year);
-        LDModel ld = new LDModel(rb, prop);
-        ld.loadLongDistanceModel();
-        ld.runLongDistanceModel();
+        DataSet dataSet = new DataSet();
+
+        LDModel ld = new LDModel();
+        ld.setup(prop);
+        ld.load(dataSet);
+        ld.run(dataSet, -1);
         logger.info("Module runLongDistModel completed.");
 
     }

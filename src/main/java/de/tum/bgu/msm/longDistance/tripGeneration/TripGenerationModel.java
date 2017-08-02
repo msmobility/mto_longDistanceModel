@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
@@ -16,7 +17,7 @@ import java.util.ResourceBundle;
 /**
  * Created by Joe on 28/10/2016.
  */
-public class TripGenerationModel {
+public class TripGenerationModel implements ModelComponent {
     private ResourceBundle rb;
     private JSONObject prop;
     private DataSet dataSet;
@@ -29,8 +30,11 @@ public class TripGenerationModel {
     private VisitorsTripGeneration visitorsTripGeneration;
     //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
-    public TripGenerationModel(JSONObject prop) {
-        //this.rb = rb;
+    public TripGenerationModel() {
+    }
+
+
+    public void setup(JSONObject prop ){
         this.prop = prop;
 
 //        this.synPop = synPop;
@@ -44,8 +48,7 @@ public class TripGenerationModel {
         logger.info("Trip Generation model set up");
     }
 
-    public void loadTripGenerationModels(DataSet dataSet){
-
+    public void load(DataSet dataSet){
         this.dataSet = dataSet;
 
         domesticTripGeneration.loadTripGeneration(dataSet);
@@ -53,10 +56,17 @@ public class TripGenerationModel {
         visitorsTripGeneration.loadVisitorsTripGeneration(dataSet);
 
         logger.info("Trip generation loaded");
+    }
+
+    public void run(DataSet dataSet, int nThreads){
+
+        dataSet.setAllTrips(generateTrips());
 
     }
 
-    public ArrayList<LongDistanceTrip> runTripGeneration() {
+
+
+    public ArrayList<LongDistanceTrip> generateTrips() {
 
         //initialize list of trips
         ArrayList<LongDistanceTrip> trips_dom_ontarian; //trips from Ontario to all Canada - sp based

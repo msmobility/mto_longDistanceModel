@@ -3,11 +3,13 @@ package de.tum.bgu.msm.longDistance;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDisaggregator;
@@ -28,7 +30,7 @@ import java.util.*;
  * Version 1
  */
 
-public class LDModel {
+public class LDModel implements ModelComponent {
 
     public static Random rand;
 
@@ -37,16 +39,14 @@ public class LDModel {
     private JSONObject prop;
 
 
-    private DataSet dataSet;
+
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
     private ZonalData zonalData;
     private SyntheticPopulation syntheticPopulationReader;
     private TripGenerationModel tripGenModel;
-    private DomesticDestinationChoice dcModel;
-    private IntOutboundDestinationChoice dcOutboundModel;
-    private IntInboundDestinationChoice dcInBoundModel;
-    private DomesticModeChoice mcDomesticModel;
-    private IntModeChoice intModeChoice;
+    private DcModel dcModel;
+    private McModel mcModel;
+
     private Calibration c;
     private ZoneDisaggregator zd;
 
@@ -62,10 +62,22 @@ public class LDModel {
     //private boolean analyzeAccess;
 
     //SET UP the models
-    public LDModel(ResourceBundle rb, JSONObject prop) {
-        this.rb = rb;
+    public LDModel() {
+
+
+        syntheticPopulationReader = new SyntheticPopulation();
+        zonalData = new ZonalData();
+        tripGenModel = new TripGenerationModel();
+        dcModel = new DcModel();
+        mcModel  = new McModel();
+        zd = new ZoneDisaggregator();
+
+    }
+
+    public void setup(JSONObject prop){
+ //this.rb = rb;
         this.prop = prop;
-        Util.initializeRandomNumber(rb);
+        Util.initializeRandomNumber(prop);
 
 
 
@@ -81,57 +93,48 @@ public class LDModel {
         inputTripFile = JsonUtilMto.getStringProp(prop,"run.develop.trip_input_file");
 
         //read output options
-        writeTrips = ResourceUtil.getBooleanProperty(rb, "write.trips", false);
+        writeTrips = JsonUtilMto.getBooleanProp(prop, "out.write_trips");
         //analyzeAccess = ResourceUtil.getBooleanProperty(rb, "analyze.accessibility", false);
 
-        dataSet = new DataSet();
 
-        zonalData = new ZonalData(prop);
-        syntheticPopulationReader = new SyntheticPopulation(prop);
-        tripGenModel = new TripGenerationModel(prop);
-        mcDomesticModel = new DomesticModeChoice(prop);
 
-        //this may go to the setup method of mc domestic model
-        dataSet.setMcDomestic(mcDomesticModel);
 
-        intModeChoice = new IntModeChoice(prop);
-        dataSet.setMcInt(intModeChoice);
+        zonalData.setup(prop);
+        syntheticPopulationReader.setup(prop);
+        tripGenModel.setup(prop);
+        dcModel.setup(prop);
+        mcModel.setup(prop);
 
-        dcModel = new DomesticDestinationChoice(prop);
-        dataSet.setDcDomestic(dcModel);
 
-        dcOutboundModel = new IntOutboundDestinationChoice(prop);
-        dcInBoundModel = new IntInboundDestinationChoice(prop);
-        dataSet.setDcIntOutbound(dcOutboundModel);
 
         c = new Calibration();
-        zd = new ZoneDisaggregator(prop);
+
+        zd.setup(prop);
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
-    public void loadLongDistanceModel() {
+    public void load(DataSet dataSet) {
         //LOAD the models
-        zonalData.loadZonalData(dataSet);
-        syntheticPopulationReader.loadSyntheticPopulation(dataSet);
+        zonalData.load(dataSet);
+        syntheticPopulationReader.load(dataSet);
 
+        mcModel.load(dataSet);
+
+        dcModel.load(dataSet);
         //the order of loading models is still a bit odd but functional
-        mcDomesticModel.loadDomesticModeChoice(dataSet);
-        intModeChoice.loadIntModeChoice(dataSet);
-
-        dcModel.loadDomesticDestinationChoice(dataSet);
-
-        dcInBoundModel.loadIntInboundDestinationChoice(dataSet);
-        dcOutboundModel.loadIntOutboundDestinationChoiceModel(dataSet);
-
-        tripGenModel.loadTripGenerationModels(dataSet);
 
 
-        zd.loadZoneDisaggregator(dataSet);
+
+
+        tripGenModel.load(dataSet);
+
+
+        zd.load(dataSet);
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
     }
 
-    public void runLongDistanceModel() {
+    public void run(DataSet dataSet, int nThreads) {
 
         //property change to avoid parallelization
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
@@ -140,19 +143,19 @@ public class LDModel {
         //TRIP GENERATION and DESTINATION CHOICE
         if (runTG && runDC){
             //run the full model
-            allTrips = tripGenModel.runTripGeneration();
-            runDestinationChoice(allTrips);
+            tripGenModel.run(dataSet, -1);
+            dcModel.run(dataSet, -1);
         } else {
             //run the in-development model
-           runDevelopingTgAndDcModels();
+           //runDevelopingTgAndDcModels();
         }
 
         //MODE CHOICE
-        runModeChoice(allTrips);
+        mcModel.run(dataSet, -1);
 
         //CALIBRATION TOOLS
         if (calibrationDC || calibrationMC){
-            calibrateModel(calibrationDC, calibrationMC);
+            //calibrateModel(calibrationDC, calibrationMC);
         }
 
         //DISAGGREGATION
@@ -166,7 +169,7 @@ public class LDModel {
 
 
 
-    public void runDevelopingTgAndDcModels(){
+   /* public void runDevelopingTgAndDcModels(){
 
         //developing tools to skip TG and/or DC if needed
         if (!runTG) {
@@ -195,75 +198,14 @@ public class LDModel {
 
 
     }
+*/
 
 
-    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Running Destination Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
-            if (!t.isInternational()) {
-                int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
-                t.setCombinedDestZoneId(destZoneId);
-                t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-            } else {
-                if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
-                    // residents to international
-                    int destZoneId = dcOutboundModel.selectDestination(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                    if (t.getDestZoneType().equals(ZoneType.EXTUS))
-                        t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-
-                } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
-                    // us visitors with destination in CANADA
-                    int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                    t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-                } else {
-                    //os visitors to Canada
-                    int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                }
-            }
-
-        });
-    }
 
 
-    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Running Mode Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach(t -> {
-            if (!t.isInternational()) {
-                //domestic mode choice for synthetic persons in Ontario
-                int mode = mcDomesticModel.selectModeDomestic(t);
-                t.setMode(mode);
-                // international mode choice
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
-                //residents
-                if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
-                    //international from Canada to US
-                    int mode = intModeChoice.selectMode(t);
-                    t.setMode(mode);
-                } else {
-                    //international from Canada to OS
-                    t.setMode(1); //always by air
-                }
-                //visitors
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
-                //international visitors from US
-                int mode = intModeChoice.selectMode(t);
-                t.setMode(mode);
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
-                //international visitors from US
-                t.setMode(1); //always by air
-            }
 
-        });
-    }
 
-    public void calibrateModel(boolean dc, boolean mc){
+    /*public void calibrateModel(boolean dc, boolean mc){
 
         int maxIter = 10;
         double[][][] calibrationMatrixMc = new double[4][3][4];
@@ -304,7 +246,7 @@ public class LDModel {
 
         c.printOutCalibrationResults(dcModel, dcOutboundModel, dcInBoundModel, mcDomesticModel, intModeChoice);
 
-    }
+    }*/
 
     public void runDisaggregation(ArrayList<LongDistanceTrip> allTrips) {
         logger.info("Starting disaggregation");
