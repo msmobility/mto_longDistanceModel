@@ -67,7 +67,7 @@ public class LDModel implements ModelComponent {
         calib = new Calibration();
     }
 
-    public void setup(JSONObject prop){
+    public void setup(JSONObject prop, String inputFolder, String outputFolder){
 
         Util.initializeRandomNumber(prop);
 
@@ -79,13 +79,13 @@ public class LDModel implements ModelComponent {
         writeTrips = JsonUtilMto.getBooleanProp(prop, "out.write_trips");
 
         //setup modules
-        zonalData.setup(prop);
-        syntheticPopulationReader.setup(prop);
-        tripGenModel.setup(prop);
-        dcModel.setup(prop);
-        mcModel.setup(prop);
-        calib.setup(prop);
-        zd.setup(prop);
+        zonalData.setup(prop, inputFolder, outputFolder);
+        syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
+        tripGenModel.setup(prop, inputFolder, outputFolder);
+        dcModel.setup(prop, inputFolder, outputFolder);
+        mcModel.setup(prop, inputFolder, outputFolder);
+        calib.setup(prop, inputFolder, outputFolder);
+        zd.setup(prop, inputFolder, outputFolder);
 
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }

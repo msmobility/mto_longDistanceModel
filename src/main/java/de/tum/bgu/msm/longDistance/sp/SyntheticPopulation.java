@@ -52,7 +52,7 @@ public class SyntheticPopulation implements ModelComponent {
     public SyntheticPopulation() {
     }
 
-    public void setup(JSONObject prop){
+    public void setup(JSONObject prop, String inputFolder, String outputFolder){
 
         this.prop = prop;
         hhFilename = JsonUtilMto.getStringProp(prop,"sp.hh_file");

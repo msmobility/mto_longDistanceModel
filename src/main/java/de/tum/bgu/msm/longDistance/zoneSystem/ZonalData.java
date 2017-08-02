@@ -53,7 +53,7 @@ public class ZonalData implements ModelComponent {
     public ZonalData() {
     }
 
-    public void setup(JSONObject prop){
+    public void setup(JSONObject prop, String inputFolder, String outputFolder){
 
         this.prop = prop;
         //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};

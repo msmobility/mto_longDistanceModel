@@ -23,7 +23,7 @@ public class DcModel implements ModelComponent {
 
 
     @Override
-    public void setup(JSONObject prop) {
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         dcModel = new DomesticDestinationChoice(prop);
         dcOutboundModel = new IntOutboundDestinationChoice(prop);

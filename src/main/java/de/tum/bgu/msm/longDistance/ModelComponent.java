@@ -8,7 +8,7 @@ import org.json.simple.JSONObject;
  */
 public interface ModelComponent {
 
-    void setup(JSONObject submodelConfiguration);
+    void setup(JSONObject submodelConfiguration, String inputFolder, String outputFolder);
 
     void load(DataSet dataSet);
 

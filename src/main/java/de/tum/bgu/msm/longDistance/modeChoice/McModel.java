@@ -21,7 +21,7 @@ public class McModel implements ModelComponent {
     private IntModeChoice intModeChoice;
 
     @Override
-    public void setup(JSONObject prop) {
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
         mcDomesticModel = new DomesticModeChoice(prop);
         intModeChoice = new IntModeChoice(prop);
     }

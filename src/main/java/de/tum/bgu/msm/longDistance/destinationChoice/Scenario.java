@@ -33,11 +33,14 @@ public class Scenario {
 
     public Scenario(ResourceBundle rb, JSONObject prop) {
 
+        String inputFolder = null;
+        String outputFolder = null;
+
         this.rb = rb;
         this.prop = prop;
         this.dataSet = dataSet;
         zonalData = new ZonalData();
-        zonalData.setup(prop);
+        zonalData.setup(prop, inputFolder, outputFolder);
         mcModel = new DomesticModeChoice(prop);
         dcModel = new DomesticDestinationChoice(prop);
 

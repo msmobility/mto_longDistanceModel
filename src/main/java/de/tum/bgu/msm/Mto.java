@@ -93,8 +93,11 @@ public class Mto {
         logger.info("Started runLongDistModel for the year " + year);
         DataSet dataSet = new DataSet();
 
+        String inputFolder = "./input/";
+        String outputFolder = "./output/";
+
         LDModel ld = new LDModel();
-        ld.setup(prop);
+        ld.setup(prop, inputFolder, outputFolder);
         ld.load(dataSet);
         ld.run(dataSet, -1);
         logger.info("Module runLongDistModel completed.");

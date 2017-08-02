@@ -40,7 +40,7 @@ public class Calibration implements ModelComponent{
     }
 
     @Override
-    public void setup(JSONObject prop) {
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
 
         calibrationDC = JsonUtilMto.getBooleanProp(prop,"dc.calibration");

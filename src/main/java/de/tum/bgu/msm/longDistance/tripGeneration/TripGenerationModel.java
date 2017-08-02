@@ -34,7 +34,7 @@ public class TripGenerationModel implements ModelComponent {
     }
 
 
-    public void setup(JSONObject prop ){
+    public void setup(JSONObject prop, String inputFolder, String outputFolder ){
         this.prop = prop;
 
 //        this.synPop = synPop;

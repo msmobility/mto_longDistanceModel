@@ -33,7 +33,7 @@ public class ZoneDisaggregator implements ModelComponent {
 
     }
 
-    public void setup(JSONObject prop) {
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         combinedZoneMap = new HashMap<>();
         //parameters
