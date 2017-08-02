@@ -63,11 +63,11 @@ public class LongDistanceTrip {
     }
 
     //contructor in developing phase - read trips from list instead of trip generation
-    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, SyntheticPopulation syntheticPopulation, boolean assignDestination) {
+    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, DataSet dataSet, boolean assignDestination) {
 
         this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
         int personId = (int) tripsDomesticTable.getValueAt(row, "personId");
-        this.traveller = syntheticPopulation.getPersonFromId(personId);
+        this.traveller = dataSet.getPersonFromId(personId);
 
         this.international = tripsDomesticTable.getBooleanValueAt(row, "international");
         this.tripPurpose = tripPurposes.indexOf(tripsDomesticTable.getStringValueAt(row, "tripPurpose"));

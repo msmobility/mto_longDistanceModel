@@ -6,15 +6,12 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.sp.Household;
-import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -145,23 +142,6 @@ public class ZonalData implements ModelComponent {
         return matrix;
     }
 
-    public float getAutoTravelTime(int orig, int dest) {
-        try {
-            return autoTravelTime.getValueAt(orig, dest);
-        } catch (Exception e) {
-            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
-            return -999;
-        }
-    }
-
-    public float getAutoTravelDistance(int orig, int dest) {
-        try {
-            return autoTravelDistance.getValueAt(orig, dest);
-        } catch (Exception e) {
-            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
-            return -999;
-        }
-    }
 
 
     public ArrayList<Zone> readInternalZones() {
@@ -225,75 +205,9 @@ public class ZonalData implements ModelComponent {
         return externalZonesArray;
     }
 
-    public void calculateAccessibility(ArrayList<Zone> zoneList, List<String> fromZones, List<String> toZones, float alphaAuto, float betaAuto) {
-
-        //read alpha and beta parameters
-        logger.info("   Calculating accessibilities");
-
-        //create lists of origin and destination zones
-
-        ArrayList<Zone> origZoneList = new ArrayList<>();
-        for (String stringZoneType : fromZones) {
-            for (Zone zone : zoneList) {
-                if (zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) origZoneList.add(zone);
-            }
-        }
-
-        ArrayList<Zone> destZoneList = new ArrayList<>();
-        for (String stringZoneType : toZones) {
-            for (Zone zone : zoneList) {
-                if (zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) destZoneList.add(zone);
-            }
-        }
-
-        double autoAccessibility;
-        //calculate accessibilities
-        for (Zone origZone : origZoneList) {
-            autoAccessibility = 0;
-            for (Zone destZone : destZoneList) {
-                double autoImpedance;
-                //limit the minimum travel time for accessibility calculations (namely long distance accessibility)
-                //if (getAutoTravelTime(origZone.getId(), destZone.getId()) > 90) {
-                if (getAutoTravelTime(origZone.getId(), destZone.getId()) <= 0) {      // should never happen for auto, but has appeared for intrazonal trip length
-                    autoImpedance = 0;
-                } else {
-                    autoImpedance = Math.exp(betaAuto * getAutoTravelTime(origZone.getId(), destZone.getId()));
-                }
-
-                autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
-
-            }
-            origZone.setAccessibility(autoAccessibility);
-
-
-        }
-        logger.info("Accessibility (raster zone level) calculated using alpha= " + alphaAuto + " and beta= " + betaAuto);
-        //scaling accessibility (only for Ontario zones --> 100 is assigned to the highest value in Ontario)
-        double[] autoAccessibilityArray = new double[zoneList.size()];
-
-        int i = 0;
-        double highestVal = 0;
-        for (Zone zone : zoneList) {
-            autoAccessibilityArray[i] = zone.getAccessibility();
-            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneType.ONTARIO)) {
-                highestVal = autoAccessibilityArray[i];
-            }
-            i++;
-        }
-        i = 0;
-        for (Zone zone : zoneList) {
-            zone.setAccessibility(autoAccessibilityArray[i] / highestVal * 100);
-            i++;
-        }
-
-    }
 
 
 
-
-    public Map<Integer, Zone> getZoneLookup() {
-        return zoneLookup;
-    }
 
 
 

@@ -33,31 +33,27 @@ public class ZoneDisaggregator implements ModelComponent {
 
     }
 
-    public void setup(JSONObject prop){
-        //this.rb = rb;
-        combinedZoneMap = new HashMap<>();
-        //this.zonalData = zonalData;
-        logger.info("Zone disaggregator set up");
+    public void setup(JSONObject prop) {
 
+        combinedZoneMap = new HashMap<>();
+        //parameters
         alphaPopDom = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.alpha_pop");
         alphaDistDom = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.alpha_dist");
         alphaPopInt = JsonUtilMto.getFloatProp(prop, "disaggregation.int.alpha_pop");
         alphaDistInt = JsonUtilMto.getFloatProp(prop, "disaggregation.int.alpha_dist");
-
         niagaraFallsIds = JsonUtilMto.getArrayIntProp(prop, "disaggregation.dom.niagara_zones");
-
-
         niagaraFactor = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.niagara_factor");
-
+        logger.info("Zone disaggregator set up");
 
     }
 
-    public void load(DataSet dataSet){
+    public void load(DataSet dataSet) {
 
         this.dataSet = dataSet;
         this.zoneList = dataSet.getZones().values();
+        //build the map for raster cells
         for (Zone z : zoneList) {
-            if (combinedZoneMap.containsKey(z.getCombinedZoneId())){ ;
+            if (combinedZoneMap.containsKey(z.getCombinedZoneId())) {
                 combinedZoneMap.get(z.getCombinedZoneId()).put(z.getId(), z);
             } else {
                 Map<Integer, Zone> internalZoneMap = new HashMap<>();
@@ -66,15 +62,20 @@ public class ZoneDisaggregator implements ModelComponent {
             }
 
         }
-
-        for (int i : niagaraFallsIds){
+        //build a list of special zones
+        for (int i : niagaraFallsIds) {
             niagaraFallsList.add(dataSet.getZones().get(i));
-            //logger.info(i);
         }
         logger.info("Zone disaggregator loaded");
     }
 
-    public void run(DataSet dataSet, int nThreads){
+    public void run(DataSet dataSet, int nThreads) {
+
+        logger.info("Starting disaggregation");
+        dataSet.getAllTrips().parallelStream().forEach(t -> {
+            disaggregateDestination(t);
+        });
+        logger.info("Finished disaggregation");
 
     }
 
@@ -83,7 +84,7 @@ public class ZoneDisaggregator implements ModelComponent {
 
         Zone destZone;
 
-        if (trip.getDestCombinedZoneId() == 30 && trip.getTripPurpose()==2) {
+        if (trip.getDestCombinedZoneId() == 30 && trip.getTripPurpose() == 2) {
             //the leisure trip ends in Niagara falls --> go to the falls
             destZone = selectDestinationInNiagara(trip);
 
@@ -108,15 +109,15 @@ public class ZoneDisaggregator implements ModelComponent {
     private Zone selectDestinationInNiagara(LongDistanceTrip trip) {
         Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestCombinedZoneId());
 
-        int[] alternatives = new int [internalZoneMap.size()];
+        int[] alternatives = new int[internalZoneMap.size()];
         double[] expUtilities = new double[internalZoneMap.size()];
         int i = 0;
 
-        for (Zone z : internalZoneMap.values()){
+        for (Zone z : internalZoneMap.values()) {
             alternatives[i] = z.getId();
             expUtilities[i] = (getCivicValues(z, trip));
             if (niagaraFallsList.contains(z))
-                expUtilities[i] = expUtilities[i]*niagaraFactor;
+                expUtilities[i] = expUtilities[i] * niagaraFactor;
             i++;
         }
 
@@ -129,11 +130,11 @@ public class ZoneDisaggregator implements ModelComponent {
 
         Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestCombinedZoneId());
 
-        int[] alternatives = new int [internalZoneMap.size()];
+        int[] alternatives = new int[internalZoneMap.size()];
         double[] expUtilities = new double[internalZoneMap.size()];
         int i = 0;
 
-        for (Zone z : internalZoneMap.values()){
+        for (Zone z : internalZoneMap.values()) {
             alternatives[i] = z.getId();
             expUtilities[i] = (getCivicValues(z, trip));
             i++;
@@ -146,17 +147,17 @@ public class ZoneDisaggregator implements ModelComponent {
 
         Map<Integer, Zone> internalZoneMap = combinedZoneMap.get(trip.getDestCombinedZoneId());
 
-        float alphaPop = trip.isInternational()? alphaPopInt : alphaPopDom;
-        float alphaDist = trip.isInternational()? alphaDistInt : alphaDistDom;
+        float alphaPop = trip.isInternational() ? alphaPopInt : alphaPopDom;
+        float alphaDist = trip.isInternational() ? alphaDistInt : alphaDistDom;
 
 
-        int[] alternatives = new int [internalZoneMap.size()];
+        int[] alternatives = new int[internalZoneMap.size()];
         double[] expUtilities = new double[internalZoneMap.size()];
         int i = 0;
 
-        for (Zone z : internalZoneMap.values()){
+        for (Zone z : internalZoneMap.values()) {
             alternatives[i] = z.getId();
-            float distance = dataSet.getAutoTravelDistance(trip.getOrigZone().getId(),z.getId());
+            float distance = dataSet.getAutoTravelDistance(trip.getOrigZone().getId(), z.getId());
             //todo threshold
             if (distance > 40) {
                 expUtilities[i] = Math.pow(getCivicValues(z, trip), alphaPop) *
@@ -171,7 +172,7 @@ public class ZoneDisaggregator implements ModelComponent {
     }
 
 
-    public double getCivicValues(Zone zone, LongDistanceTrip trip){
+    public double getCivicValues(Zone zone, LongDistanceTrip trip) {
 
         double civic = 0;
 

@@ -28,16 +28,16 @@ public class DcModel implements ModelComponent {
         dcModel = new DomesticDestinationChoice(prop);
         dcOutboundModel = new IntOutboundDestinationChoice(prop);
         dcInBoundModel = new IntInboundDestinationChoice(prop);
-
-
     }
 
     @Override
     public void load(DataSet dataSet) {
+        //store the models in the dataset
         dataSet.setDcDomestic(dcModel);
         dataSet.setDcIntOutbound(dcOutboundModel);
+        dataSet.setDcIntInbound(dcInBoundModel);
 
-
+        //load submodels
         dcModel.loadDomesticDestinationChoice(dataSet);
         dcInBoundModel.loadIntInboundDestinationChoice(dataSet);
         dcOutboundModel.loadIntOutboundDestinationChoiceModel(dataSet);
@@ -46,9 +46,7 @@ public class DcModel implements ModelComponent {
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-
         runDestinationChoice(dataSet.getAllTrips());
-
     }
 
 

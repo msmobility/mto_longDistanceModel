@@ -1,24 +1,114 @@
 package de.tum.bgu.msm.longDistance;
 
+import de.tum.bgu.msm.JsonUtilMto;
+import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 
 /**
  * Created by carlloga on 12-07-17.
  */
-public class Calibration {
+public class Calibration implements ModelComponent{
+
+    private boolean calibrationDC;
+    private boolean calibrationMC;
+    private DataSet dataSet;
+
 
     static Logger logger = Logger.getLogger(Calibration.class);
 
     public Calibration() {
     }
+
+    @Override
+    public void setup(JSONObject prop) {
+
+        //calibrationDC = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);;
+        calibrationDC = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
+        //calibrationMC = ResourceUtil.getBooleanProperty(rb, "mc.calibration", false);;
+        calibrationMC = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
+
+    }
+
+    @Override
+    public void load(DataSet dataSet) {
+
+
+    }
+
+    @Override
+    public void run(DataSet dataSet, int nThreads) {
+
+        if(calibrationDC || calibrationMC) {
+            calibrateModel(calibrationDC, calibrationMC, dataSet.getAllTrips());
+        }
+    }
+
+
+     public void calibrateModel(boolean dc, boolean mc, ArrayList<LongDistanceTrip> allTrips){
+
+         DomesticDestinationChoice dcModel = dataSet.getDcDomestic();
+         IntOutboundDestinationChoice dcOutboundModel = dataSet.getDcIntOutbound();
+         IntInboundDestinationChoice dcInBoundModel = dataSet.getDcIntInbound();
+         DcModel dcM = dataSet.getDestinationChoiceModel();
+
+         DomesticModeChoice mcDomesticModel = dataSet.getMcDomestic();
+         IntModeChoice intModeChoice = dataSet.getMcInt();
+         McModel mcM = dataSet.getModeChoiceModel();
+
+
+
+        int maxIter = 10;
+        double[][][] calibrationMatrixMc = new double[4][3][4];
+        double[][] calibrationMatrixDc = new double[3][3];
+
+
+        if (dc) {
+            for (int iteration = 0; iteration < maxIter; iteration++) {
+
+                logger.info("Calibration of destination choice: Iteration = " + iteration);
+                calibrationMatrixDc = calculateCalibrationMatrix(allTrips);
+                dcModel.updatedomDcCalibrationV(calibrationMatrixDc[0]);
+                dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc[1]);
+                dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
+
+                dcM.run(dataSet, -1);
+            }
+        }
+
+        if (mc){
+            for (int iteration = 0; iteration < maxIter; iteration++) {
+
+                logger.info("Calibration of mode choice: Iteration = " + iteration);
+                calibrationMatrixMc = calculateMCCalibrationFactors(allTrips, iteration, maxIter);
+                mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
+                mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
+                intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
+                intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
+
+                //runDestinationChoice(allTrips);
+                mcM.run(dataSet, -1);
+            }
+
+        }
+
+        dcM.run(dataSet, -1);
+        mcM.run(dataSet, -1);
+
+        printOutCalibrationResults(dcModel, dcOutboundModel, dcInBoundModel, mcDomesticModel, intModeChoice);
+
+    }
+
+
 
     public double[][] getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
 
@@ -343,6 +433,7 @@ public class Calibration {
         logger.info("---------------------------------------------------------");
 
     }
+
 
 
 }

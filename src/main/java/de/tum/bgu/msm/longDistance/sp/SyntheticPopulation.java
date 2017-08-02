@@ -53,21 +53,12 @@ public class SyntheticPopulation implements ModelComponent {
     }
 
     public void setup(JSONObject prop){
-        // Constructor
-//        this.rb = rb;
+
         this.prop = prop;
-
-
-        //hhFilename = ResourceUtil.getProperty(rb, "syn.pop.hh");
         hhFilename = JsonUtilMto.getStringProp(prop,"sp.hh_file");
-        //ppFilename = ResourceUtil.getProperty(rb, "syn.pop.pp");
         ppFilename = JsonUtilMto.getStringProp(prop,"sp.pp_file");
         travellersFilename = JsonUtilMto.getStringProp(prop,"out.travellers_file");
-
-
         logger.info("Synthetic population reader set up");
-
-
 
     }
 
@@ -75,15 +66,9 @@ public class SyntheticPopulation implements ModelComponent {
 
         this.dataSet = dataSet;
         this.zoneLookup = dataSet.getZones();
-
-
         readSyntheticPopulation();
         populateZones();
-
-
         logger.info("Synthetic population loaded");
-
-
     }
 
     public void run(DataSet dataSet, int nThreads){
@@ -117,25 +102,6 @@ public class SyntheticPopulation implements ModelComponent {
 
     }
 
-    /*public void readZonalData () {
-        // Read in zonal data
-
-        zoneTable = util.importTable(rb.getString("int.can"));
-        zones = zoneTable.getColumnAsInt("ID");
-        zoneIndex = new int[util.getHighestVal(zones) + 1];
-        for (int i = 0; i < zones.length; i++) {
-            zoneIndex[zones[i]] = i;
-        }
-
-
-
-        cdTable = util.importTable("input/listOfCd.csv");
-        cds = cdTable.getColumnAsInt("CD");
-        cdsIndex = new int[util.getHighestVal(cds) + 1];
-        for (int i = 0; i < cds.length; i++) cdsIndex[cds[i]] = cds[i];
-
-        cdTable.buildIndex(cdTable.getColumnPosition("ID"));
-    }*/
 
     private void readSyntheticHouseholds() {
 
@@ -187,8 +153,6 @@ public class SyntheticPopulation implements ModelComponent {
 
 
     private void readSyntheticPersons() {
-
-
 
         String recString = "";
         int recCount = 0;

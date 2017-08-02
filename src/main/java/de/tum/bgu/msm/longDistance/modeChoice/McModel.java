@@ -24,24 +24,22 @@ public class McModel implements ModelComponent {
     public void setup(JSONObject prop) {
         mcDomesticModel = new DomesticModeChoice(prop);
         intModeChoice = new IntModeChoice(prop);
-
     }
 
     @Override
     public void load(DataSet dataSet) {
+        //store the models
         dataSet.setMcDomestic(mcDomesticModel);
         dataSet.setMcInt(intModeChoice);
 
+        //load submodels
         mcDomesticModel.loadDomesticModeChoice(dataSet);
         intModeChoice.loadIntModeChoice(dataSet);
     }
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-
         runModeChoice(dataSet.getAllTrips());
-
-
     }
 
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {

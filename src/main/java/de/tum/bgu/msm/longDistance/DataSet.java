@@ -1,11 +1,13 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.sp.Household;
 import de.tum.bgu.msm.longDistance.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -42,7 +44,10 @@ public class DataSet {
     private DomesticDestinationChoice dcDomestic;
     private IntModeChoice mcInt;
     private IntOutboundDestinationChoice dcIntOutbound;
+    private IntInboundDestinationChoice dcIntInbound;
 
+    private DcModel destinationChoiceModel;
+    private McModel modeChoiceModel;
 
 
 
@@ -80,25 +85,10 @@ public class DataSet {
         this.externalZones = externalZones;
     }
 
-    public static Logger getLogger() {
-        return logger;
-    }
-
-    public static void setLogger(Logger logger) {
-        DataSet.logger = logger;
-    }
-
-    public Matrix getAutoTravelTime() {
-        return autoTravelTime;
-    }
-
     public void setAutoTravelTime(Matrix autoTravelTime) {
         this.autoTravelTime = autoTravelTime;
     }
 
-    public Matrix getAutoTravelDistance() {
-        return autoTravelDistance;
-    }
 
     public void setAutoTravelDistance(Matrix autoTravelDistance) {
         this.autoTravelDistance = autoTravelDistance;
@@ -184,5 +174,29 @@ public class DataSet {
 
     public void setAllTrips(ArrayList<LongDistanceTrip> allTrips) {
         this.allTrips = allTrips;
+    }
+
+    public DcModel getDestinationChoiceModel() {
+        return destinationChoiceModel;
+    }
+
+    public void setDestinationChoiceModel(DcModel destinationChoiceModel) {
+        this.destinationChoiceModel = destinationChoiceModel;
+    }
+
+    public McModel getModeChoiceModel() {
+        return modeChoiceModel;
+    }
+
+    public void setModeChoiceModel(McModel modeChoiceModel) {
+        this.modeChoiceModel = modeChoiceModel;
+    }
+
+    public IntInboundDestinationChoice getDcIntInbound() {
+        return dcIntInbound;
+    }
+
+    public void setDcIntInbound(IntInboundDestinationChoice dcIntInbound) {
+        this.dcIntInbound = dcIntInbound;
     }
 }
