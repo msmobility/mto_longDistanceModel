@@ -113,21 +113,11 @@ public class DataSet {
     }
 
     public float getAutoTravelTime(int orig, int dest) {
-        try {
             return autoTravelTime.getValueAt(orig, dest);
-        } catch (Exception e) {
-            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
-            return -999;
-        }
     }
 
     public float getAutoTravelDistance(int orig, int dest) {
-        try {
             return autoTravelDistance.getValueAt(orig, dest);
-        } catch (Exception e) {
-            logger.error("*** Could not find zone pair " + orig + "/" + dest + " ***");
-            return -999;
-        }
     }
 
     public Person getPersonFromId(int personId) {
