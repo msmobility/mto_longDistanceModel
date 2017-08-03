@@ -45,7 +45,7 @@ public class Calibration implements ModelComponent{
 
         calibrationDC = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
         calibrationMC = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
-        maxIter = 5;
+        maxIter = 20;
 
     }
 

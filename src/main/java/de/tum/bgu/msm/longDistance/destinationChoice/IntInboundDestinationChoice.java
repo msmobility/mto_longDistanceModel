@@ -196,7 +196,11 @@ public class IntInboundDestinationChoice {
 
         double civic = Math.log(population + employment);
 
+        double log_civic = civic>0? Math.log(population + employment): 0;
+
+
         double hotel = destCombinedZones.getIndexedValueAt(destination, "hotel");
+        double log_hotel = hotel>0? Math.log(hotel): 0;
         double skiing = destCombinedZones.getIndexedValueAt(destination, "skiing");
         int altIsMetro = (int) destCombinedZones.getIndexedValueAt(destination, "alt_is_metro");
 
@@ -209,11 +213,11 @@ public class IntInboundDestinationChoice {
                 b_dtLogsum * (1 - overnight) * logsum * k_dtLogsum +
                 b_onLogsum * overnight * logsum * k_onLogsum +
                 b_civic * civic +
-                b_log_civic* Math.log(civic) +
+                b_log_civic* log_civic +
                 b_skiing * skiing +
                 b_altIsMetro * altIsMetro +
                 b_hotel * hotel +
-                b_log_hotel * Math.log(hotel) +
+                b_log_hotel * log_hotel +
                 b_niagara * altIsNiagara;
 
     }
