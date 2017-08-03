@@ -83,7 +83,7 @@ public class Calibration implements ModelComponent{
         double[][] calibrationMatrixDc = new double[3][3];
 
 
-        if (dc) {
+        if (dc && mc) {
             for (int iteration = 0; iteration < maxIter; iteration++) {
 
                 logger.info("Calibration of destination choice: Iteration = " + iteration);
@@ -93,11 +93,7 @@ public class Calibration implements ModelComponent{
                 dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
 
                 dcM.run(dataSet, -1);
-            }
-        }
 
-        if (mc){
-            for (int iteration = 0; iteration < maxIter; iteration++) {
 
                 logger.info("Calibration of mode choice: Iteration = " + iteration);
                 calibrationMatrixMc = calculateMCCalibrationFactors(allTrips, iteration, maxIter);

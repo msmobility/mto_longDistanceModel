@@ -137,9 +137,12 @@ public class IntInboundDestinationChoice {
         double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
         double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
         double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
+        double b_log_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose);
         double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose);
         double b_altIsMetro = coefficients.getStringIndexedValueAt("altIsMetro", tripPurpose);
         double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
+        double b_log_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
+        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
 
         double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
@@ -197,6 +200,8 @@ public class IntInboundDestinationChoice {
         double skiing = destCombinedZones.getIndexedValueAt(destination, "skiing");
         int altIsMetro = (int) destCombinedZones.getIndexedValueAt(destination, "alt_is_metro");
 
+        int altIsNiagara = destination == 30? 1 : 0;
+
 
         //calculate utility
         return b_population * population +
@@ -204,9 +209,12 @@ public class IntInboundDestinationChoice {
                 b_dtLogsum * (1 - overnight) * logsum * k_dtLogsum +
                 b_onLogsum * overnight * logsum * k_onLogsum +
                 b_civic * civic +
+                b_log_civic* Math.log(civic) +
                 b_skiing * skiing +
                 b_altIsMetro * altIsMetro +
-                b_hotel * hotel;
+                b_hotel * hotel +
+                b_log_hotel * Math.log(hotel) +
+                b_niagara * altIsNiagara;
 
     }
 
