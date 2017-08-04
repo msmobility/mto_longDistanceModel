@@ -418,7 +418,7 @@ public class Calibration implements ModelComponent{
                 ",air=" + intMc.getCalibrationMatrixInbound()[1][1] +
                 ",rail=" + intMc.getCalibrationMatrixInbound()[1][2] +
                 ",bus=" + intMc.getCalibrationMatrixInbound()[1][3]);
-        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixOutbound()[2][0] +
+        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixInbound()[2][0] +
                 ",air=" + intMc.getCalibrationMatrixInbound()[2][1] +
                 ",rail=" + intMc.getCalibrationMatrixInbound()[2][2] +
                 ",bus=" + intMc.getCalibrationMatrixInbound()[2][3]);
