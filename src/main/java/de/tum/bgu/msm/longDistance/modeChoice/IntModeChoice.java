@@ -160,7 +160,9 @@ public class IntModeChoice {
         double k_calibration = mcIntInboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
         //calibration factor update during runtime
-        if (calibration) k_calibration = calibrationMatrixInbound[trip.getTripPurpose()][m];
+        if (calibration) {
+            k_calibration = calibrationMatrixInbound[trip.getTripPurpose()][m];
+        }
 
 
                 utility = b_intercept + k_calibration +
@@ -231,7 +233,9 @@ public class IntModeChoice {
         double k_calibration = mcIntOutboundCoefficients.getStringIndexedValueAt("k_calibration", column);
 
         //calibration during runtime
-        if (calibration) k_calibration = calibrationMatrixOutbound[trip.getTripPurpose()][m];
+        if (calibration) {
+            k_calibration = calibrationMatrixOutbound[trip.getTripPurpose()][m];
+        }
 
         utility = b_intercept + k_calibration +
                 b_frequency*frequency +
@@ -256,7 +260,7 @@ public class IntModeChoice {
     public void updateCalibrationOutbound(double[][] calibrationMatrix) {
         for (int purp = 0; purp < tripPurposeArray.length; purp++) {
             for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixOutbound[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixOutbound[purp][mode];
+                this.calibrationMatrixOutbound[purp][mode] += calibrationMatrix[purp][mode];
             }
         }
     }
@@ -264,7 +268,7 @@ public class IntModeChoice {
     public void updateCalibrationInbound(double[][] calibrationMatrix) {
         for (int purp = 0; purp < tripPurposeArray.length; purp++) {
             for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixInbound[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixInbound[purp][mode];
+                this.calibrationMatrixInbound[purp][mode] += calibrationMatrix[purp][mode];
             }
         }
     }

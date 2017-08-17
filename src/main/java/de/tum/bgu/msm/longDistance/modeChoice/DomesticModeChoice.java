@@ -385,7 +385,7 @@ public class DomesticModeChoice {
     public void updateCalibrationDomestic(double[][] calibrationMatrix) {
         for (int purp = 0; purp < tripPurposeArray.length; purp++) {
             for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrix[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrix[purp][mode];
+                this.calibrationMatrix[purp][mode] += calibrationMatrix[purp][mode];
             }
         }
     }
@@ -393,7 +393,7 @@ public class DomesticModeChoice {
     public void updateCalibrationDomesticVisitors(double[][] calibrationMatrix) {
         for (int purp = 0; purp < tripPurposeArray.length; purp++) {
             for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixVisitors[purp][mode] = calibrationMatrix[purp][mode] + this.calibrationMatrixVisitors[purp][mode];
+                this.calibrationMatrixVisitors[purp][mode] += calibrationMatrix[purp][mode];
             }
         }
     }

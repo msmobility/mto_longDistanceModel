@@ -40,7 +40,7 @@ public class DataSet {
     private Map<Integer, Household> households = new HashMap<>();
 
     //TRIPS
-    ArrayList<LongDistanceTrip> allTrips;
+    private ArrayList<LongDistanceTrip> allTrips;
 
     //MODELS
     //todo probably the data to be interchanged between models should be here instead

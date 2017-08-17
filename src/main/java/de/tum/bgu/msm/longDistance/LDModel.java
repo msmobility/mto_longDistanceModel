@@ -123,7 +123,13 @@ public class LDModel implements ModelComponent {
             runDevelopingTgAndDcModels(dataSet);
         }
         mcModel.run(dataSet, -1);
+
+        calib.getAverageModalShares(dataSet.getAllTrips());
+
         calib.run(dataSet, -1);
+
+        calib.getAverageModalShares(dataSet.getAllTrips());
+
         zd.run(dataSet, -1);
 
         //print outputs
@@ -174,15 +180,6 @@ public class LDModel implements ModelComponent {
     }
 
 
-
-
-
-
-
-
-
-
-
     public void writeLongDistanceOutputs(DataSet dataSet){
         if (writeTrips) {
 
@@ -200,7 +197,9 @@ public class LDModel implements ModelComponent {
     }
 
     public void writeTrips(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Writing out data for trip generation (trips)");
+        logger.info("Writing out data of trips");
+
+
 
 
         PrintWriter pw = Util.openFileForSequentialWriting(outputTripFile, false);
@@ -210,7 +209,7 @@ public class LDModel implements ModelComponent {
 
 
         for (LongDistanceTrip tr : trips) {
-            //if (tr.getOrigZone().getZoneType() == ZoneType.ONTARIO){
+
             pw.println(tr.toString());
         }
 

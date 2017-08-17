@@ -32,7 +32,7 @@ public class DomesticDestinationChoice {
     private int[] alternatives;
     String[] tripPurposeArray;
     private DomesticModeChoice domesticModeChoice;
-    boolean calibration;
+    private boolean calibration;
     private double[] domDcCalibrationV;
     private RandomGenerator rng;
 

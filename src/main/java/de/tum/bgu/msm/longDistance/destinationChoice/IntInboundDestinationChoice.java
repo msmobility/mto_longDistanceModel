@@ -32,7 +32,7 @@ public class IntInboundDestinationChoice {
     private String[] tripStateArray;
     private DomesticDestinationChoice dcModel;
     private IntModeChoice intModeChoice;
-    boolean calibration;
+    private boolean calibration;
     private double[] calibrationV;
 
 
