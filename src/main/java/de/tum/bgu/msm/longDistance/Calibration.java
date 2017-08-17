@@ -38,7 +38,7 @@ public class Calibration implements ModelComponent {
 
     static Logger logger = Logger.getLogger(Calibration.class);
 
-    private ArrayList<LongDistanceTrip> allTrips;
+    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 
     public Calibration() {
     }
@@ -49,7 +49,7 @@ public class Calibration implements ModelComponent {
 
         calibrationDC = JsonUtilMto.getBooleanProp(prop, "dc.calibration");
         calibrationMC = JsonUtilMto.getBooleanProp(prop, "mc.calibration");
-        maxIter = 5;
+        maxIter = 50;
 
     }
 
@@ -80,11 +80,9 @@ public class Calibration implements ModelComponent {
 
     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet) {
 
-        allTrips = dataSet.getAllTrips();
-
-        for (LongDistanceTrip t : allTrips){
-            if (t.getTripState() ==0){
-                allTrips.remove(t);
+        for (LongDistanceTrip t : dataSet.getAllTrips()){
+            if (t.getTripState() !=0){
+                allTrips.add(t);
             }
         }
 
@@ -121,7 +119,6 @@ public class Calibration implements ModelComponent {
 
 
         }
-
 
 
         /*dcM.run(dataSet, -1);
