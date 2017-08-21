@@ -124,7 +124,7 @@ public class LDModel implements ModelComponent {
         }
         mcModel.run(dataSet, -1);
 
-        calib.getAverageModalShares(dataSet.getAllTrips());
+        //calib.getAverageModalShares(dataSet.getAllTrips());
 
         calib.run(dataSet, -1);
 
