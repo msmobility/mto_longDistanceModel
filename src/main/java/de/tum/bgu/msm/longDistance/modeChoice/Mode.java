@@ -27,7 +27,6 @@ public enum Mode {
         else if (m==1) return Mode.AIR;
         else if (m==2) return Mode.RAIL;
         else return Mode.BUS;
-
     }
 
     public static Collection<Mode> ListOfModes(){
