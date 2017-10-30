@@ -234,7 +234,7 @@ public class MtoAnalyzeData {
 
         for (SurveyPerson person : data.getPersons()){
             for (SurveyTour tour : person.getTours()){
-                pw.println(tour.toString());
+                pw.println(tour.toCSV());
             }
         }
 

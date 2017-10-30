@@ -214,8 +214,7 @@ public class SurveyTour implements Serializable {
                 mainMode +"," +
                 tripPurp +"," +
                 numberNights +"," +
-                weight +"," +
-                tourGeometry;
+                weight;
     }
 
     public static String getHeader() {
@@ -230,7 +229,6 @@ public class SurveyTour implements Serializable {
                 "mainMode" +"," +
                 "tripPurp" +"," +
                 "numberNights" +"," +
-                "weight" +"," +
-                "tourGeometry";
+                "weight";
     }
 }
