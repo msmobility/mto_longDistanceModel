@@ -47,14 +47,14 @@ public class Mto {
 
         logger.info("Ontario Provincial Model (MTO)");
         // Check how many arguments were passed in
-        if(args.length != 2)
+        if(args.length != 3)
         {
-            logger.error("Error: Please provide two arguments, 1. the model resources, 2. the start year");
+            logger.error("Error: Please provide three arguments, 1. the model resources as rb, 2. the model resources as json, 3. the start year");
             System.exit(0);
         }
         long startTime = System.currentTimeMillis();
         ResourceBundle rb = Util.mtoInitialization(args[0]);
-        JsonUtilMto jsonUtilMto = new JsonUtilMto("./javaFiles/properties.json");
+        JsonUtilMto jsonUtilMto = new JsonUtilMto(args[1]);
         //check this to read the json file from the code folder if needed
         //JsonUtilMto jsonUtilMto = new JsonUtilMto("INSERT LOCATION HERE");
         JSONObject prop = jsonUtilMto.getJsonProperties();
