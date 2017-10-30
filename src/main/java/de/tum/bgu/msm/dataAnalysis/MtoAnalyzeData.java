@@ -41,7 +41,10 @@ public class MtoAnalyzeData {
             countTravelersByIncome();
             tripsByModeAndOriginProvince();
         }
-        if (ResourceUtil.getBooleanProperty(rb, "write.survey.data")) writeOutData();
+        if (ResourceUtil.getBooleanProperty(rb, "write.survey.data")) {
+            writeOutPersonData();
+            writeTripData();
+        }
     }
 
 
@@ -157,7 +160,7 @@ public class MtoAnalyzeData {
     }
 
 
-    public void writeOutData() {
+    public void writeOutPersonData() {
         // write out travel data for model estimation
         logger.info("Writing out data for external model estimation");
         String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
@@ -218,6 +221,25 @@ public class MtoAnalyzeData {
             pw.println();
         }
         pw.close();
+    }
+
+
+    private void writeTripData(){
+        // write out travel data for model estimation
+        logger.info("Writing out data of trips from TRSC");
+        String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
+        String fileName = ResourceUtil.getProperty(rb, "tsrc.trip.out.file");
+        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
+        pw.print(SurveyTour.getHeader());
+
+        for (SurveyPerson person : data.getPersons()){
+            for (SurveyTour tour : person.getTours()){
+                pw.println(tour.toString());
+            }
+        }
+
+        pw.close();
+
     }
 
 

@@ -201,4 +201,36 @@ public class SurveyTour implements Serializable {
                 "\n\tgeometry=" + tourGeometry +
                 "\n}";
     }
+
+    public String toCSV() {
+        return refYear + "," +
+                pumfId +"," +
+                tripId +"," +
+                tourStops.size() +"," +
+                origProvince +"," +
+                destProvince +"," +
+                origCD +"," +
+                destCD +"," +
+                mainMode +"," +
+                tripPurp +"," +
+                numberNights +"," +
+                weight +"," +
+                tourGeometry;
+    }
+
+    public static String getHeader() {
+        return "refYear" + "," +
+                "pumfId" +"," +
+                "tripId" +"," +
+                "tourStops" +"," +
+                "origProvince" +"," +
+                "destProvince" +"," +
+                "origCD" +"," +
+                "destCD" +"," +
+                "mainMode" +"," +
+                "tripPurp" +"," +
+                "numberNights" +"," +
+                "weight" +"," +
+                "tourGeometry";
+    }
 }
