@@ -9,6 +9,7 @@ import de.tum.bgu.msm.longDistance.ModelComponent;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
+import omx.hdf5.OmxConstants;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -31,9 +32,6 @@ public class ZonalData implements ModelComponent {
     private Matrix autoTravelDistance;
 
     private DataSet dataSet;
-
-
-
 
     private Map<Integer, Zone> zoneLookup;
 
@@ -124,8 +122,17 @@ public class ZonalData implements ModelComponent {
     }
 
     public void readSkims() {
-        dataSet.setAutoTravelTime(convertSkimToMatrix(autoFileMatrixLookup));
-        dataSet.setAutoTravelDistance(convertSkimToMatrix(distanceFileMatrixLookup));
+        Matrix autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
+        //dataSet.setAutoTravelTime(autoTravelTime);
+        dataSet.setAutoTravelTime(assignIntrazonalValues(autoTravelTime));
+
+        convertMatrixToSkim(autoFileMatrixLookup, autoTravelTime);
+
+        Matrix autoTravelDistance = convertSkimToMatrix(distanceFileMatrixLookup);
+        //dataSet.setAutoTravelDistance(autoTravelDistance);
+        dataSet.setAutoTravelDistance(assignIntrazonalValues(autoTravelDistance));
+
+        convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
 
     }
 
@@ -140,6 +147,44 @@ public class ZonalData implements ModelComponent {
         matrix.setExternalNumbersZeroBased(externalNumbers);
         logger.info("  Skim matrix was read: " + fileMatrixLookupName[0]);
         return matrix;
+    }
+
+
+    public void convertMatrixToSkim(String[] fileMatrixLookupName, Matrix matrix) {
+
+        String fileName = "output/" +  fileMatrixLookupName[0];
+
+        try (OmxFile omxFile = new OmxFile(fileName)) {
+
+            int dim0 = matrix.getRowCount();
+
+            int dim1 = dim0;
+
+            int[] shape = {dim0,dim1};
+            float mat1NA = -1;
+
+            OmxMatrix.OmxFloatMatrix mat1 = new OmxMatrix.OmxFloatMatrix(fileMatrixLookupName[1], matrix.getValues(),mat1NA);
+            mat1.setAttribute(OmxConstants.OmxNames.OMX_DATASET_TITLE_KEY.getKey(),"values");
+
+            int lookup1NA = -1;
+            int[] lookup1Data;
+
+            lookup1Data = matrix.getExternalRowNumbersZeroBased();
+
+            OmxLookup.OmxIntLookup lookup1 = new OmxLookup.OmxIntLookup(fileMatrixLookupName[2],lookup1Data,lookup1NA);
+
+            omxFile.openNew(shape);
+            omxFile.addMatrix(mat1);
+            omxFile.addLookup(lookup1);
+            omxFile.save();
+            System.out.println(omxFile.summary());
+
+            omxFile.close();
+            System.out.println(fileMatrixLookupName[0] + "matrix written");
+
+        }
+
+
     }
 
 
@@ -203,6 +248,20 @@ public class ZonalData implements ModelComponent {
         }
 
         return externalZonesArray;
+    }
+
+    public Matrix assignIntrazonalValues(Matrix matrix){
+        for (int i : matrix.getExternalRowNumbers()){
+            float minDistance = 999;
+            for (int j : matrix.getExternalRowNumbers()){
+                if (i != j && minDistance > matrix.getValueAt(i,j) && matrix.getValueAt(i,j)!=0){
+                    minDistance = matrix.getValueAt(i,j);
+                }
+            }
+            matrix.setValueAt(i,i,minDistance/2);
+        }
+        logger.info("Calculated intrazonal values - nearest neighbour");
+        return matrix;
     }
 
 
