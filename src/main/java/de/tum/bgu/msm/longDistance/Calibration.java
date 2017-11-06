@@ -74,6 +74,7 @@ public class Calibration implements ModelComponent {
 
         if (calibrationDC || calibrationMC) {
             calibrateModel(calibrationDC, calibrationMC, dataSet);
+            getAverageModalShares(dataSet.getAllTrips());
         }
     }
 
