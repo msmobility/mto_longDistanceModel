@@ -126,13 +126,13 @@ public class ZonalData implements ModelComponent {
         //dataSet.setAutoTravelTime(autoTravelTime);
         dataSet.setAutoTravelTime(assignIntrazonalValues(autoTravelTime));
 
-        convertMatrixToSkim(autoFileMatrixLookup, autoTravelTime);
+        //convertMatrixToSkim(autoFileMatrixLookup, autoTravelTime);
 
         Matrix autoTravelDistance = convertSkimToMatrix(distanceFileMatrixLookup);
         //dataSet.setAutoTravelDistance(autoTravelDistance);
         dataSet.setAutoTravelDistance(assignIntrazonalValues(autoTravelDistance));
 
-        convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
+        //convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
 
     }
 

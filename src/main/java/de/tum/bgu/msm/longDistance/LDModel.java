@@ -11,6 +11,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoic
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
+import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDisaggregator;
@@ -45,6 +46,7 @@ public class LDModel implements ModelComponent {
     private McModel mcModel;
     private Calibration calib;
     private ZoneDisaggregator zd;
+    private TimeOfDayChoice timeOfDayChoice;
 
     //developing options
     private boolean runTG;
@@ -65,6 +67,7 @@ public class LDModel implements ModelComponent {
         mcModel  = new McModel();
         zd = new ZoneDisaggregator();
         calib = new Calibration();
+        timeOfDayChoice = new TimeOfDayChoice();
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder){
@@ -72,11 +75,11 @@ public class LDModel implements ModelComponent {
         Util.initializeRandomNumber(prop);
 
         //options
-        runTG = JsonUtilMto.getBooleanProp(prop,"run.develop.tg");
-        runDC = JsonUtilMto.getBooleanProp(prop,"run.develop.dc");
+        runTG = JsonUtilMto.getBooleanProp(prop,"run.develop.trip_generation");
+        runDC = JsonUtilMto.getBooleanProp(prop,"run.develop.destination_choice");
         inputTripFile = JsonUtilMto.getStringProp(prop,"run.develop.trip_input_file");
-        outputTripFile = JsonUtilMto.getStringProp(prop, "out.trip_file");
-        writeTrips = JsonUtilMto.getBooleanProp(prop, "out.write_trips");
+        outputTripFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
+        writeTrips = JsonUtilMto.getBooleanProp(prop, "output.write_trips");
 
         //setup modules
         zonalData.setup(prop, inputFolder, outputFolder);
@@ -86,6 +89,7 @@ public class LDModel implements ModelComponent {
         mcModel.setup(prop, inputFolder, outputFolder);
         calib.setup(prop, inputFolder, outputFolder);
         zd.setup(prop, inputFolder, outputFolder);
+        timeOfDayChoice.setup(prop, inputFolder, outputFolder);
 
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
@@ -127,10 +131,8 @@ public class LDModel implements ModelComponent {
         //calib.getAverageModalShares(dataSet.getAllTrips());
 
         calib.run(dataSet, -1);
-
-
-
         zd.run(dataSet, -1);
+        timeOfDayChoice.run(dataSet, -1);
 
         //print outputs
         writeLongDistanceOutputs(dataSet);
@@ -199,21 +201,11 @@ public class LDModel implements ModelComponent {
     public void writeTrips(ArrayList<LongDistanceTrip> trips) {
         logger.info("Writing out data of trips");
 
-
-
-
         PrintWriter pw = Util.openFileForSequentialWriting(outputTripFile, false);
-
-
         pw.println(LongDistanceTrip.getHeader());
-
-
         for (LongDistanceTrip tr : trips) {
-
             pw.println(tr.toString());
         }
-
-
         pw.close();
     }
 

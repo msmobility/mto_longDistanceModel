@@ -43,6 +43,7 @@ public class LongDistanceTrip {
     private int travelMode=-1;
     private float travelDistanceLevel2 = -1;
     private float travelDistanceLevel1 = -1;
+    private int departureTimeInHours;
 
 
     public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, boolean summer, int nights,
@@ -169,10 +170,19 @@ public class LongDistanceTrip {
         this.travelDistanceLevel1 = travelDistanceLevel1;
     }
 
+    public int getDepartureTimeInHours() {
+        return departureTimeInHours;
+    }
+
+    public void setDepartureTimeInHours(int departureTimeInHours) {
+        this.departureTimeInHours = departureTimeInHours;
+    }
+
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
                 "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1"
+                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1" +
+                ",departureTime"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -202,6 +212,7 @@ public class LongDistanceTrip {
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
                     + "," + tr.getTravelDistanceLevel1()
+                    + "," + tr.getDepartureTimeInHours()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -229,6 +240,7 @@ public class LongDistanceTrip {
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
                     + "," + tr.getTravelDistanceLevel1()
+                    + "," + tr.getDepartureTimeInHours()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
