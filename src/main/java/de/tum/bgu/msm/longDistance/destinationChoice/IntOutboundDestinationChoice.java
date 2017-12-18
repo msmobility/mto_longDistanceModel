@@ -50,7 +50,7 @@ public class IntOutboundDestinationChoice {
 
         //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.outbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.outbound.coef_file"));
         coefficients.buildStringIndex(1);
 
 //        this.ldData = ldData;
@@ -59,19 +59,19 @@ public class IntOutboundDestinationChoice {
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
-        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.outbound.alt_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.outbound.alternatives_file"));
         destCombinedZones.buildIndex(1);
         alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
 
         //load alternatives (origins, to read accessibility to US of the zone)
         //origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
+        origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
         origCombinedZones.buildIndex(1);
 
 
 
         //calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
-        calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
         this.calibrationV = new double[]{1, 1, 1};
 
         logger.info("International DC (outbound) set up");

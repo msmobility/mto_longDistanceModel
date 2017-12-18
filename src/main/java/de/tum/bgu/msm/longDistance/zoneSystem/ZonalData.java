@@ -57,27 +57,27 @@ public class ZonalData implements ModelComponent {
         //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
         //distanceFileMatrixLookup = new String[]{rb.getString("dist.skim.file"), rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup")};
 
-        autoFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone.skim.time.file"),
-                JsonUtilMto.getStringProp(prop, "zone.skim.time.matrix"),
-                JsonUtilMto.getStringProp(prop,"zone.skim.time.lookup")};
-        distanceFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone.skim.distance.file"),
-                JsonUtilMto.getStringProp(prop,"zone.skim.distance.matrix"),
-                JsonUtilMto.getStringProp(prop,"zone.skim.distance.lookup")};
+        autoFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone_system.skim.time.file"),
+                JsonUtilMto.getStringProp(prop, "zone_system.skim.time.matrix"),
+                JsonUtilMto.getStringProp(prop,"zone_system.skim.time.lookup")};
+        distanceFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.file"),
+                JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.matrix"),
+                JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.lookup")};
 
         //externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
-        externalCanadaTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone.external.canada_file"));
+        externalCanadaTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.canada_file"));
         externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
 
         //externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
-        externalUsTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone.external.us_file"));
+        externalUsTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.us_file"));
         externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
 
         //externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
-        externalOverseasTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone.external.os_file"));
+        externalOverseasTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.overseas_file"));
         externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
 
         //zoneTable = Util.readCSVfile(rb.getString("int.can"));
-        zoneTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone.internal_file"));
+        zoneTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.internal_file"));
         zoneTable.buildIndex(1);
 
         logger.info("Zonal data manager set up");

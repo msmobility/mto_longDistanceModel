@@ -53,21 +53,21 @@ public class DomesticTripGeneration {
         //this.synPop = synPop;
 
         //String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        tripGenerationCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.coef_file"));
+        tripGenerationCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
         //String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
 
-        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.dom.party_file"));
+        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.domestic.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 
         //alphaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.alpha");
         //betaAccess = (float) ResourceUtil.getDoubleProperty(rb, "domestic.access.beta");
 
-        alphaAccess = JsonUtilMto.getFloatProp(prop,"tg.dom.access.alpha");
-        betaAccess = JsonUtilMto.getFloatProp(prop,"tg.dom.access.beta");
+        alphaAccess = JsonUtilMto.getFloatProp(prop,"trip_generation.domestic.accessibility.alpha");
+        betaAccess = JsonUtilMto.getFloatProp(prop,"trip_generation.domestic.accessibility.beta");
 
     }
 

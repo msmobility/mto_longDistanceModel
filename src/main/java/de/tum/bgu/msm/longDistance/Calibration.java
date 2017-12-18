@@ -47,8 +47,8 @@ public class Calibration implements ModelComponent {
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
 
-        calibrationDC = JsonUtilMto.getBooleanProp(prop, "dc.calibration");
-        calibrationMC = JsonUtilMto.getBooleanProp(prop, "mc.calibration");
+        calibrationDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
+        calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
         maxIter = 50;
 
     }

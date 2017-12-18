@@ -42,19 +42,19 @@ public class IntInboundDestinationChoice {
         // table format: coeff | visit | leisure | business
         //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.int.inbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.inbound.coef_file"));
         coefficients.buildStringIndex(1);
 
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
         destCombinedZones.buildIndex(1);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
 
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = JsonUtilMto.getBooleanProp(prop,"dc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
         this.calibrationV = new double[] {1,1,1};
 
         logger.info("International DC (inbound) set up");

@@ -60,17 +60,17 @@ public class DomesticModeChoice {
         this.rb = rb;
 
         //mcOntarioCoefficients = Util.readCSVfile(rb.getString("mc.domestic.coefs"));
-        mcOntarioCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.dom.ontarian.coef_file"));
+        mcOntarioCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.domestic.ontarian.coef_file"));
 
         mcOntarioCoefficients.buildStringIndex(1);
 
         //mcExtCanadaCoefficients = Util.readCSVfile(rb.getString("mc.extcanada.coefs"));
-        mcExtCanadaCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.dom.other_can.coef_file"));
+        mcExtCanadaCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.domestic.other_canadian.coef_file"));
         mcExtCanadaCoefficients.buildStringIndex(1);
 
         //taken from destination choice
         //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"dc.dom.alt_file"));
+        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
         combinedZones.buildIndex(1);
 
         //matrix names
@@ -80,14 +80,14 @@ public class DomesticModeChoice {
 //        freqFileName = rb.getString("freq.combined");
 //        lookUpName = rb.getString("skim.mode.choice.lookup");
 
-        travelTimeFileName = JsonUtilMto.getStringProp(prop,"mc.skim.time_file");
-        priceFileName = JsonUtilMto.getStringProp(prop,"mc.skim.price_file");
-        transfersFileName = JsonUtilMto.getStringProp(prop,"mc.skim.transfer_file");
-        freqFileName = JsonUtilMto.getStringProp(prop,"mc.skim.frequency_file");
-        lookUpName = JsonUtilMto.getStringProp(prop,"mc.skim.lookup");
+        travelTimeFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.time_file");
+        priceFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.price_file");
+        transfersFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.transfer_file");
+        freqFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.frequency_file");
+        lookUpName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.lookup");
 
 
-        calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
 
 
         logger.info("Domestic MC set up");

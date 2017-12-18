@@ -44,11 +44,11 @@ public class InternationalTripGeneration {
 
 
         //String internationalTriprates = rb.getString("int.trips");
-        internationalTripRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.int.rates_file"));
+        internationalTripRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.international.rates_file"));
         internationalTripRates.buildIndex(internationalTripRates.getColumnPosition("tripState"));
 
         //String intTravelPartyProbabilitiesFilename = rb.getString("int.parties");;
-        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.int.party_file"));
+        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.international.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 //        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");

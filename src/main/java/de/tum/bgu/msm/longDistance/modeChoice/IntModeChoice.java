@@ -52,14 +52,14 @@ public class IntModeChoice {
         //this.rb = rb;
 
        // mcIntOutboundCoefficients = Util.readCSVfile(rb.getString("mc.int.outbound.coefs"));
-        mcIntOutboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
+        mcIntOutboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.international.outbound.coef_file"));
         mcIntOutboundCoefficients.buildStringIndex(1);
 
-        mcIntInboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mc.int.outbound.coef_file"));
+        mcIntInboundCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.international.outbound.coef_file"));
         mcIntInboundCoefficients.buildStringIndex(1);
 
 
-        calibration = JsonUtilMto.getBooleanProp(prop,"mc.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
 
 
         logger.info("International MC set up");

@@ -37,12 +37,12 @@ public class ZoneDisaggregator implements ModelComponent {
 
         combinedZoneMap = new HashMap<>();
         //parameters
-        alphaPopDom = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.alpha_pop");
-        alphaDistDom = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.alpha_dist");
-        alphaPopInt = JsonUtilMto.getFloatProp(prop, "disaggregation.int.alpha_pop");
-        alphaDistInt = JsonUtilMto.getFloatProp(prop, "disaggregation.int.alpha_dist");
-        niagaraFallsIds = JsonUtilMto.getArrayIntProp(prop, "disaggregation.dom.niagara_zones");
-        niagaraFactor = JsonUtilMto.getFloatProp(prop, "disaggregation.dom.niagara_factor");
+        alphaPopDom = JsonUtilMto.getFloatProp(prop, "disaggregation.domestic.alpha_pop");
+        alphaDistDom = JsonUtilMto.getFloatProp(prop, "disaggregation.domestic.alpha_dist");
+        alphaPopInt = JsonUtilMto.getFloatProp(prop, "disaggregation.international.alpha_pop");
+        alphaDistInt = JsonUtilMto.getFloatProp(prop, "disaggregation.international.alpha_dist");
+        niagaraFallsIds = JsonUtilMto.getArrayIntProp(prop, "disaggregation.domestic.niagara_zones");
+        niagaraFactor = JsonUtilMto.getFloatProp(prop, "disaggregation.domestic.niagara_factor");
         logger.info("Zone disaggregator set up");
 
     }

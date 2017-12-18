@@ -55,9 +55,9 @@ public class SyntheticPopulation implements ModelComponent {
     public void setup(JSONObject prop, String inputFolder, String outputFolder){
 
         this.prop = prop;
-        hhFilename = JsonUtilMto.getStringProp(prop,"sp.hh_file");
-        ppFilename = JsonUtilMto.getStringProp(prop,"sp.pp_file");
-        travellersFilename = JsonUtilMto.getStringProp(prop,"out.travellers_file");
+        hhFilename = JsonUtilMto.getStringProp(prop,"synthetic_population.households_file");
+        ppFilename = JsonUtilMto.getStringProp(prop,"synthetic_population.persons_file");
+        travellersFilename = JsonUtilMto.getStringProp(prop,"output.travellers_file");
         logger.info("Synthetic population reader set up");
 
     }

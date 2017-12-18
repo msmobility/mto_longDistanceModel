@@ -44,7 +44,7 @@ public class VisitorsTripGeneration {
         //this.rb = rb;
 
         //String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
-        visitorPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.party_file"));
+        visitorPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.party_file"));
         visitorPartyProbabilities.buildIndex(visitorPartyProbabilities.getColumnPosition("travelParty"));
 
         //String visitorsRateFilename = rb.getString("visitor.rates");
@@ -53,11 +53,11 @@ public class VisitorsTripGeneration {
         //no longer used
 
         //String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
-        visitorsRatePerZone = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.rates_file"));
+        visitorsRatePerZone = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.rates_file"));
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
 
         //String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
-        externalCanIntRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"tg.visitors.external_can_int_rates_file"));
+        externalCanIntRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.external_can_int_rates_file"));
         externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
 
