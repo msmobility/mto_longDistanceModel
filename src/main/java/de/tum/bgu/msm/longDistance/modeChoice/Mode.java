@@ -10,9 +10,12 @@ import java.util.Collection;
  */
 public enum Mode {
 
-    AUTO, AIR, BUS, RAIL;
+    AUTO, AIR, RAIL, BUS;
 
-    public String toString(){
+//    private int[] modes = {0, 1, 2, 3};
+//    private String[] modeNames = {"auto", "air", "rail", "bus"};
+
+    public String toString() {
         Mode m = this;
         if (m.equals(Mode.AUTO)) return "auto";
         else if (m.equals(Mode.RAIL)) return "rail";
@@ -23,13 +26,14 @@ public enum Mode {
 
 
     public static Mode getMode(int m) {
-        if (m==0) return Mode.AUTO;
-        else if (m==1) return Mode.AIR;
-        else if (m==2) return Mode.RAIL;
+        if (m == 0) return Mode.AUTO;
+        else if (m == 1) return Mode.AIR;
+        else if (m == 2) return Mode.RAIL;
         else return Mode.BUS;
     }
 
-    public static Collection<Mode> ListOfModes(){
+    public static Collection<Mode> ListOfModes() {
         return Arrays.asList(Mode.AUTO, Mode.AIR, Mode.RAIL, Mode.BUS);
     }
+
 }

@@ -51,6 +51,7 @@ public class McModel implements ModelComponent {
                 //domestic mode choice for synthetic persons in Ontario
                 int mode = mcDomesticModel.selectModeDomestic(t);
                 t.setMode(mode);
+                t.setTravelTimeLevel2(mcDomesticModel.getDomesticModalTravelTime(t));
                 // international mode choice
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
                 //residents
@@ -62,14 +63,18 @@ public class McModel implements ModelComponent {
                     //international from Canada to OS
                     t.setMode(1); //always by air
                 }
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
                 //visitors
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
                 //international visitors from US
                 int mode = intModeChoice.selectMode(t);
                 t.setMode(mode);
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
+
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
                 //international visitors from US
                 t.setMode(1); //always by air
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
             }
 
         });

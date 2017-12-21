@@ -405,4 +405,13 @@ public class DomesticModeChoice {
     public double[][] getCalibrationMatrix() {
         return calibrationMatrix;
     }
+
+    public float getDomesticModalTravelTime(LongDistanceTrip trip){
+        if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneType.EXTOVERSEAS) ){
+            return -1.f;
+        } else {
+            return travelTimeMatrix[trip.getMode()].getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());
+        }
+    }
+
 }

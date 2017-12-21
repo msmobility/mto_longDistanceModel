@@ -42,8 +42,12 @@ public class LongDistanceTrip {
     private Zone destZone;
     private int travelMode=-1;
     private float travelDistanceLevel2 = -1;
+    private float travelTimeLevel2 = -1;
     private float travelDistanceLevel1 = -1;
-    private int departureTimeInHours;
+    private int departureTimeInHours = -1;
+    private int departureTimeInHoursSecondSegment = -1; //this is the return trip of daytrips
+    private boolean returnOvernightTrip = false;
+
 
 
     public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, boolean summer, int nights,
@@ -178,11 +182,35 @@ public class LongDistanceTrip {
         this.departureTimeInHours = departureTimeInHours;
     }
 
+    public int getDepartureTimeInHoursSecondSegment() {
+        return departureTimeInHoursSecondSegment;
+    }
+
+    public void setDepartureTimeInHoursSecondSegment(int departureTimeInHoursSecondSegment) {
+        this.departureTimeInHoursSecondSegment = departureTimeInHoursSecondSegment;
+    }
+
+    public boolean isReturnOvernightTrip() {
+        return returnOvernightTrip;
+    }
+
+    public void setReturnOvernightTrip(boolean returnOvernightTrip) {
+        this.returnOvernightTrip = returnOvernightTrip;
+    }
+
+    public float getTravelTimeLevel2() {
+        return travelTimeLevel2;
+    }
+
+    public void setTravelTimeLevel2(float travelTimeLevel2) {
+        this.travelTimeLevel2 = travelTimeLevel2;
+    }
+
     public static String getHeader() {
         return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
-                "tripDestCombinedZone"  +  ",tripMode,"
-                +"numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1" +
-                ",departureTime"
+                "tripDestCombinedZone,tripMode,"
+                + "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1" +
+                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip,travelTimeLevel2ByMode"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -213,6 +241,9 @@ public class LongDistanceTrip {
                     + "," + tr.getTravelDistanceLevel2()
                     + "," + tr.getTravelDistanceLevel1()
                     + "," + tr.getDepartureTimeInHours()
+                    + "," + tr.getDepartureTimeInHoursSecondSegment()
+                    + "," + tr.isReturnOvernightTrip()
+                    + "," + tr.getTravelTimeLevel2()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -241,6 +272,9 @@ public class LongDistanceTrip {
                     + "," + tr.getTravelDistanceLevel2()
                     + "," + tr.getTravelDistanceLevel1()
                     + "," + tr.getDepartureTimeInHours()
+                    + "," + tr.getDepartureTimeInHoursSecondSegment()
+                    + "," + tr.isReturnOvernightTrip()
+                    + "," + tr.getTravelTimeLevel2()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
