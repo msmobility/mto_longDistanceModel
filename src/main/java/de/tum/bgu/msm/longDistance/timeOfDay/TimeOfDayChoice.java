@@ -54,7 +54,6 @@ public class TimeOfDayChoice implements ModelComponent {
             int departureTime;
             if (trip.getTripState() == 0){
                 //away
-                trip.setDepartureTimeInHours(-1);
             } else {
                 calculateDepartureTime(trip, convertMode(trip), convertPurpose(trip));
             }

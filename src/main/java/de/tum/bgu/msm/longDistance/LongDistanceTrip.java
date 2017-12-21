@@ -44,8 +44,8 @@ public class LongDistanceTrip {
     private float travelDistanceLevel2 = -1;
     private float travelTimeLevel2 = -1;
     private float travelDistanceLevel1 = -1;
-    private int departureTimeInHours = -1;
-    private int departureTimeInHoursSecondSegment = -1; //this is the return trip of daytrips
+    private int departureTimeInHours = -999;
+    private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
 
 
