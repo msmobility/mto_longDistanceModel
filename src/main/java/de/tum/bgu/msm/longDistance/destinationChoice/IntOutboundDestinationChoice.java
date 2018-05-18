@@ -40,6 +40,9 @@ public class IntOutboundDestinationChoice {
     private String[] tripPurposeArray;
     private String[] tripStateArray;
 
+    private int[] modes;
+    private String[] modeNames;
+
     Map<Integer, Zone> externalOsMap = new HashMap<>();
 
     boolean calibration;
@@ -80,6 +83,9 @@ public class IntOutboundDestinationChoice {
 
     public void loadIntOutboundDestinationChoiceModel(DataSet dataSet) {
 
+        modes = dataSet.modes;
+        modeNames = dataSet.modeNames;
+
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
 
@@ -88,7 +94,7 @@ public class IntOutboundDestinationChoice {
 
 
         //load combined zones distance skim
-        autoTravelTime = dataSet.getDcDomestic().getAutoDist();
+        autoTravelTime = dataSet.getTravelTimeMatrix()[0];
 
         dataSet.getExternalZones().forEach(zone -> {
             if (zone.getZoneType() == ZoneType.EXTOVERSEAS) {
@@ -149,23 +155,7 @@ public class IntOutboundDestinationChoice {
     }
 
 
-    public void readSkim(ResourceBundle rb) {
-        // read skim file
 
-
-        String matrixName = "skim.int.out.file";
-        String hwyFileName = rb.getString(matrixName);
-        logger.info("  Reading skims file" + hwyFileName);
-
-        // Read highway hwySkim
-        OmxFile hSkim = new OmxFile(hwyFileName);
-        hSkim.openReadOnly();
-        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.int.out.matrix"));
-        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup(rb.getString("skim.int.out.lookup"));
-        int[] externalNumbers = (int[]) omxLookUp.getLookup();
-        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
-    }
 
     public boolean selectUs(LongDistanceTrip trip, String tripPurpose) {
 
@@ -238,7 +228,7 @@ public class IntOutboundDestinationChoice {
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         double logsum = 0;
-        int[] modes = intModeChoice.getModes();
+
         for (int m : modes) {
             logsum += Math.exp(intModeChoice.calculateUtilityFromCanada(trip, m, destination));
         }

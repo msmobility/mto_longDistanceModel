@@ -2,6 +2,10 @@ import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ResourceBundle;
 
 import static junit.framework.Assert.assertEquals;
@@ -16,28 +20,10 @@ public class MtoTest {
 
 
     @Test
-     public final void testMain(){
+     public final void testMain()  {
 
 
-        ResourceBundle rb = Util.mtoInitialization("src/test/resources/mto.properties");
 
-        //todo prepare input folders
-
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
-
-        logger.info("Started test for runLongDistModel");
-        //LDModel ld = new LDModel(rb);
-        //ld.loadLongDistanceModel();
-        //ld.runLongDistanceModel();
-        logger.info("Module runLongDistModel completed");
-
-        {
-            logger.info("Checking trips file ...");
-//            long checksum_ref = CRCChecksum.getCRCFromFile("the other file");
-//            final String filename = ".the original file";
-//            long checksum_run = CRCChecksum.getCRCFromFile(filename);
-//            assertEquals("Trip files are different", checksum_ref, checksum_run);
-        }
 
     }
 

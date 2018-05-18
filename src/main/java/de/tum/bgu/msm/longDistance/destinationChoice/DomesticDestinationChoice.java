@@ -7,6 +7,7 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.modeChoice.CanadianDomesticMC;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -31,24 +32,19 @@ public class DomesticDestinationChoice {
     private Matrix autoDist;
     private int[] alternatives;
     String[] tripPurposeArray;
-    private DomesticModeChoice domesticModeChoice;
+    private CanadianDomesticMC domesticModeChoice;
     private boolean calibration;
     private double[] domDcCalibrationV;
     private RandomGenerator rng;
+
+    private int[] modes;
+    private String [] modeNames;
 
     //private String[] fileMatrixLooup = new String[3];
 
 
     public DomesticDestinationChoice(JSONObject prop) {
 
-
-        //fileMatrixLooup[0] = JsonUtilMto.getStringProp(prop, )
-        //fileMatrixLooup[1] = JsonUtilMto.getStringProp(prop, )
-        //fileMatrixLooup[2] = JsonUtilMto.getStringProp(prop, )
-
-        //coef format
-        // table format: coeff | visit | leisure | business
-        //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 
@@ -73,13 +69,16 @@ public class DomesticDestinationChoice {
 
     public void loadDomesticDestinationChoice(DataSet dataSet){
 
+        modes = dataSet.modes;
+        modeNames = dataSet.modeNames;
+
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
-        this.domesticModeChoice = dataSet.getMcDomestic();
+        this.domesticModeChoice = dataSet.getCanadianDomesticMC();
 
         //load combined zones distance skim
         //readSkim();
 
-        autoDist = domesticModeChoice.getTravelTimeMatrix()[0];
+        autoDist = dataSet.getTravelTimeMatrix()[0];
         logger.info("Domestic DC loaded");
 
     }
@@ -180,9 +179,9 @@ public class DomesticDestinationChoice {
         //use non person based mode choice model
         //get the logsum
         double logsum = 0;
-        int[] modes = domesticModeChoice.getModes();
+
         for (int m : modes) {
-            logsum += Math.exp(domesticModeChoice.calculateUtilityFromExtCanada(trip, m, destination));
+            logsum += Math.exp(domesticModeChoice.calculateUtility(trip, m, destination));
         }
         if(logsum ==0){
             return Double.NEGATIVE_INFINITY;

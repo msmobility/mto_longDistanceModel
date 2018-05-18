@@ -31,6 +31,8 @@ public class ZonalData implements ModelComponent {
     private Matrix autoTravelTime;
     private Matrix autoTravelDistance;
 
+
+
     private DataSet dataSet;
 
     private Map<Integer, Zone> zoneLookup;
@@ -46,6 +48,12 @@ public class ZonalData implements ModelComponent {
     private TableDataSet externalCanadaTable;
     private TableDataSet externalUsTable;
     private TableDataSet externalOverseasTable;
+
+    private String travelTimeFileName;
+    private String priceFileName;
+    private String transfersFileName;
+    private String freqFileName;
+    private String lookUpName;
 
 
     public ZonalData() {
@@ -63,6 +71,12 @@ public class ZonalData implements ModelComponent {
         distanceFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.file"),
                 JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.matrix"),
                 JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.lookup")};
+
+        travelTimeFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.time_file");
+        priceFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.price_file");
+        transfersFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.transfer_file");
+        freqFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.frequency_file");
+        lookUpName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.lookup");
 
         //externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
         externalCanadaTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.canada_file"));
@@ -105,7 +119,7 @@ public class ZonalData implements ModelComponent {
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
 
         readSkims();
-
+        readTransitSkims(dataSet);
         logger.info("Zonal data loaded");
     }
 
@@ -133,6 +147,57 @@ public class ZonalData implements ModelComponent {
         dataSet.setAutoTravelDistance(assignIntrazonalValues(autoTravelDistance));
 
         //convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
+
+    }
+
+
+    public void readTransitSkims(DataSet dataSet){
+
+
+        Matrix[] travelTimeMatrix = new Matrix[4];
+        Matrix[] priceMatrix = new Matrix[4];
+        Matrix[] transferMatrix = new Matrix[4];
+        Matrix[] frequencyMatrix = new Matrix[4];
+
+        // read skim file
+        for (int m : dataSet.modes) {
+
+            String matrixName = dataSet.modeNames[m];
+
+            OmxFile skim = new OmxFile(travelTimeFileName);
+            skim.openReadOnly();
+            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
+            travelTimeMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            OmxLookup omxLookUp = skim.getLookup(lookUpName);
+            int[] externalNumbers = (int[]) omxLookUp.getLookup();
+            travelTimeMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(priceFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            priceMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            priceMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(transfersFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            transferMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            transferMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+            skim = new OmxFile(freqFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            frequencyMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
+            frequencyMatrix[m].setExternalNumbersZeroBased(externalNumbers);
+
+        }
+
+        dataSet.setTravelTimeMatrix(travelTimeMatrix);
+        dataSet.setTransferMatrix(transferMatrix);
+        dataSet.setFrequencyMatrix(frequencyMatrix);
+        dataSet.setPriceMatrix(priceMatrix);
+
+        logger.info("  skims files for mode choice read");
 
     }
 

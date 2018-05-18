@@ -34,7 +34,8 @@ public class IntInboundDestinationChoice {
     private IntModeChoice intModeChoice;
     private boolean calibration;
     private double[] calibrationV;
-
+    private int[] modes;
+    private String[] modeNames;
 
 
     public IntInboundDestinationChoice(JSONObject prop) {
@@ -63,12 +64,15 @@ public class IntInboundDestinationChoice {
 
     public void loadIntInboundDestinationChoice(DataSet dataSet){
 
+        modes = dataSet.modes;
+        modeNames = dataSet.modeNames;
+
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
         this.dcModel = dataSet.getDcDomestic();
         this.intModeChoice = dataSet.getMcInt();
         //load combined zones distance skim
-        autoTravelTime = dcModel.getAutoDist();
+        autoTravelTime = dataSet.getTravelTimeMatrix()[0];
 
         logger.info("International DC (inbound) loaded");
 
@@ -169,7 +173,7 @@ public class IntInboundDestinationChoice {
 
         //get the logsum
         double logsum = 0;
-        int[] modes = intModeChoice.getModes();
+
         for (int m : modes) {
             logsum += Math.exp(intModeChoice.calculateUtilityToCanada(trip, m, destination));
         }

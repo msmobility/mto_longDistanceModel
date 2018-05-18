@@ -6,9 +6,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.McModel;
+import de.tum.bgu.msm.longDistance.modeChoice.*;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -30,9 +28,8 @@ public class Calibration implements ModelComponent {
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
     private IntInboundDestinationChoice dcInBoundModel;
-    private DcModel dcM;
-
-    private DomesticModeChoice mcDomesticModel;
+    private OntarianDomesticMC ontarianDomesticMC;
+    private CanadianDomesticMC canadianDomesticMC;
     private IntModeChoice intModeChoice;
     private McModel mcM;
 
@@ -65,9 +62,10 @@ public class Calibration implements ModelComponent {
         dcModel = dataSet.getDcDomestic();
         dcOutboundModel = dataSet.getDcIntOutbound();
         dcInBoundModel = dataSet.getDcIntInbound();
-        //dcM = dataSet.getDestinationChoiceModel();
+        canadianDomesticMC = dataSet.getCanadianDomesticMC();
+        ontarianDomesticMC = dataSet.getOntarianDomesticMC();
 
-        mcDomesticModel = dataSet.getMcDomestic();
+        //mcDomesticModel = dataSet.getMcDomestic();
         intModeChoice = dataSet.getMcInt();
         //mcM = dataSet.getModeChoiceModel();
 
@@ -105,8 +103,8 @@ public class Calibration implements ModelComponent {
 
             logger.info("Calibration of mode choice: Iteration = " + iteration);
             calibrationMatrixMc = calculateMCCalibrationFactors(allTrips);
-            mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
-            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
+            ontarianDomesticMC.updateCalibrationDomestic(calibrationMatrixMc[0]);
+            canadianDomesticMC.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
             intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
             intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
 
@@ -125,7 +123,7 @@ public class Calibration implements ModelComponent {
         /*dcM.run(dataSet, -1);
         mcM.run(dataSet, -1);*/
 
-        printOutCalibrationResults(dcModel, dcOutboundModel, dcInBoundModel, mcDomesticModel, intModeChoice);
+        printOutCalibrationResults(dcModel, dcOutboundModel, dcInBoundModel, ontarianDomesticMC, canadianDomesticMC, intModeChoice);
 
         //dataSet.setAllTrips(allTrips);
 
@@ -191,12 +189,12 @@ public class Calibration implements ModelComponent {
         calibrationMatrix[0][0] = (averageDistances[0][0] / 133 - 1) * expansionFactor + 1; //domestic visit
         calibrationMatrix[0][1] = (averageDistances[0][1] / 175 - 1) * expansionFactor + 1; //domestic business
         calibrationMatrix[0][2] = (averageDistances[0][2] / 134 - 1) * expansionFactor + 1; //domestic leisure
-        calibrationMatrix[1][0] = (averageDistances[1][0] / 642 - 1) * expansionFactor + 1;//to us visit
-        calibrationMatrix[1][1] = (averageDistances[1][1] / 579 - 1) * expansionFactor + 1;//to us business
-        calibrationMatrix[1][2] = (averageDistances[1][2] / 515 - 1) * expansionFactor + 1;//to us leisure
-        calibrationMatrix[2][0] = (averageDistances[2][0] / 697 - 1) * expansionFactor + 1;//from us visit
-        calibrationMatrix[2][1] = (averageDistances[2][1] / 899 - 1) * expansionFactor + 1;//from us business
-        calibrationMatrix[2][2] = (averageDistances[2][2] / 516 - 1) * expansionFactor + 1;//from us leisure
+        calibrationMatrix[1][0] = (averageDistances[1][0] / 642 - 1) * expansionFactor + 1; //to us visit
+        calibrationMatrix[1][1] = (averageDistances[1][1] / 579 - 1) * expansionFactor + 1; //to us business
+        calibrationMatrix[1][2] = (averageDistances[1][2] / 515 - 1) * expansionFactor + 1; //to us leisure
+        calibrationMatrix[2][0] = (averageDistances[2][0] / 697 - 1) * expansionFactor + 1; //from us visit
+        calibrationMatrix[2][1] = (averageDistances[2][1] / 899 - 1) * expansionFactor + 1; //from us business
+        calibrationMatrix[2][2] = (averageDistances[2][2] / 516 - 1) * expansionFactor + 1; //from us leisure
 
 
         logger.info("dc,type0,k,visit," + calibrationMatrix[0][0] + ",business," + calibrationMatrix[0][1] + ",leisure," + calibrationMatrix[0][2]);
@@ -391,8 +389,10 @@ public class Calibration implements ModelComponent {
         return weight;
     }
 
-    public void printOutCalibrationResults(DomesticDestinationChoice domDc, IntOutboundDestinationChoice intOutDc, IntInboundDestinationChoice intInDc,
-                                           DomesticModeChoice domMc, IntModeChoice intMc) {
+    public void printOutCalibrationResults(DomesticDestinationChoice domDc, IntOutboundDestinationChoice intOutDc,
+                                           IntInboundDestinationChoice intInDc,
+                                           OntarianDomesticMC ontarianDomesticMC, CanadianDomesticMC canadianDomesticMC,
+                                           IntModeChoice intMc) {
 
         logger.info("---------------------------------------------------------");
         logger.info("-----------------RESULTS DC------------------------------");
@@ -410,18 +410,18 @@ public class Calibration implements ModelComponent {
         logger.info("---------------------------------------------------------");
         logger.info("-----------------RESULTS MC------------------------------");
         String type = "k_domestic_mc_";
-        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrix()[0][0] +
-                ",air=" + domMc.getCalibrationMatrix()[0][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[0][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[0][3]);
-        logger.info(type + "business: auto=" + domMc.getCalibrationMatrix()[1][0] +
-                ",air=" + domMc.getCalibrationMatrix()[1][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[1][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[1][3]);
-        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrix()[2][0] +
-                ",air=" + domMc.getCalibrationMatrix()[2][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[2][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[2][3]);
+        logger.info(type + "visit: auto=" + ontarianDomesticMC.getCalibrationMatrix()[0][0] +
+                ",air=" + ontarianDomesticMC.getCalibrationMatrix()[0][1] +
+                ",rail=" + ontarianDomesticMC.getCalibrationMatrix()[0][2] +
+                ",bus=" + ontarianDomesticMC.getCalibrationMatrix()[0][3]);
+        logger.info(type + "business: auto=" + ontarianDomesticMC.getCalibrationMatrix()[1][0] +
+                ",air=" + ontarianDomesticMC.getCalibrationMatrix()[1][1] +
+                ",rail=" + ontarianDomesticMC.getCalibrationMatrix()[1][2] +
+                ",bus=" + ontarianDomesticMC.getCalibrationMatrix()[1][3]);
+        logger.info(type + "leisure: auto=" + ontarianDomesticMC.getCalibrationMatrix()[2][0] +
+                ",air=" + ontarianDomesticMC.getCalibrationMatrix()[2][1] +
+                ",rail=" + ontarianDomesticMC.getCalibrationMatrix()[2][2] +
+                ",bus=" + ontarianDomesticMC.getCalibrationMatrix()[2][3]);
         type = "k_int_out_mc_";
         logger.info(type + "visit: auto=" + intMc.getCalibrationMatrixOutbound()[0][0] +
                 ",air=" + intMc.getCalibrationMatrixOutbound()[0][1] +
@@ -451,18 +451,18 @@ public class Calibration implements ModelComponent {
 
 
         type = "k_domesticVisitors_mc_";
-        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrixVisitors()[0][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[0][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[0][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[0][3]);
-        logger.info(type + "business: auto=" + domMc.getCalibrationMatrixVisitors()[1][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[1][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[1][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[1][3]);
-        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrixVisitors()[2][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[2][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[2][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[2][3]);
+        logger.info(type + "visit: auto=" + canadianDomesticMC.getCalibrationMatrixVisitors()[0][0] +
+                ",air=" + canadianDomesticMC.getCalibrationMatrixVisitors()[0][1] +
+                ",rail=" + canadianDomesticMC.getCalibrationMatrixVisitors()[0][2] +
+                ",bus=" + canadianDomesticMC.getCalibrationMatrixVisitors()[0][3]);
+        logger.info(type + "business: auto=" + canadianDomesticMC.getCalibrationMatrixVisitors()[1][0] +
+                ",air=" + canadianDomesticMC.getCalibrationMatrixVisitors()[1][1] +
+                ",rail=" + canadianDomesticMC.getCalibrationMatrixVisitors()[1][2] +
+                ",bus=" + canadianDomesticMC.getCalibrationMatrixVisitors()[1][3]);
+        logger.info(type + "leisure: auto=" + canadianDomesticMC.getCalibrationMatrixVisitors()[2][0] +
+                ",air=" + canadianDomesticMC.getCalibrationMatrixVisitors()[2][1] +
+                ",rail=" + canadianDomesticMC.getCalibrationMatrixVisitors()[2][2] +
+                ",bus=" + canadianDomesticMC.getCalibrationMatrixVisitors()[2][3]);
         logger.info("---------------------------------------------------------");
 
     }
@@ -505,37 +505,8 @@ public class Calibration implements ModelComponent {
     }
 
     public void runMc() {
-        logger.info("Running Mode Choice Model for " + allTrips.size() + " trips");
-        allTrips.parallelStream().forEach(t -> {
-            if(t.getTripState()!= 0) {
-                if (!t.isInternational()) {
-                    //domestic mode choice for synthetic persons in Ontario
-                    int mode = mcDomesticModel.selectModeDomestic(t);
-                    t.setMode(mode);
-                    // international mode choice
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
-                    //residents
-                    if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
-                        //international from Canada to US
-                        int mode = intModeChoice.selectMode(t);
-                        t.setMode(mode);
-                    } else {
-                        //international from Canada to OS
-                        t.setMode(1); //always by air
-                    }
-                    //visitors
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
-                    //international visitors from US
-                    int mode = intModeChoice.selectMode(t);
-                    t.setMode(mode);
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
-                    //international visitors from US
-                    t.setMode(1); //always by air
-                }
-            }
-
-        });
-
+        mcM.runModeChoice(allTrips);
+        //todo test
     }
 
 

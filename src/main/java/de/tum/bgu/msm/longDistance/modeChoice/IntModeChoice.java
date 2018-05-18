@@ -6,6 +6,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.Mode;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
@@ -68,7 +69,7 @@ public class IntModeChoice {
 
 
     public void loadIntModeChoice(DataSet dataSet){
-        this.dmChoice = dataSet.getMcDomestic();
+        //this.dmChoice = dataSet.getMcDomestic();
 
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
@@ -76,10 +77,10 @@ public class IntModeChoice {
         calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
         calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
 
-        travelTimeMatrix = dmChoice.getTravelTimeMatrix();
-        priceMatrix = dmChoice.getPriceMatrix();
-        transferMatrix = dmChoice.getTransferMatrix();
-        frequencyMatrix = dmChoice.getFrequencyMatrix();
+        travelTimeMatrix = dataSet.getTravelTimeMatrix();
+        priceMatrix = dataSet.getPriceMatrix();
+        transferMatrix = dataSet.getTransferMatrix();
+        frequencyMatrix = dataSet.getFrequencyMatrix();
 
         logger.info("International MC loaded");
     }
@@ -219,6 +220,8 @@ public class IntModeChoice {
                 price = 20;
             }
         }
+
+
 
         //getCoefficients
         double b_intercept = mcIntOutboundCoefficients.getStringIndexedValueAt("intercept", column);

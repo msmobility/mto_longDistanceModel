@@ -95,6 +95,9 @@ public class LDModel implements ModelComponent {
     }
 
     public void load(DataSet dataSet) {
+
+        dataSet.setModes();
+
         dataSet.setModeChoiceModel(mcModel);
         dataSet.setDestinationChoiceModel(dcModel);
 
@@ -128,7 +131,7 @@ public class LDModel implements ModelComponent {
         }
         mcModel.run(dataSet, -1);
 
-        //calib.getAverageModalShares(dataSet.getAllTrips());
+        calib.getAverageModalShares(dataSet.getAllTrips());
 
         calib.run(dataSet, -1);
         zd.run(dataSet, -1);

@@ -1,6 +1,4 @@
-package de.tum.bgu.msm.longDistance.modeChoice;
-
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+package de.tum.bgu.msm.longDistance.data;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,12 +6,16 @@ import java.util.Collection;
 /**
  * Created by carlloga on 8/2/2017.
  */
-public enum Mode {
+public enum Mode implements ModeI {
 
-    AUTO, AIR, RAIL, BUS;
+    AUTO(0), AIR(1), RAIL(2), BUS(3);
 
+    private final int code;
 //    private int[] modes = {0, 1, 2, 3};
 //    private String[] modeNames = {"auto", "air", "rail", "bus"};
+
+    Mode(int modeCode) {this.code = modeCode;}
+
 
     public String toString() {
         Mode m = this;
@@ -24,16 +26,17 @@ public enum Mode {
 
     }
 
-
-    public static Mode getMode(int m) {
+    public static Mode getModeFromCode(int m) {
         if (m == 0) return Mode.AUTO;
         else if (m == 1) return Mode.AIR;
         else if (m == 2) return Mode.RAIL;
         else return Mode.BUS;
     }
 
-    public static Collection<Mode> ListOfModes() {
-        return Arrays.asList(Mode.AUTO, Mode.AIR, Mode.RAIL, Mode.BUS);
+    public static int getModeCode(Mode mode) {
+        return mode.code;
     }
+
+
 
 }

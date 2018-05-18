@@ -1,13 +1,14 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.longDistance.data.IncrementalMode;
+import de.tum.bgu.msm.longDistance.data.Mode;
+import de.tum.bgu.msm.longDistance.data.ModeI;
 import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.McModel;
+import de.tum.bgu.msm.longDistance.modeChoice.*;
 import de.tum.bgu.msm.longDistance.sp.Household;
 import de.tum.bgu.msm.longDistance.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -25,6 +26,12 @@ public class DataSet {
     //GENERAL
     public static final List<String> tripPurposes = Arrays.asList("visit", "business", "leisure");
     public static final List<String> tripStates = Arrays.asList("away", "daytrip", "inout");
+
+    //todo this should be placed in other class or better be an enum
+    public static final int[] modes = {0, 1, 2, 3};
+    public static final String[] modeNames = {"auto", "air", "rail", "bus"};
+
+    public static Set<ModeI> modesSet = new HashSet<>();
 
     //ZONAL DATA
     private Map<Integer, Zone> zones = new HashMap<>();
@@ -49,12 +56,27 @@ public class DataSet {
     private IntOutboundDestinationChoice dcIntOutbound;
     private IntInboundDestinationChoice dcIntInbound;
 
+
     private McModel modeChoiceModel;
-    private DomesticModeChoice mcDomestic;
+    private CanadianDomesticMC canadianDomesticMC;
+    private OntarianDomesticMC ontarianDomesticMC;
     private IntModeChoice mcInt;
+
+    //Skims for mode choice
+    private Matrix[] travelTimeMatrix = new Matrix[4];
+    private Matrix[] priceMatrix = new Matrix[4];
+    private Matrix[] transferMatrix = new Matrix[4];
+    private Matrix[] frequencyMatrix = new Matrix[4];
 
 
     //geters and setters
+
+
+    public void setModes(){
+        modesSet.addAll(EnumSet.allOf(Mode.class));
+        modesSet.addAll(EnumSet.allOf(IncrementalMode.class));
+
+    }
 
     public static List<String> getTripPurposes() {
         return tripPurposes;
@@ -128,12 +150,20 @@ public class DataSet {
         return households.get(hhId);
     }
 
-    public DomesticModeChoice getMcDomestic() {
-        return mcDomestic;
+    public CanadianDomesticMC getCanadianDomesticMC() {
+        return canadianDomesticMC;
     }
 
-    public void setMcDomestic(DomesticModeChoice mcDomestic) {
-        this.mcDomestic = mcDomestic;
+    public void setCanadianDomesticMC(CanadianDomesticMC mcDomestic) {
+        this.canadianDomesticMC = mcDomestic;
+    }
+
+    public OntarianDomesticMC getOntarianDomesticMC() {
+        return ontarianDomesticMC;
+    }
+
+    public void setOntarianDomesticMC(OntarianDomesticMC ontarianDomesticMC) {
+        this.ontarianDomesticMC = ontarianDomesticMC;
     }
 
     public DomesticDestinationChoice getDcDomestic() {
@@ -190,5 +220,37 @@ public class DataSet {
 
     public void setDcIntInbound(IntInboundDestinationChoice dcIntInbound) {
         this.dcIntInbound = dcIntInbound;
+    }
+
+    public Matrix[] getTravelTimeMatrix() {
+        return travelTimeMatrix;
+    }
+
+    public void setTravelTimeMatrix(Matrix[] travelTimeMatrix) {
+        this.travelTimeMatrix = travelTimeMatrix;
+    }
+
+    public Matrix[] getPriceMatrix() {
+        return priceMatrix;
+    }
+
+    public void setPriceMatrix(Matrix[] priceMatrix) {
+        this.priceMatrix = priceMatrix;
+    }
+
+    public Matrix[] getTransferMatrix() {
+        return transferMatrix;
+    }
+
+    public void setTransferMatrix(Matrix[] transferMatrix) {
+        this.transferMatrix = transferMatrix;
+    }
+
+    public Matrix[] getFrequencyMatrix() {
+        return frequencyMatrix;
+    }
+
+    public void setFrequencyMatrix(Matrix[] frequencyMatrix) {
+        this.frequencyMatrix = frequencyMatrix;
     }
 }

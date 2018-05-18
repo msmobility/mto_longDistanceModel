@@ -7,10 +7,12 @@ import de.tum.bgu.msm.dataAnalysis.surveyModel.MtoSurveyData;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 
+import de.tum.bgu.msm.longDistance.data.Mode;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 
+import java.util.EnumSet;
 import java.util.ResourceBundle;
 
 /**
@@ -99,6 +101,8 @@ public class Mto {
         String outputFolder = "./output/";
 
         LDModel ldModel = new LDModel();
+
+
 
         ldModel.setup(prop, inputFolder, outputFolder);
         ldModel.load(dataSet);
