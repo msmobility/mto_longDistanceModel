@@ -69,7 +69,7 @@ public class Mto {
 
         if (ResourceUtil.getBooleanProperty(rb, "analyze.survey.data", false)) model.runDataAnalysis();
         //if (ResourceUtil.getBooleanProperty(rb, "run.long.dist.mod", true)) model.runLongDistModel();
-        if (JsonUtilMto.getBooleanProp(prop, "run.full_model")) model.runLongDistModel();
+        //if (JsonUtilMto.getBooleanProp(prop, "run.full_model")) model.runLongDistModel();
 
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);

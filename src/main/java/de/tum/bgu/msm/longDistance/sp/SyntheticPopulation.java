@@ -123,7 +123,7 @@ public class SyntheticPopulation implements ModelComponent {
             int posDdType = Util.findPositionInArray("dtype",header);
 //            int posWrkrs  = util.findPositionInArray("nworkers",header);
 //            int posKids   = util.findPositionInArray("kidspr",header);
-            //todo this line needs to be changed if reading TRESO or Qt
+//            todo this line needs to be changed if reading TRESO or Qt
 //            int posTaz    = Util.findPositionInArray("ID",header); /*is the old sp*/
             int posTaz    = Util.findPositionInArray("Treso_ID",header); /*is the new sp*/
 

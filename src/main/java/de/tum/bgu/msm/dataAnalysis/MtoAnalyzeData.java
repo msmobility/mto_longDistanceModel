@@ -18,7 +18,7 @@ import java.util.ResourceBundle;
  * Class to hold person object of travelers and non-travelers of the TSRC survey
  *
  * @author Rolf Moeckel
- *         Created on 26 Feb. 2016 in Vienna, VA
+ * Created on 26 Feb. 2016 in Vienna, VA
  **/
 
 public class MtoAnalyzeData {
@@ -166,6 +166,22 @@ public class MtoAnalyzeData {
         String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
         String fileName = ResourceUtil.getProperty(rb, "tsrc.out.file");
         PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
+
+        PrintWriter pwBusiness = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + "_business.csv", false);
+        PrintWriter pwLeisure = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + "_leisure.csv", false);
+        PrintWriter pwVisit = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + "_visit.csv", false);
+
+        pwBusiness.println("id,Young,Retired,adultsInHousehold,kidsInHousehold,Female,HighSchool," +
+                "PostSecondary,University,Employed,income2,income3,income4,winter,pWeight,year,month,province," +
+                "weightBusiness,choiceBusiness");
+        pwLeisure.println("id,Young,Retired,adultsInHousehold,kidsInHousehold,Female,HighSchool," +
+                "PostSecondary,University,Employed,income2,income3,income4,winter,pWeight,year,month,province," +
+                "weightLeisure,choiceLeisure");
+        pwVisit.println("id,Young,Retired,adultsInHousehold,kidsInHousehold,Female,HighSchool," +
+                "PostSecondary,University,Employed,income2,income3,income4,winter,pWeight,year,month,province," +
+                "weightVisit,choiceVisit");
+
+
         String[] purposes = {"Holiday", "Visit", "Business", "Other"};
         pw.print("id,year,month,ageGroup,gender,adultsInHousehold,kidsInHousehold,education,laborStatus,province,cma," +
                 "income,expansionFactor,longDistanceTrips,daysAtHome");
@@ -178,9 +194,14 @@ public class MtoAnalyzeData {
             int[] daysInOut = new int[purposes.length];
             int[] daysDayTrip = new int[purposes.length];
             int[] daysAway = new int[purposes.length];
+
             int daysHome = Util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth());
+            int hhAdults = sp.getAdultsInHh();
+
+            daysHome = daysHome * hhAdults;
             // First, count day trips
             for (SurveyTour st : tours) {
+                int travelPartyAdult = st.getHhAdultTravelParty() * (1 + st.getNumberIdenticalTrips());
                 int tripPurp = 0;
                 try {
                     tripPurp = translateTripPurpose(purposes, st.getTripPurp());
@@ -189,42 +210,225 @@ public class MtoAnalyzeData {
                     logger.error(st.getTripPurp());
                 }
                 if (st.getNumberNights() == 0) {
-                    daysDayTrip[tripPurp]++;
-                    daysHome--;
+                    //introduce the correction for daytrips as in TSRC
+                    daysDayTrip[tripPurp] += travelPartyAdult*2;
+                    daysHome -= travelPartyAdult*2;
                 }
             }
-            // Next, add trips with overnight stay, ensuring that noone exceeds 30 days per month
+
+            // Next, add trips with overnight stay, ensuring that none exceeds 30 days per month
             for (SurveyTour st : tours) {
-                int tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                int travelPartyAdult = st.getHhAdultTravelParty() * (1 + st.getNumberIdenticalTrips());
+                int tripPurp = 0;
+                try {
+                    tripPurp = translateTripPurpose(purposes, st.getTripPurp());
+                } catch (Exception e) {
+                    logger.error(st.getTripId()); //+" "+st.tourStops+" "+st.getOrigProvince());
+                    logger.error(st.getTripPurp());
+                }
                 if (st.getNumberNights() > 0) {
                     // Assumption: No trip is recorded for more than 30 days. If trip lasted longer than daysHome left,
                     // only the return trip is counted (as the outbound trip must have happened the previous month)
                     if (daysHome > 0) {
-                        daysInOut[tripPurp]++;                            // return trip
-                        daysHome--;
+                        daysInOut[tripPurp] += travelPartyAdult;                            // return trip
+                        daysHome -= travelPartyAdult;
                     }
-                    daysAway[tripPurp] += Math.min(st.getNumberNights() - 1, daysHome); // days away
-                    daysHome -= Math.min(st.getNumberNights() - 1, daysHome);
+                    daysAway[tripPurp] += Math.min((st.getNumberNights()-1) * travelPartyAdult, daysHome); // days away
+                    daysHome -= Math.min((st.getNumberNights()-1) * travelPartyAdult , daysHome);
                     if (daysHome > 0) {
-                        daysInOut[tripPurp]++;                            // outbound trip
-                        daysHome--;
+                        daysInOut[tripPurp] += travelPartyAdult;                            // outbound trip
+                        daysHome -= travelPartyAdult;
                     }
                 }
             }
             pw.print(sp.getPumfId() + "," + sp.getRefYear() + "," + sp.getRefMonth() + "," + sp.getAgeGroup() + "," + sp.getGender() + "," +
                     sp.getAdultsInHh() + "," + sp.getKidsInHh() + "," + sp.getEducation() + "," + sp.getLaborStat() +
-                     "," + sp.getProv() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
+                    "," + sp.getProv() + "," + sp.getCma() + "," + sp.getHhIncome() + "," + sp.getWeight() + "," +
                     sp.getNumberOfTrips() + "," + daysHome);
-            for (int i = 0; i < purposes.length; i++)
+            for (int i = 0; i < purposes.length; i++) {
                 pw.print("," + daysInOut[i] + "," + daysDayTrip[i] + "," +
                         daysAway[i]);
+            }
+
+
+            //loop to print out data for mlogit estimation
+            if (sp.getHhIncome() != 9) {
+                double personWeight = sp.getWeight()/sp.getAdultsInHh();
+                //daytrips
+                //leisure
+                if (daysDayTrip[0] + daysDayTrip[3] > 0) {
+                    pwLeisure.print(printOutPersonData(sp));
+                    pwLeisure.print(",");
+                    pwLeisure.print(personWeight*(daysDayTrip[0] + daysDayTrip[3]));
+                    pwLeisure.print(",");
+                    pwLeisure.print("daysOnDaytrip" + "Leisure");
+                    pwLeisure.println();
+                }
+                //visit
+                if (daysDayTrip[1] > 0) {
+                    pwVisit.print(printOutPersonData(sp));
+                    pwVisit.print(",");
+                    pwVisit.print(personWeight*(daysDayTrip[1]));
+                    pwVisit.print(",");
+                    pwVisit.print("daysOnDaytrip" + "Visit");
+                    pwVisit.println();
+                }
+                //business
+                if (daysDayTrip[2] > 0) {
+                    pwBusiness.print(printOutPersonData(sp));
+                    pwBusiness.print(",");
+                    pwBusiness.print(personWeight*(daysDayTrip[2]));
+                    pwBusiness.print(",");
+                    pwBusiness.print("daysOnDaytrip" + "Business");
+                    pwBusiness.println();
+                }
+                //away
+                //leisure
+                if (daysAway[0] + daysAway[3] > 0) {
+                    pwLeisure.print(printOutPersonData(sp));
+                    pwLeisure.print(",");
+                    pwLeisure.print(personWeight*(daysAway[0] + daysAway[3]));
+                    pwLeisure.print(",");
+                    pwLeisure.print("daysAway" + "Leisure");
+                    pwLeisure.println();
+                }
+                //visit
+                if (daysAway[1] > 0) {
+                    pwVisit.print(printOutPersonData(sp));
+                    pwVisit.print(",");
+                    pwVisit.print(personWeight*(daysAway[1]));
+                    pwVisit.print(",");
+                    pwVisit.print("daysAway" + "Visit");
+                    pwVisit.println();
+                }
+                //business
+                if (daysAway[2] > 0) {
+                    pwBusiness.print(printOutPersonData(sp));
+                    pwBusiness.print(",");
+                    pwBusiness.print(personWeight*(daysAway[2]));
+                    pwBusiness.print(",");
+                    pwBusiness.print("daysAway" + "Business");
+                    pwBusiness.println();
+                }
+                //inout
+                //leisure
+                if (daysInOut[0] + daysInOut[3] > 0) {
+                    pwLeisure.print(printOutPersonData(sp));
+                    pwLeisure.print(",");
+                    pwLeisure.print(personWeight*(daysInOut[0] + daysInOut[3]));
+                    pwLeisure.print(",");
+                    pwLeisure.print("daysOnInOutboundTravel" + "Leisure");
+                    pwLeisure.println();
+                }
+                //visit
+                if (daysInOut[1] > 0) {
+                    pwVisit.print(printOutPersonData(sp));
+                    pwVisit.print(",");
+                    pwVisit.print(personWeight*(daysInOut[1]));
+                    pwVisit.print(",");
+                    pwVisit.print("daysOnInOutboundTravel" + "Visit");
+                    pwVisit.println();
+                }
+                //business
+                if (daysInOut[2] > 0) {
+                    pwBusiness.print(printOutPersonData(sp));
+                    pwBusiness.print(",");
+                    pwBusiness.print(personWeight*(daysInOut[2]));
+                    pwBusiness.print(",");
+                    pwBusiness.print("daysOnInOutboundTravel" + "Business");
+                    pwBusiness.println();
+                }
+                //days at home
+                //leisure
+                int daysHomeLeisure = Util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth()) * sp.getAdultsInHh() -
+                        daysAway[0] - daysDayTrip[0] - daysInOut[0] - daysAway[3] - daysDayTrip[3] - daysInOut[3];
+                if (daysHomeLeisure > 0) {
+                    pwLeisure.print(printOutPersonData(sp));
+                    pwLeisure.print(",");
+                    pwLeisure.print(personWeight*(daysHomeLeisure));
+                    pwLeisure.print(",");
+                    pwLeisure.print("daysAtHome" + "Leisure");
+                    pwLeisure.println();
+                }
+                //visit
+                int daysHomeVisit = Util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth()) * sp.getAdultsInHh() -
+                        daysAway[1] - daysDayTrip[1] - daysInOut[1];
+                if(daysHomeVisit > 0){
+                    pwVisit.print(printOutPersonData(sp));
+                    pwVisit.print(",");
+                    pwVisit.print(personWeight*(daysHomeVisit));
+                    pwVisit.print(",");
+                    pwVisit.print("daysAtHome" + "Visit");
+                    pwVisit.println();
+                }
+                //business
+                int daysHomeBusiness = Util.getDaysOfMonth(sp.getRefYear(), sp.getRefMonth()) * sp.getAdultsInHh() -
+                        daysAway[2] - daysDayTrip[2] - daysInOut[2];
+                if (daysHomeBusiness > 0){
+                    pwBusiness.print(printOutPersonData(sp));
+                    pwBusiness.print(",");
+                    pwBusiness.print(personWeight*(daysHomeBusiness));
+                    pwBusiness.print(",");
+                    pwBusiness.print("daysAtHome" + "Business");
+                    pwBusiness.println();
+                }
+            }
+
+
             pw.println();
         }
         pw.close();
+
+
+        pwBusiness.close();
+        pwLeisure.close();
+        pwVisit.close();
+    }
+
+    private String printOutPersonData(SurveyPerson sp) {
+
+        sp.getPumfId();
+        int young = sp.getAgeGroup() == 1? 1:0;
+        int retired = sp.getAgeGroup() == 6? 1:0;
+        int female = sp.getGender() == 2? 1:0;
+        int highScool = sp.getEducation() == 2? 1:0;
+        int postSecondary = sp.getEducation() == 3? 1:0;
+        int university = sp.getEducation() == 4? 1:0;
+        int employed = sp.getLaborStat() == 1? 1:0;
+        int income2 = sp.getHhIncome() == 2? 1:0;
+        int income3 = sp.getHhIncome() == 3? 1:0;
+        int income4 = sp.getHhIncome() == 4? 1:0;
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(sp.getPumfId()).append(",");
+        stringBuilder.append(young).append(",");
+        stringBuilder.append(retired).append(",");
+        stringBuilder.append(sp.getAdultsInHh()).append(",");
+        stringBuilder.append(sp.getKidsInHh()).append(",");
+        stringBuilder.append(female).append(",");
+        stringBuilder.append(highScool).append(",");
+        stringBuilder.append(postSecondary).append(",");
+        stringBuilder.append(university).append(",");
+        stringBuilder.append(employed).append(",");
+        stringBuilder.append(income2).append(",");
+        stringBuilder.append(income3).append(",");
+        stringBuilder.append(income4).append(",");
+        if (sp.getRefMonth() < 4 || sp.getRefMonth() > 9){
+            stringBuilder.append(1).append(",");
+        } else {
+            stringBuilder.append(0).append(",");
+        }
+        stringBuilder.append(sp.getWeight()).append(",");
+        stringBuilder.append(sp.getRefYear()).append(",");
+        stringBuilder.append(sp.getRefMonth()).append(",");
+        stringBuilder.append(sp.getProv());
+
+        return stringBuilder.toString();
+
     }
 
 
-    private void writeTripData(){
+    private void writeTripData() {
         // write out travel data for model estimation
         logger.info("Writing out data of trips from TRSC");
         String outputFolder = ResourceUtil.getProperty(rb, "output.folder");
@@ -232,8 +436,8 @@ public class MtoAnalyzeData {
         PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + File.separator + fileName + ".csv", false);
         pw.print(SurveyTour.getHeader());
 
-        for (SurveyPerson person : data.getPersons()){
-            for (SurveyTour tour : person.getTours()){
+        for (SurveyPerson person : data.getPersons()) {
+            for (SurveyTour tour : person.getTours()) {
                 pw.println(tour.toCSV());
             }
         }
@@ -246,14 +450,14 @@ public class MtoAnalyzeData {
     private int translateTripPurpose(String[] purposes, int purp) {
 
         int[] code = new int[8];
-        code[0] = 0;
-        code[1] = 0;
-        code[2] = 1;
-        code[3] = 3;
-        code[4] = 3;
-        code[5] = 3;
-        code[6] = 2;
-        code[7] = 2;
+        code[0] = 0; //undefined
+        code[1] = 0; //leisure or recreation
+        code[2] = 1; //visit
+        code[3] = 3; //shopping
+        code[4] = 3; //personal
+        code[5] = 3; //other personal
+        code[6] = 2; //conference
+        code[7] = 2; //other business
         //logger.info("Translated purpose " + purp + " into code " + code[purp] + " (" + purposes[code[purp]] + ")");
         return code[purp];
     }

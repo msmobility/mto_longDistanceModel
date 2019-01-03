@@ -35,13 +35,13 @@ public class SurveyTour implements Serializable {
     private int tripId;
     private SurveyPerson person;
     private int origCD;
+    private int origCMA;
+    private int destCMA;
     private int destCD;
     private LineString tourGeometry = null;
-
-
-
-
-
+    private int hhAdultTravelParty;
+    private double weightWTEP;
+    private int numberIdenticalTrips;
 
     public SurveyTour(Survey survey, SurveyPerson person, String recString) {
         this.person = person;
@@ -59,7 +59,12 @@ public class SurveyTour implements Serializable {
         this.numberNights = survey.readInt(recString, "CANNITE");  // ascii position in file: 121-123
         this.weight = survey.readDouble(recString, "WTTP");
         this.distance = survey.readInt(recString, "DIST2");
-
+        this.hhAdultTravelParty = survey.readInt(recString, "TR_G08");
+        this.origCMA = survey.readInt(recString,"ORCCMAT2");
+        this.destCMA = survey.readInt(recString, "MDCCMA2");
+        this.weightWTEP = survey.readDouble(recString, "WTEP");
+        this.numberIdenticalTrips = survey.readInt(recString, "TR_D11");
+        numberIdenticalTrips = numberIdenticalTrips > 30? 0 : numberIdenticalTrips;
 
         tourStops = new ArrayList<>();
     }
@@ -145,6 +150,9 @@ public class SurveyTour implements Serializable {
         return distance;
     }
 
+    public int getNumberIdenticalTrips() {
+        return numberIdenticalTrips;
+    }
 
     public LineString generateTourLineString(MtoSurveyData data) {
         //only greate the geometry once, as it's expensive to do. Can't be created at start as we need mtoSurveyData
@@ -158,6 +166,13 @@ public class SurveyTour implements Serializable {
         return tourGeometry;
     }
 
+    public int getHhAdultTravelParty() {
+        return hhAdultTravelParty;
+    }
+
+    public void setHhAdultTravelParty(int hhAdultTravelParty) {
+        this.hhAdultTravelParty = hhAdultTravelParty;
+    }
 
     public String getMainModeStr() {
         switch (mainMode) {
@@ -214,7 +229,12 @@ public class SurveyTour implements Serializable {
                 mainMode +"," +
                 tripPurp +"," +
                 numberNights +"," +
-                weight;
+                weight + "," +
+                hhAdultTravelParty + "," +
+                origCMA + "," +
+                destCMA + "," +
+                weightWTEP + "," +
+                numberIdenticalTrips;
     }
 
     public static String getHeader() {
@@ -229,6 +249,12 @@ public class SurveyTour implements Serializable {
                 "mainMode" +"," +
                 "tripPurp" +"," +
                 "numberNights" +"," +
-                "weight";
+                "weightWTTP" + "," +
+                "hhAdultTravelParty" + "," +
+                "origCMA" + "," +
+                "destCMA" + "," +
+                "weightWTEP" + "," +
+                "identicalTrips" +
+                "\n";
     }
 }
